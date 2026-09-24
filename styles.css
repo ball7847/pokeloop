@@ -1410,3 +1410,17 @@ input{
     height:25px;
   }
 }
+
+
+/* 0.1.9: records single panel */
+.records-single{
+  flex:1 1 auto;
+  min-height:0;
+  display:block;
+}
+
+.records-single > .panel{
+  height:100%;
+  min-height:0;
+  overflow:auto;
+}
