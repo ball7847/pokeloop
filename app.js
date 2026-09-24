@@ -456,7 +456,7 @@
           '<div><span>레벨</span><b>Lv.'+p.level+'</b></div>'+
           '<div><span>경험치</span><b>'+p.exp+' / '+p.expRequired+'</b></div>'+
         '</div>'+
-        '<div class="detail-section"><h3>능력치</h3><div class="pokemon-stat-grid">'+
+        '<div class="detail-section pokemon-section-stats"><h3>능력치</h3><div class="pokemon-stat-grid">'+
           '<div><span>HP</span><b>'+p.hp+'</b></div>'+
           '<div><span>공격</span><b>'+p.atk+'</b></div>'+
           '<div><span>방어</span><b>'+p.def+'</b></div>'+
@@ -464,14 +464,14 @@
           '<div><span>특수방어</span><b>'+p.spdef+'</b></div>'+
           '<div><span>스피드</span><b>'+p.speed+'</b></div>'+
         '</div></div>'+
-        '<div class="detail-section"><h3>특성</h3><div class="profile-value-list">'+abilityHtml+'</div></div>'+
-        '<div class="detail-section"><h3>도구</h3><div class="profile-value-row"><span>장착 도구</span><b>'+itemName+'</b></div></div>'+
-        '<div class="detail-section"><h3>기술</h3><div class="move-slot-list">'+
+        '<div class="detail-section pokemon-section-abilities"><h3>특성</h3><div class="profile-value-list">'+abilityHtml+'</div></div>'+
+        '<div class="detail-section pokemon-section-item"><h3>도구</h3><div class="profile-value-row"><span>장착 도구</span><b>'+itemName+'</b></div></div>'+
+        '<div class="detail-section pokemon-section-moves"><h3>기술</h3><div class="move-slot-list">'+
           '<div class="move-slot"><span>속공</span><b>'+escapeHtml(p.quick)+'</b></div>'+
           '<div class="move-slot"><span>강공 1</span><b>'+escapeHtml(p.strong1||"없음")+'</b></div>'+
           '<div class="move-slot"><span>강공 2</span><b>'+escapeHtml(p.strong2||"없음")+'</b></div>'+
         '</div></div>'+
-        '<div class="detail-section"><h3>현재 상태</h3><div class="current-status">'+status+'</div></div>'+
+        '<div class="detail-section pokemon-section-status"><h3>현재 상태</h3><div class="current-status">'+status+'</div></div>'+
       '</div>';
 
     $("#nicknameBtn").onclick=()=>openNicknameModal(p.id);
