@@ -909,3 +909,304 @@ html,body,.app-shell,.app-body,.game-area,.view{
     grid-template-columns:minmax(200px,34vw) minmax(0,1fr);
   }
 }
+
+
+/* 0.1.7: Pokemon 1:1 layout, detailed profile, font size presets */
+#view-pokemon .master-detail-layout{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+}
+
+#view-pokemon .collection-panel,
+#view-pokemon .detail-panel{
+  min-width:0;
+  width:100%;
+}
+
+.pokemon-profile{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+
+.pokemon-profile-head{
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+}
+
+.pokemon-profile-title{
+  min-width:0;
+}
+
+.pokemon-profile-title>div{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.pokemon-profile-title h2{
+  margin:0;
+  font-size:20px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.pokemon-profile-title p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.4;
+}
+
+.tier-badge{
+  flex:0 0 auto;
+  padding:3px 6px;
+  border:1px solid #9a9a95;
+  background:#e8e8e4;
+  color:#3d3e3e;
+  font-size:9px;
+  font-weight:800;
+}
+
+.nickname-button{
+  padding:7px 9px;
+  border:1px solid #8d8e89;
+  background:#ecece8;
+  color:#3c3d3d;
+  white-space:nowrap;
+}
+
+.nickname-button:hover{
+  background:#e2e2de;
+}
+
+.profile-info-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+  margin-top:14px;
+}
+
+.profile-info-grid>div,
+.pokemon-stat-grid>div{
+  padding:8px;
+  border:1px solid #b8b8b3;
+  background:#f3f3ef;
+  min-width:0;
+}
+
+.profile-info-grid span,
+.profile-info-grid b,
+.pokemon-stat-grid span,
+.pokemon-stat-grid b{
+  display:block;
+}
+
+.profile-info-grid span,
+.pokemon-stat-grid span{
+  color:#747572;
+  font-size:8px;
+}
+
+.profile-info-grid b,
+.pokemon-stat-grid b{
+  margin-top:3px;
+  color:#303132;
+  font-size:11px;
+  overflow-wrap:anywhere;
+}
+
+.pokemon-stat-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+}
+
+.profile-columns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.profile-value-list,
+.move-slot-list{
+  display:grid;
+  gap:5px;
+}
+
+.profile-value-row,
+.move-slot{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:8px 9px;
+  border:1px solid #b8b8b3;
+  background:#f3f3ef;
+}
+
+.profile-value-row span,
+.move-slot span{
+  color:#747572;
+  font-size:9px;
+}
+
+.profile-value-row b,
+.move-slot b{
+  color:#303132;
+  font-size:10px;
+  text-align:right;
+}
+
+.current-status{
+  padding:9px 10px;
+  border:1px solid #aeb4af;
+  background:#eef1ed;
+  color:#3d5047;
+  font-size:10px;
+  font-weight:700;
+}
+
+.size-options{
+  display:flex;
+  border:1px solid #a5a5a0;
+  background:#eeeeea;
+}
+
+.size-options button{
+  min-width:42px;
+  padding:7px 9px;
+  border:0;
+  border-right:1px solid #b7b7b2;
+  background:#eeeeea;
+  color:#666765;
+  font-weight:700;
+}
+
+.size-options button:last-child{
+  border-right:0;
+}
+
+.size-options button.active{
+  background:#343638;
+  color:#f2f2ef;
+}
+
+/* Font-size presets. M is the default. */
+html[data-font-size="S"]{
+  --ui-body-size:12px;
+  --ui-small-size:8px;
+  --ui-label-size:9px;
+  --ui-title-size:22px;
+  --ui-section-size:10px;
+}
+
+html[data-font-size="M"]{
+  --ui-body-size:14px;
+  --ui-small-size:9px;
+  --ui-label-size:10px;
+  --ui-title-size:25px;
+  --ui-section-size:11px;
+}
+
+html[data-font-size="L"]{
+  --ui-body-size:16px;
+  --ui-small-size:10px;
+  --ui-label-size:11px;
+  --ui-title-size:28px;
+  --ui-section-size:12px;
+}
+
+html[data-font-size="XL"]{
+  --ui-body-size:18px;
+  --ui-small-size:11px;
+  --ui-label-size:12px;
+  --ui-title-size:31px;
+  --ui-section-size:13px;
+}
+
+body{
+  font-size:var(--ui-body-size,14px);
+}
+
+.nav-main,
+button,
+select,
+input{
+  font-size:inherit;
+}
+
+.page-header h1{
+  font-size:var(--ui-title-size,25px) !important;
+}
+
+.page-header p,
+.soup-pot p,
+.list-row p,
+.detail-title p,
+.detail-section p,
+.pokemon-profile-title p{
+  font-size:var(--ui-small-size,9px) !important;
+}
+
+.eyebrow,
+.panel-kicker,
+.nav-sub,
+.icon-card small,
+.pokemon-card small,
+.profile-info-grid span,
+.pokemon-stat-grid span,
+.profile-value-row span,
+.move-slot span{
+  font-size:var(--ui-small-size,9px) !important;
+}
+
+.panel-head h2,
+.detail-section h3,
+.section-label{
+  font-size:var(--ui-section-size,11px) !important;
+}
+
+.icon-card strong,
+.pokemon-card strong,
+.list-row h3,
+.profile-info-grid b,
+.pokemon-stat-grid b,
+.profile-value-row b,
+.move-slot b,
+.current-status{
+  font-size:var(--ui-label-size,10px) !important;
+}
+
+@media(max-width:960px){
+  #view-pokemon .master-detail-layout{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  }
+
+  .pokemon-profile-head{
+    grid-template-columns:58px minmax(0,1fr) auto;
+    gap:8px;
+  }
+
+  .pokemon-profile-head .detail-icon{
+    width:58px;
+    height:58px;
+  }
+
+  .profile-info-grid,
+  .pokemon-stat-grid{
+    gap:4px;
+  }
+
+  .profile-info-grid>div,
+  .pokemon-stat-grid>div{
+    padding:6px;
+  }
+
+  .profile-columns{
+    gap:6px;
+  }
+}
