@@ -413,7 +413,7 @@ body{
 }
 
 .page-header p{
-  font-size:clamp(9px,.72vw,11px);
+  font-size:clamp(10px,.72vw,11px);
 }
 
 .two-column,
