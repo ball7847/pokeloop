@@ -37,7 +37,7 @@
       selectedRegionParty: [],
       selectedDexPokemon: null,
       storageFilter: "all",
-      settings: { compactNumbers:false, autosave:true, battleLog:true },
+      settings: { fontSize:"M", compactNumbers:false, autosave:true, battleLog:true },
       stats: {
         saveCreatedAt: Date.now(),
         totalExplorationSteps: 0,
@@ -49,11 +49,34 @@
     };
   }
 
+  function normalizePokemonData(p){
+    const level=Number(p.level)||1;
+    return {
+      ...p,
+      nickname:typeof p.nickname==="string"?p.nickname:"",
+      tier:Number(p.tier)||1,
+      nature:p.nature||"온순",
+      gender:p.gender||"미상",
+      exp:Number.isFinite(Number(p.exp))?Number(p.exp):0,
+      expRequired:Number(p.expRequired)||Math.max(40,level*20),
+      hp:Number(p.hp)||1,
+      atk:Number(p.atk)||1,
+      def:Number(p.def)||1,
+      spatk:Number(p.spatk)||Number(p.atk)||1,
+      spdef:Number(p.spdef)||Number(p.def)||1,
+      speed:Number(p.speed)||10,
+      abilities:Array.isArray(p.abilities)?p.abilities.slice(0,2):[],
+      quick:p.quick||"없음",
+      strong1:p.strong1||p.strong||null,
+      strong2:p.strong2||null
+    };
+  }
+
   function loadState() {
     const fresh = createInitialState();
     try {
       const raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) return fresh;
+      if (!raw) { fresh.pokemon=fresh.pokemon.map(normalizePokemonData); return fresh; }
       const saved = JSON.parse(raw);
       const loaded = {
         ...fresh,
@@ -64,7 +87,7 @@
         merchant:{...fresh.merchant,...(saved.merchant||{})},
         depthDaily:{...fresh.depthDaily,...(saved.depthDaily||{})},
         items:Array.isArray(saved.items)?saved.items:fresh.items,
-        pokemon:Array.isArray(saved.pokemon)?saved.pokemon:fresh.pokemon,
+        pokemon:(Array.isArray(saved.pokemon)?saved.pokemon:fresh.pokemon).map(normalizePokemonData),
         craftQueue:Array.isArray(saved.craftQueue)?saved.craftQueue:[],
         logs:Array.isArray(saved.logs)?saved.logs:[],
         expeditions:saved.expeditions||{},
@@ -363,17 +386,88 @@
     return true;
   }
 
+  function displayPokemonName(p){
+    return p.nickname&&p.nickname.trim()?p.nickname.trim():p.name;
+  }
+
   function renderPokemon(){
     $("#pokemonGrid").innerHTML=state.pokemon.map(p=>{
       const exp=expeditionForPokemon(p.id);
-      return '<button class="pokemon-card '+(state.selectedPokemon===p.id?"active":"")+'" data-pokemon="'+p.id+'"><div class="pokemon-icon">'+(p.icon||"PK")+'</div><strong>'+p.name+'</strong><small>Lv.'+p.level+' · '+p.type.join("/")+(exp?" · 탐험 중":"")+'</small></button>';
+      const displayName=displayPokemonName(p);
+      return '<button class="pokemon-card '+(state.selectedPokemon===p.id?"active":"")+'" data-pokemon="'+p.id+'"><div class="pokemon-icon">'+(p.icon||"PK")+'</div><strong>'+displayName+'</strong><small>'+p.tier+'T · Lv.'+p.level+' · '+p.type.join("/")+(exp?" · 탐험 중":"")+'</small></button>';
     }).join("");
-    $$(".pokemon-card").forEach(btn=>btn.onclick=()=>{state.selectedPokemon=btn.dataset.pokemon;renderPokemon();});
+
+    $$(".pokemon-card").forEach(btn=>btn.onclick=()=>{
+      state.selectedPokemon=btn.dataset.pokemon;
+      renderPokemon();
+    });
 
     const p=pokemonById(state.selectedPokemon),detail=$("#pokemonDetail");
-    if(!p){detail.innerHTML='<div class="empty-state">포켓몬을 선택하세요.</div>';return;}
+    if(!p){
+      detail.innerHTML='<div class="empty-state">포켓몬을 선택하세요.</div>';
+      return;
+    }
+
     const exp=expeditionForPokemon(p.id);
-    detail.innerHTML='<div class="detail-title"><div class="detail-icon">'+(p.icon||"PK")+'</div><div><h2>'+p.name+'</h2><p>Lv.'+p.level+' · '+p.type.join(" / ")+'</p></div></div><div class="detail-section"><h3>능력치</h3><div class="detail-stats"><div><span>HP</span><b>'+p.hp+'</b></div><div><span>공격</span><b>'+p.atk+'</b></div><div><span>방어</span><b>'+p.def+'</b></div></div></div><div class="detail-section"><h3>기술</h3><p>속공 · '+p.quick+'<br>강공 · '+p.strong+'</p></div><div class="detail-section"><h3>도구</h3><p>'+(p.item?(baseItemById(p.item)?.name||p.item):"장착 없음")+'</p></div><div class="detail-section"><h3>상태</h3><p>'+(exp?regionById(exp.regionId).name+" 탐험 중":"캠프 대기 중")+'</p></div>';
+    const displayName=displayPokemonName(p);
+    const abilityHtml=p.abilities.length
+      ? p.abilities.map((a,i)=>'<div class="profile-value-row"><span>특성 '+(i+1)+'</span><b>'+a+'</b></div>').join("")
+      : '<div class="profile-value-row"><span>특성</span><b>없음</b></div>';
+    const itemName=p.item?(baseItemById(p.item)?.name||p.item):"장착 없음";
+    const status=exp?regionById(exp.regionId).name+" 탐험 중":"캠프 대기 중";
+
+    detail.innerHTML=
+      '<div class="pokemon-profile">'+
+        '<div class="pokemon-profile-head">'+
+          '<div class="detail-icon">'+(p.icon||"PK")+'</div>'+
+          '<div class="pokemon-profile-title"><div><span class="tier-badge">'+p.tier+'T</span><h2>'+displayName+'</h2></div><p>포켓몬 이름 · '+p.name+(p.nickname?' / 별명 · '+p.nickname:'')+'</p></div>'+
+          '<button class="nickname-button" id="nicknameBtn" type="button">별명 설정</button>'+
+        '</div>'+
+        '<div class="profile-info-grid">'+
+          '<div><span>포켓몬 이름</span><b>'+displayName+'</b></div>'+
+          '<div><span>성격</span><b>'+p.nature+'</b></div>'+
+          '<div><span>성별</span><b>'+p.gender+'</b></div>'+
+          '<div><span>레벨</span><b>Lv.'+p.level+'</b></div>'+
+          '<div><span>경험치</span><b>'+p.exp+' / '+p.expRequired+'</b></div>'+
+          '<div><span>타입</span><b>'+p.type.join(" / ")+'</b></div>'+
+        '</div>'+
+        '<div class="detail-section"><h3>능력치</h3><div class="pokemon-stat-grid">'+
+          '<div><span>HP</span><b>'+p.hp+'</b></div>'+
+          '<div><span>공격</span><b>'+p.atk+'</b></div>'+
+          '<div><span>방어</span><b>'+p.def+'</b></div>'+
+          '<div><span>특수공격</span><b>'+p.spatk+'</b></div>'+
+          '<div><span>특수방어</span><b>'+p.spdef+'</b></div>'+
+          '<div><span>스피드</span><b>'+p.speed+'</b></div>'+
+        '</div></div>'+
+        '<div class="profile-columns">'+
+          '<div class="detail-section"><h3>특성</h3><div class="profile-value-list">'+abilityHtml+'</div></div>'+
+          '<div class="detail-section"><h3>도구</h3><div class="profile-value-row"><span>장착 도구</span><b>'+itemName+'</b></div></div>'+
+        '</div>'+
+        '<div class="detail-section"><h3>기술</h3><div class="move-slot-list">'+
+          '<div class="move-slot"><span>속공</span><b>'+p.quick+'</b></div>'+
+          '<div class="move-slot"><span>강공 1</span><b>'+(p.strong1||"없음")+'</b></div>'+
+          '<div class="move-slot"><span>강공 2</span><b>'+(p.strong2||"없음")+'</b></div>'+
+        '</div></div>'+
+        '<div class="detail-section"><h3>현재 상태</h3><div class="current-status">'+status+'</div></div>'+
+      '</div>';
+
+    $("#nicknameBtn").onclick=()=>setPokemonNickname(p.id);
+  }
+
+  function setPokemonNickname(pokemonId){
+    const p=pokemonById(pokemonId);
+    if(!p)return;
+    const current=p.nickname||"";
+    const input=window.prompt("별명을 입력하세요. (최대 12글자)\n빈칸으로 저장하면 원래 이름으로 되돌아갑니다.",current);
+    if(input===null)return;
+    const nickname=input.trim();
+    if(nickname.length>12){
+      toast("별명은 최대 12글자까지 설정할 수 있습니다.");
+      return;
+    }
+    p.nickname=nickname;
+    log("포켓몬",p.name+"의 별명을 "+(nickname?nickname:"원래 이름")+"(으)로 설정했습니다.");
+    renderPokemon();
   }
 
   function renderRegions(){
@@ -473,7 +567,7 @@
     $("#pokemonDexGrid").innerHTML=DATA.pokemon.map(p=>'<button class="pokemon-card '+(state.selectedDexPokemon===p.id?"active":"")+'" data-dex-pokemon="'+p.id+'"><div class="pokemon-icon">'+p.icon+'</div><strong>'+p.name+'</strong><small>'+p.type.join("/")+'</small></button>').join("");
     $$("[data-dex-pokemon]").forEach(btn=>btn.onclick=()=>{state.selectedDexPokemon=btn.dataset.dexPokemon;renderDexes();});
     const p=DATA.pokemon.find(x=>x.id===state.selectedDexPokemon);
-    $("#pokemonDexDetail").innerHTML=p?'<div class="detail-title"><div class="detail-icon">'+p.icon+'</div><div><h2>'+p.name+'</h2><p>'+p.type.join(" / ")+'</p></div></div><div class="detail-section"><h3>기본 데이터</h3><div class="detail-stats"><div><span>HP</span><b>'+p.hp+'</b></div><div><span>공격</span><b>'+p.atk+'</b></div><div><span>방어</span><b>'+p.def+'</b></div></div></div><div class="detail-section"><h3>기술</h3><p>'+p.quick+' / '+p.strong+'</p></div>':'<div class="empty-state">포켓몬을 선택하세요.</div>';
+    $("#pokemonDexDetail").innerHTML=p?'<div class="detail-title"><div class="detail-icon">'+p.icon+'</div><div><h2>'+p.name+'</h2><p>'+p.type.join(" / ")+'</p></div></div><div class="detail-section"><h3>기본 데이터</h3><div class="detail-stats"><div><span>HP</span><b>'+p.hp+'</b></div><div><span>공격</span><b>'+p.atk+'</b></div><div><span>방어</span><b>'+p.def+'</b></div></div></div><div class="detail-section"><h3>기술</h3><p>'+p.quick+' / '+(p.strong1||p.strong||"없음")+'</p></div>':'<div class="empty-state">포켓몬을 선택하세요.</div>';
     $("#moveDexList").innerHTML='<div class="table-row header"><span>ID</span><span>기술</span><span>구분</span><span>효과</span></div>'+DATA.moves.map(m=>'<div class="table-row"><span>'+m.id+'</span><span>'+m.name+'</span><span>'+m.kind+' · '+m.type+'</span><span>'+m.description+'</span></div>').join("");
     $("#explorationDexList").innerHTML='<div class="table-row header"><span>지역</span><span>난이도</span><span>권장</span><span>정보</span></div>'+DATA.regions.map(r=>'<div class="table-row"><span>'+r.name+'</span><span>'+r.difficulty+'</span><span>'+r.recommended+'</span><span>'+r.encounters.join(", ")+' / '+r.drops.join(", ")+'</span></div>').join("");
     $("#itemDexList").innerHTML='<div class="table-row header"><span>아이템</span><span>분류</span><span>기준가</span><span>설명</span></div>'+DATA.items.map(i=>'<div class="table-row"><span>'+i.name+'</span><span>'+categoryName(i.category)+'</span><span>'+i.price+' P</span><span>'+i.description+'</span></div>').join("");
@@ -502,7 +596,15 @@
     a.href=url;a.download="pokeloop-save-"+dateKey()+".json";a.click();URL.revokeObjectURL(url);toast("세이브 데이터를 내보냈습니다.");
   }
 
+  function applyFontSize(){
+    const size=["S","M","L","XL"].includes(state.settings.fontSize)?state.settings.fontSize:"M";
+    state.settings.fontSize=size;
+    document.documentElement.dataset.fontSize=size;
+    $$("#fontSizeControl button").forEach(btn=>btn.classList.toggle("active",btn.dataset.fontSize===size));
+  }
+
   function renderSettings(){
+    applyFontSize();
     $("#compactNumbersToggle").checked=state.settings.compactNumbers;
     $("#autosaveToggle").checked=state.settings.autosave;
     $("#battleLogToggle").checked=state.settings.battleLog;
@@ -542,6 +644,12 @@
       state.storageFilter=btn.dataset.filter;
       $$("#storageFilter button").forEach(b=>b.classList.toggle("active",b===btn));
       renderStorage();
+    });
+
+    $("#fontSizeControl button").forEach(btn=>btn.onclick=()=>{
+      state.settings.fontSize=btn.dataset.fontSize;
+      applyFontSize();
+      toast("글자 크기를 "+btn.dataset.fontSize+"로 변경했습니다.");
     });
 
     $("#saveNowBtn").onclick=()=>save(true);
