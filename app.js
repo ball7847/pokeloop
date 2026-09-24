@@ -138,8 +138,10 @@ function resolveTurn(exp){
 }
 function renderResources(){
  $("#coin").textContent=state.resources.coin;$("#food").textContent=state.resources.food;$("#wood").textContent=state.resources.wood;$("#stone").textContent=state.resources.stone;
- $("#activeExpeditionCount").textContent=Object.keys(state.expeditions).length;
- $("#areaRunningBadge").textContent=Object.keys(state.expeditions).length+" RUNNING";
+ const runningCount=Object.keys(state.expeditions).length;
+ $("#activeExpeditionCount").textContent=runningCount;
+ $("#areaRunningBadge").textContent=runningCount+" RUNNING";
+ const rtc=$("#runningTabCount"); if(rtc) rtc.textContent=runningCount;
 }
 function renderAreas(){
  const selected=state.selectedArea;
@@ -186,12 +188,12 @@ function renderExpeditions(){
  const exps=Object.values(state.expeditions);
  $("#expeditionCards").innerHTML=exps.length?exps.map(exp=>{
   const a=areaBy(exp.areaId), enemies=aliveEnemies(exp);
-  return '<article class="panel exp-card"><div class="exp-card-top"><div><small>ACTIVE EXPEDITION</small><h2>'+a.name+'</h2></div><button class="ui-btn tiny exp-return" data-area="'+a.id+'">귀환</button></div>'+
+  return '<article class="surface exp-card"><div class="exp-card-top"><div><small>ACTIVE EXPEDITION</small><h2>'+a.name+'</h2></div><button class="inline-button exp-return" data-area="'+a.id+'">귀환</button></div>'+
   '<div class="exp-stats"><div><span>구역</span><b>'+exp.room+'</b></div><div><span>승리</span><b>'+exp.wins+'</b></div><div><span>코인</span><b>'+exp.coins+'</b></div></div>'+
   '<div class="exp-party">'+exp.party.map(memberHtml).join("")+'</div>'+
   '<div class="exp-enemies">'+(enemies.length?enemies.map(e=>'<div class="enemy-chip"><strong>'+e.name+'</strong><small>HP '+e.hp+' / '+e.maxHp+'</small><div class="bar hp"><i style="width:'+(e.hp/e.maxHp*100)+'%"></i></div></div>').join(""):'<div class="selected-expedition-summary">다음 구역 탐색 중</div>')+'</div>'+
   '<div class="exp-actions"><span class="timer">'+(exp.remaining/1000).toFixed(1)+'초</span><div class="speed-mini">'+[1,1.5,2,3].map(s=>'<button class="'+(exp.speed===s?"active":"")+'" data-area="'+a.id+'" data-speed="'+s+'">'+s+'x</button>').join("")+'</div></div></article>';
- }).join(""):'<div class="panel placeholder">진행 중인 원정이 없습니다.</div>';
+ }).join(""):'<div class="surface placeholder">진행 중인 원정이 없습니다.</div>';
  $$(".exp-return").forEach(b=>b.onclick=()=>returnExpedition(b.dataset.area,false));
  $$(".speed-mini button").forEach(b=>b.onclick=()=>{const exp=state.expeditions[b.dataset.area];if(exp){exp.speed=Number(b.dataset.speed);renderExpeditions();}});
 }
@@ -237,7 +239,7 @@ function render(){
  $("#expAreasPanel").classList.toggle("hidden",state.expSubtab!=="areas");$("#expRunningPanel").classList.toggle("hidden",state.expSubtab!=="running");
 }
 function bind(){
- $$(".nav").forEach(b=>b.onclick=()=>{$$(".nav").forEach(x=>x.classList.remove("active"));$$(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#view-"+b.dataset.view).classList.add("active");});
+ $(".nav").forEach(b=>b.onclick=()=>{$(".nav").forEach(x=>x.classList.remove("active"));$(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#view-"+b.dataset.view).classList.add("active");const titleMap={expedition:"탐험",pokemon:"포켓몬",items:"창고",town:"마을",dex:"도감"};const st=$("#screenTitle");if(st)st.textContent=titleMap[b.dataset.view]||"PokeLoop";});
  $$("#view-expedition .subtab").forEach(b=>b.onclick=()=>{state.expSubtab=b.dataset.expSubtab;$$("[data-exp-subtab]").forEach(x=>x.classList.toggle("active",x===b));render();});
  $$("#view-pokemon .subtab").forEach(b=>b.onclick=()=>{state.pokeFilter=b.dataset.pokeSubtab;$$("[data-poke-subtab]").forEach(x=>x.classList.toggle("active",x===b));renderPokemonGrid();});
  $$("#view-items .subtab").forEach(b=>b.onclick=()=>{state.itemFilter=b.dataset.itemFilter;$$("[data-item-filter]").forEach(x=>x.classList.toggle("active",x===b));renderItems();});
