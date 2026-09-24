@@ -139,15 +139,21 @@
   }
 
   function switchView(viewName){
-    $$(".view").forEach(v=>v.classList.remove("active"));
+    $(".view").forEach(v=>v.classList.remove("active"));
     const target=$("#view-"+viewName);
     if(target)target.classList.add("active");
-    $$(".nav-sub").forEach(b=>b.classList.toggle("active",b.dataset.view===viewName));
-    const directMain=document.querySelector('.nav-main[data-view="'+viewName+'"]');
-    if(directMain){
-      $$(".nav-main").forEach(b=>b.classList.remove("active"));
-      directMain.classList.add("active");
-    }
+
+    const groupMap={
+      soup:"camp",storage:"camp",craft:"camp",merchant:"camp",
+      pokemon:"pokemon",
+      regions:"exploration",depths:"exploration",
+      pokemonDex:"dex",moveDex:"dex",explorationDex:"dex",itemDex:"dex",
+      records:"settings",system:"settings"
+    };
+    const groupName=groupMap[viewName];
+    $(".nav-main").forEach(b=>b.classList.toggle("active",b.dataset.main===groupName));
+    $(".subnav").forEach(s=>s.classList.toggle("open",s.closest(".nav-group")?.dataset.group===groupName&&groupName!=="pokemon"));
+    $(".nav-sub").forEach(b=>b.classList.toggle("active",b.dataset.view===viewName));
     renderAll();
   }
 
@@ -155,6 +161,7 @@
     const group=mainButton.closest(".nav-group");
     const sub=group.querySelector(".subnav");
     if(!sub){
+      $(".subnav").forEach(s=>s.classList.remove("open"));
       if(mainButton.dataset.view)switchView(mainButton.dataset.view);
       return;
     }
