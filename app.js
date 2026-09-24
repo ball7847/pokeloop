@@ -166,8 +166,8 @@
       return;
     }
     const open=!sub.classList.contains("open");
-    $(".subnav").forEach(s=>s.classList.remove("open"));
-    $(".nav-main").forEach(b=>b.classList.remove("active"));
+    $$(".subnav").forEach(s=>s.classList.remove("open"));
+    $$(".nav-main").forEach(b=>b.classList.remove("active"));
     if(open)sub.classList.add("open");
     mainButton.classList.add("active");
   }
@@ -212,7 +212,7 @@
       $("#dismissVisitorBtn").onclick=dismissVisitor;
     }
 
-    $(".berry-button").forEach(btn=>btn.onclick=()=>{state.selectedBerry=btn.dataset.berry;renderSoup();});
+    $$(".berry-button").forEach(btn=>btn.onclick=()=>{state.selectedBerry=btn.dataset.berry;renderSoup();});
   }
 
   function cookSoup(){
@@ -254,7 +254,7 @@
   function renderStorage(){
     const list=state.items.filter(i=>state.storageFilter==="all"||i.category===state.storageFilter);
     $("#storageGrid").innerHTML=list.map(item=>'<button class="icon-card '+(state.selectedStorageItem===item.id?"active":"")+'" data-item="'+item.id+'"><div class="item-icon">'+item.icon+'</div><span class="count-badge">×'+item.count+'</span><strong>'+item.name+'</strong><small>'+categoryName(item.category)+'</small></button>').join("");
-    $(".icon-card[data-item]").forEach(btn=>btn.onclick=()=>{state.selectedStorageItem=btn.dataset.item;renderStorage();});
+    $$(".icon-card[data-item]").forEach(btn=>btn.onclick=()=>{state.selectedStorageItem=btn.dataset.item;renderStorage();});
 
     const detail=$("#storageDetail"),item=itemById(state.selectedStorageItem);
     if(!item){detail.innerHTML='<div class="empty-state">아이템을 선택하세요.</div>';return;}
@@ -273,7 +273,7 @@
       const mats=recipe.ingredients.map(x=>(baseItemById(x.item)?.name||x.item)+" "+x.amount+"개").join(" · ");
       return '<div class="list-row"><div><h3>'+recipe.name+'</h3><p>'+mats+' / '+recipe.seconds+'초</p></div><aside><span>'+recipe.description+'</span><button data-recipe="'+recipe.id+'" '+(can?"":"disabled")+'>제작</button></aside></div>';
     }).join("");
-    $("#recipeList [data-recipe]").forEach(btn=>btn.onclick=()=>startCraft(btn.dataset.recipe));
+    $$("#recipeList [data-recipe]").forEach(btn=>btn.onclick=()=>startCraft(btn.dataset.recipe));
 
     $("#craftQueue").innerHTML=state.craftQueue.length?state.craftQueue.map(job=>{
       const recipe=DATA.recipes.find(r=>r.id===job.recipeId);
@@ -330,8 +330,8 @@
       return '<div class="list-row"><div><h3>'+item.name+'</h3><p>보유 '+item.count+'개</p></div><aside><b>'+sell+' P</b><button data-sell="'+item.id+'">1개 판매</button></aside></div>';
     }).join("");
 
-    $("[data-buy]").forEach(btn=>btn.onclick=()=>buyItem(btn.dataset.buy));
-    $("[data-sell]").forEach(btn=>btn.onclick=()=>sellItem(btn.dataset.sell));
+    $$("[data-buy]").forEach(btn=>btn.onclick=()=>buyItem(btn.dataset.buy));
+    $$("[data-sell]").forEach(btn=>btn.onclick=()=>sellItem(btn.dataset.sell));
   }
 
   function buyItem(id){
@@ -368,7 +368,7 @@
       const exp=expeditionForPokemon(p.id);
       return '<button class="pokemon-card '+(state.selectedPokemon===p.id?"active":"")+'" data-pokemon="'+p.id+'"><div class="pokemon-icon">'+(p.icon||"PK")+'</div><strong>'+p.name+'</strong><small>Lv.'+p.level+' · '+p.type.join("/")+(exp?" · 탐험 중":"")+'</small></button>';
     }).join("");
-    $(".pokemon-card").forEach(btn=>btn.onclick=()=>{state.selectedPokemon=btn.dataset.pokemon;renderPokemon();});
+    $$(".pokemon-card").forEach(btn=>btn.onclick=()=>{state.selectedPokemon=btn.dataset.pokemon;renderPokemon();});
 
     const p=pokemonById(state.selectedPokemon),detail=$("#pokemonDetail");
     if(!p){detail.innerHTML='<div class="empty-state">포켓몬을 선택하세요.</div>';return;}
@@ -381,7 +381,7 @@
       const exp=state.expeditions[region.id];
       return '<button class="region-card '+(state.selectedRegion===region.id?"active":"")+' '+(exp?"running":"")+'" data-region="'+region.id+'"><strong>'+region.name+'</strong><p>'+region.description+'</p><div class="region-meta"><span>'+region.difficulty+'</span><span>'+region.recommended+'</span>'+(exp?"<span>탐험 중</span>":"")+'</div></button>';
     }).join("");
-    $(".region-card").forEach(btn=>btn.onclick=()=>{state.selectedRegion=btn.dataset.region;state.selectedRegionParty=[];renderRegions();});
+    $$(".region-card").forEach(btn=>btn.onclick=()=>{state.selectedRegion=btn.dataset.region;state.selectedRegionParty=[];renderRegions();});
     renderRegionDetail();
   }
 
@@ -396,7 +396,7 @@
     }
     const available=state.pokemon.filter(p=>!expeditionForPokemon(p.id));
     detail.innerHTML='<div class="detail-title"><div class="detail-icon">◆</div><div><h2>'+region.name+'</h2><p>'+region.difficulty+' · 권장 '+region.recommended+'</p></div></div><div class="detail-section"><h3>지역 정보</h3><p>'+region.description+'</p></div><div class="detail-section"><h3>출현 포켓몬</h3><p>'+region.encounters.join(" · ")+'</p></div><div class="detail-section"><h3>주요 획득물</h3><p>'+region.drops.join(" · ")+'</p></div><div class="detail-section"><h3>탐험대 편성 · '+state.selectedRegionParty.length+'/3</h3><div class="region-party-picker">'+available.map(p=>'<button class="region-party-option '+(state.selectedRegionParty.includes(p.id)?"active":"")+'" data-party="'+p.id+'"><strong>'+p.name+'</strong><small>Lv.'+p.level+'</small></button>').join("")+'</div></div><div class="detail-actions"><button id="startExpeditionBtn" '+(state.selectedRegionParty.length<1?"disabled":"")+'>탐험 시작</button></div>';
-    $("[data-party]").forEach(btn=>btn.onclick=()=>{
+    $$("[data-party]").forEach(btn=>btn.onclick=()=>{
       const id=btn.dataset.party,index=state.selectedRegionParty.indexOf(id);
       if(index>=0)state.selectedRegionParty.splice(index,1);else if(state.selectedRegionParty.length<3)state.selectedRegionParty.push(id);
       renderRegionDetail();
@@ -456,7 +456,7 @@
       const progress=state.regionProgress[depth.region]||0,unlocked=progress>=depth.requirement,cleared=!!state.depthDaily.cleared[depth.id];
       return '<article class="depth-card '+(unlocked?"":"locked")+'"><h2>'+depth.name+'</h2><p>'+depth.description+'</p><div class="depth-meta"><div><span>보스</span><b>'+depth.boss+'</b></div><div><span>해금</span><b>'+progress+' / '+depth.requirement+' 구역</b></div><div><span>보상</span><b>'+depth.reward+'</b></div><div><span>오늘</span><b>'+(cleared?"클리어 완료":"도전 가능")+'</b></div></div><button data-depth="'+depth.id+'" '+(!unlocked||cleared?"disabled":"")+'>'+(cleared?"오늘 클리어 완료":unlocked?"도전":"잠김")+'</button></article>';
     }).join("");
-    $("[data-depth]").forEach(btn=>btn.onclick=()=>clearDepth(btn.dataset.depth));
+    $$("[data-depth]").forEach(btn=>btn.onclick=()=>clearDepth(btn.dataset.depth));
   }
 
   function clearDepth(id){
@@ -471,7 +471,7 @@
 
   function renderDexes(){
     $("#pokemonDexGrid").innerHTML=DATA.pokemon.map(p=>'<button class="pokemon-card '+(state.selectedDexPokemon===p.id?"active":"")+'" data-dex-pokemon="'+p.id+'"><div class="pokemon-icon">'+p.icon+'</div><strong>'+p.name+'</strong><small>'+p.type.join("/")+'</small></button>').join("");
-    $("[data-dex-pokemon]").forEach(btn=>btn.onclick=()=>{state.selectedDexPokemon=btn.dataset.dexPokemon;renderDexes();});
+    $$("[data-dex-pokemon]").forEach(btn=>btn.onclick=()=>{state.selectedDexPokemon=btn.dataset.dexPokemon;renderDexes();});
     const p=DATA.pokemon.find(x=>x.id===state.selectedDexPokemon);
     $("#pokemonDexDetail").innerHTML=p?'<div class="detail-title"><div class="detail-icon">'+p.icon+'</div><div><h2>'+p.name+'</h2><p>'+p.type.join(" / ")+'</p></div></div><div class="detail-section"><h3>기본 데이터</h3><div class="detail-stats"><div><span>HP</span><b>'+p.hp+'</b></div><div><span>공격</span><b>'+p.atk+'</b></div><div><span>방어</span><b>'+p.def+'</b></div></div></div><div class="detail-section"><h3>기술</h3><p>'+p.quick+' / '+p.strong+'</p></div>':'<div class="empty-state">포켓몬을 선택하세요.</div>';
     $("#moveDexList").innerHTML='<div class="table-row header"><span>ID</span><span>기술</span><span>구분</span><span>효과</span></div>'+DATA.moves.map(m=>'<div class="table-row"><span>'+m.id+'</span><span>'+m.name+'</span><span>'+m.kind+' · '+m.type+'</span><span>'+m.description+'</span></div>').join("");
