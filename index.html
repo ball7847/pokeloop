@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PokeLoop</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-title">
+        <span class="topbar-mark">PL</span>
+        <div>
+          <strong>PokeLoop</strong>
+          <small>Idle Expedition</small>
+        </div>
+      </div>
+      <div class="topbar-wallet" title="보유 포켓">
+        <span>POCKET</span>
+        <b id="moneyText">0 P</b>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <aside class="sidebar">
+        <nav id="mainNav" class="main-nav">
+          <section class="nav-group" data-group="camp">
+            <button class="nav-main active" data-main="camp">
+              <span class="nav-icon">⌂</span>
+              <span>캠프</span>
+              <span class="nav-arrow">⌄</span>
+            </button>
+            <div class="subnav open">
+              <button class="nav-sub active" data-view="soup">포켓수프</button>
+              <button class="nav-sub" data-view="storage">창고</button>
+              <button class="nav-sub" data-view="craft">제작</button>
+              <button class="nav-sub" data-view="merchant">유랑상인</button>
+            </div>
+          </section>
+
+          <section class="nav-group" data-group="pokemon">
+            <button class="nav-main" data-main="pokemon" data-view="pokemon">
+              <span class="nav-icon">◉</span>
+              <span>포켓몬</span>
+            </button>
+          </section>
+
+          <section class="nav-group" data-group="exploration">
+            <button class="nav-main" data-main="exploration">
+              <span class="nav-icon">◆</span>
+              <span>탐험</span>
+              <span class="nav-arrow">⌄</span>
+            </button>
+            <div class="subnav">
+              <button class="nav-sub" data-view="regions">지역</button>
+              <button class="nav-sub" data-view="depths">심층부</button>
+            </div>
+          </section>
+
+          <section class="nav-group" data-group="dex">
+            <button class="nav-main" data-main="dex">
+              <span class="nav-icon">▣</span>
+              <span>도감</span>
+              <span class="nav-arrow">⌄</span>
+            </button>
+            <div class="subnav">
+              <button class="nav-sub" data-view="pokemonDex">포켓몬도감</button>
+              <button class="nav-sub" data-view="moveDex">기술도감</button>
+              <button class="nav-sub" data-view="explorationDex">탐험도감</button>
+              <button class="nav-sub" data-view="itemDex">아이템도감</button>
+            </div>
+          </section>
+
+          <section class="nav-group" data-group="settings">
+            <button class="nav-main" data-main="settings">
+              <span class="nav-icon">⚙</span>
+              <span>설정</span>
+              <span class="nav-arrow">⌄</span>
+            </button>
+            <div class="subnav">
+              <button class="nav-sub" data-view="records">기록</button>
+              <button class="nav-sub" data-view="system">시스템설정</button>
+            </div>
+          </section>
+        </nav>
+      </aside>
+
+      <main class="game-area">
+        <section id="view-soup" class="view active">
+          <div class="page-header">
+            <div>
+              <span class="eyebrow">CAMP / POCKET SOUP</span>
+              <h1>포켓수프</h1>
+              <p>열매를 넣어 수프를 만들고, 시간이 지나 방문한 포켓몬을 영입합니다.</p>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <span class="panel-kicker">SOUP POT</span>
+                  <h2>수프 냄비</h2>
+                </div>
+                <span id="soupStatusBadge" class="status-badge">대기 중</span>
+              </div>
+
+              <div class="soup-pot">
+                <div class="pot-visual">♨</div>
+                <div>
+                  <strong id="soupTitle">빈 냄비</strong>
+                  <p id="soupDescription">열매를 선택해 수프를 만들어보세요.</p>
+                </div>
+              </div>
+
+              <div class="section-label">투입할 열매</div>
+              <div id="berryPicker" class="berry-picker"></div>
+
+              <div class="soup-settings">
+                <div>
+                  <span>방문 주기</span>
+                  <b id="soupIntervalText">4시간</b>
+                </div>
+                <div>
+                  <span>다음 방문</span>
+                  <b id="soupTimerText">-</b>
+                </div>
+              </div>
+
+              <button id="cookSoupBtn" class="primary-button">수프 만들기</button>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <span class="panel-kicker">VISITOR</span>
+                  <h2>방문한 포켓몬</h2>
+                </div>
+              </div>
+              <div id="visitorArea" class="empty-state">
+                아직 방문한 포켓몬이 없습니다.
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-storage" class="view">
+          <div class="page-header">
+            <div>
+              <span class="eyebrow">CAMP / STORAGE</span>
+              <h1>창고</h1>
+              <p>보유 아이템의 수량과 정보를 확인하고 제작·판매 화면으로 이동합니다.</p>
+            </div>
+            <div class="segmented" id="storageFilter">
+              <button class="active" data-filter="all">전체</button>
+              <button data-filter="berry">열매</button>
+              <button data-filter="material">재료</button>
+              <button data-filter="held">도구</button>
+            </div>
+          </div>
+          <div class="master-detail-layout">
+            <article class="panel collection-panel">
+              <div id="storageGrid" class="icon-grid"></div>
+            </article>
+            <article class="panel detail-panel">
+              <div id="storageDetail" class="empty-state">아이템을 선택하세요.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-craft" class="view">
+          <div class="page-header">
+            <div>
+              <span class="eyebrow">CAMP / CRAFTING</span>
+              <h1>제작</h1>
+              <p>재료를 사용해 아이템을 제작합니다. 제작에는 시간이 걸립니다.</p>
+            </div>
+          </div>
+          <div class="two-column">
+            <article class="panel">
+              <div class="panel-head">
+                <div><span class="panel-kicker">RECIPES</span><h2>제작 목록</h2></div>
+              </div>
+              <div id="recipeList" class="list-stack"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head">
+                <div><span class="panel-kicker">QUEUE</span><h2>제작 대기열</h2></div>
+              </div>
+              <div id="craftQueue" class="list-stack"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-merchant" class="view">
+          <div class="page-header">
+            <div>
+              <span class="eyebrow">CAMP / MERCHANT</span>
+              <h1>유랑상인</h1>
+              <p>상인은 일정 시간마다 방문하거나 떠납니다. 아이템을 사고팔 수 있습니다.</p>
+            </div>
+            <div id="merchantStatus" class="merchant-status"></div>
+          </div>
+          <div class="two-column">
+            <article class="panel">
+              <div class="panel-head"><div><span class="panel-kicker">BUY</span><h2>구매</h2></div></div>
+              <div id="merchantBuyList" class="list-stack"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><span class="panel-kicker">SELL</span><h2>판매</h2></div></div>
+              <div id="merchantSellList" class="list-stack"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-pokemon" class="view">
+          <div class="page-header">
+            <div>
+              <span class="eyebrow">POKEMON</span>
+              <h1>포켓몬</h1>
+              <p>보유 포켓몬을 관리합니다. 아이콘을 누르면 상세 정보와 세팅을 확인할 수 있습니다.</p>
+            </div>
+          </div>
+          <div class="master-detail-layout">
+            <article class="panel collection-panel">
+              <div id="pokemonGrid" class="pokemon-grid"></div>
+            </article>
+            <article class="panel detail-panel">
+              <div id="pokemonDetail" class="empty-state">포켓몬을 선택하세요.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-regions" class="view">
+          <div class="page-header">
+            <div>
+              <span class="eyebrow">EXPLORATION / REGIONS</span>
+              <h1>지역</h1>
+              <p>지역을 선택해 포켓몬을 편성하고 탐험을 보냅니다. 진행 중인 지역을 누르면 상세 진행 상황을 확인합니다.</p>
+            </div>
+          </div>
+          <div class="master-detail-layout region-layout">
+            <article class="panel collection-panel">
+              <div id="regionList" class="region-list"></div>
+            </article>
+            <article class="panel detail-panel">
+              <div id="regionDetail" class="empty-state">지역을 선택하세요.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-depths" class="view">
+          <div class="page-header">
+            <div>
+              <span class="eyebrow">EXPLORATION / DEPTHS</span>
+              <h1>심층부</h1>
+              <p>조건을 만족해 해금한 고난도 지역입니다. 각 심층부는 하루 1회만 클리어할 수 있습니다.</p>
+            </div>
+            <div class="reset-info">매일 00:00 초기화</div>
+          </div>
+          <div id="depthList" class="depth-grid"></div>
+        </section>
+
+        <section id="view-pokemonDex" class="view dex-view">
+          <div class="page-header"><div><span class="eyebrow">DEX / POKEMON</span><h1>포켓몬도감</h1><p>아군 포켓몬의 상세 데이터를 확인합니다.</p></div></div>
+          <div class="master-detail-layout"><article class="panel collection-panel"><div id="pokemonDexGrid" class="pokemon-grid"></div></article><article class="panel detail-panel"><div id="pokemonDexDetail" class="empty-state">포켓몬을 선택하세요.</div></article></div>
+        </section>
+
+        <section id="view-moveDex" class="view dex-view">
+          <div class="page-header"><div><span class="eyebrow">DEX / MOVES</span><h1>기술도감</h1><p>아군 포켓몬이 사용하는 기술 정보를 확인합니다.</p></div></div>
+          <article class="panel"><div id="moveDexList" class="table-list"></div></article>
+        </section>
+
+        <section id="view-explorationDex" class="view dex-view">
+          <div class="page-header"><div><span class="eyebrow">DEX / EXPLORATION</span><h1>탐험도감</h1><p>각 탐험 지역의 출현 정보와 특징을 확인합니다.</p></div></div>
+          <article class="panel"><div id="explorationDexList" class="table-list"></div></article>
+        </section>
+
+        <section id="view-itemDex" class="view dex-view">
+          <div class="page-header"><div><span class="eyebrow">DEX / ITEMS</span><h1>아이템도감</h1><p>게임에 존재하는 모든 아이템 정보를 확인합니다.</p></div></div>
+          <article class="panel"><div id="itemDexList" class="table-list"></div></article>
+        </section>
+
+        <section id="view-records" class="view">
+          <div class="page-header"><div><span class="eyebrow">SETTINGS / RECORDS</span><h1>기록</h1><p>현재 세이브 데이터와 진행 기록을 확인하고 저장·내보내기를 할 수 있습니다.</p></div></div>
+          <div class="two-column">
+            <article class="panel">
+              <div class="panel-head"><div><span class="panel-kicker">SAVE DATA</span><h2>세이브 정보</h2></div></div>
+              <div id="saveStats" class="stat-list"></div>
+              <div class="button-row">
+                <button id="saveNowBtn" class="primary-button">지금 저장</button>
+                <button id="exportSaveBtn" class="secondary-button">내보내기</button>
+              </div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><span class="panel-kicker">LOG</span><h2>최근 기록</h2></div></div>
+              <div id="recordLog" class="record-log"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-system" class="view">
+          <div class="page-header"><div><span class="eyebrow">SETTINGS / SYSTEM</span><h1>시스템설정</h1><p>게임 동작과 표시 옵션을 변경합니다.</p></div></div>
+          <article class="panel settings-panel">
+            <div class="setting-row">
+              <div><strong>숫자 표기</strong><span>큰 숫자를 축약해서 표시합니다.</span></div>
+              <label class="switch"><input id="compactNumbersToggle" type="checkbox"><span></span></label>
+            </div>
+            <div class="setting-row">
+              <div><strong>자동 저장</strong><span>30초마다 로컬 저장소에 자동 저장합니다.</span></div>
+              <label class="switch"><input id="autosaveToggle" type="checkbox"><span></span></label>
+            </div>
+            <div class="setting-row">
+              <div><strong>탐험 로그</strong><span>탐험 중 상세 전투 기록을 저장합니다.</span></div>
+              <label class="switch"><input id="battleLogToggle" type="checkbox"><span></span></label>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
