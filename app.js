@@ -32,7 +32,7 @@
       depthDaily: { date:dateKey(), cleared:{} },
       logs: [],
       selectedStorageItem: null,
-      selectedPokemon: null,
+      selectedPokemon: "001",
       selectedRegion: "meadow",
       selectedRegionParty: [],
       selectedDexPokemon: null,
@@ -49,6 +49,29 @@
     };
   }
 
+  function escapeHtml(value){
+    return String(value??"")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function normalizeGender(value,id){
+    if(value==="수컷"||value==="암컷"||value==="무성")return value;
+    const key=String(id||"");
+    let score=0;
+    for(let i=0;i<key.length;i++)score+=key.charCodeAt(i);
+    return score%2===0?"수컷":"암컷";
+  }
+
+  function genderIcon(gender){
+    if(gender==="수컷")return '<span class="gender-icon male" title="수컷" aria-label="수컷">♂</span>';
+    if(gender==="암컷")return '<span class="gender-icon female" title="암컷" aria-label="암컷">♀</span>';
+    return "";
+  }
+
   function normalizePokemonData(p){
     const level=Number(p.level)||1;
     return {
@@ -56,7 +79,7 @@
       nickname:typeof p.nickname==="string"?p.nickname:"",
       tier:Number(p.tier)||1,
       nature:p.nature||"온순",
-      gender:p.gender||"미상",
+      gender:normalizeGender(p.gender,p.id),
       exp:Number.isFinite(Number(p.exp))?Number(p.exp):0,
       expRequired:Number(p.expRequired)||Math.max(40,level*20),
       hp:Number(p.hp)||1,
@@ -94,6 +117,7 @@
         regionProgress:{...fresh.regionProgress,...(saved.regionProgress||{})}
       };
       loaded.selectedRegionParty = [];
+      if(!loaded.selectedPokemon&&loaded.pokemon.length)loaded.selectedPokemon=loaded.pokemon[0].id;
       return loaded;
     } catch (error) {
       console.error("Save load failed", error);
@@ -390,11 +414,13 @@
     return p.nickname&&p.nickname.trim()?p.nickname.trim():p.name;
   }
 
+  let nicknameTargetPokemonId=null;
+
   function renderPokemon(){
     $("#pokemonGrid").innerHTML=state.pokemon.map(p=>{
       const exp=expeditionForPokemon(p.id);
-      const displayName=displayPokemonName(p);
-      return '<button class="pokemon-card '+(state.selectedPokemon===p.id?"active":"")+'" data-pokemon="'+p.id+'"><div class="pokemon-icon">'+(p.icon||"PK")+'</div><strong>'+displayName+'</strong><small>'+p.tier+'T · Lv.'+p.level+' · '+p.type.join("/")+(exp?" · 탐험 중":"")+'</small></button>';
+      const displayName=escapeHtml(displayPokemonName(p));
+      return '<button class="pokemon-card '+(state.selectedPokemon===p.id?"active":"")+'" data-pokemon="'+escapeHtml(p.id)+'"><div class="pokemon-icon">'+escapeHtml(p.icon||"PK")+'</div><strong>'+displayName+'</strong><small>'+p.tier+'T · Lv.'+p.level+' · '+escapeHtml(p.type.join("/"))+(exp?" · 탐험 중":"")+'</small></button>';
     }).join("");
 
     $$(".pokemon-card").forEach(btn=>btn.onclick=()=>{
@@ -409,27 +435,32 @@
     }
 
     const exp=expeditionForPokemon(p.id);
-    const displayName=displayPokemonName(p);
+    const displayName=escapeHtml(displayPokemonName(p));
     const abilityHtml=p.abilities.length
-      ? p.abilities.map((a,i)=>'<div class="profile-value-row"><span>특성 '+(i+1)+'</span><b>'+a+'</b></div>').join("")
+      ? p.abilities.map((a,i)=>'<div class="profile-value-row"><span>특성 '+(i+1)+'</span><b>'+escapeHtml(a)+'</b></div>').join("")
       : '<div class="profile-value-row"><span>특성</span><b>없음</b></div>';
-    const itemName=p.item?(baseItemById(p.item)?.name||p.item):"장착 없음";
-    const status=exp?regionById(exp.regionId).name+" 탐험 중":"캠프 대기 중";
+    const itemName=escapeHtml(p.item?(baseItemById(p.item)?.name||p.item):"장착 없음");
+    const status=escapeHtml(exp?regionById(exp.regionId).name+" 탐험 중":"캠프 대기 중");
+    const types=escapeHtml(p.type.join(" / "));
 
     detail.innerHTML=
       '<div class="pokemon-profile">'+
         '<div class="pokemon-profile-head">'+
-          '<div class="detail-icon">'+(p.icon||"PK")+'</div>'+
-          '<div class="pokemon-profile-title"><div><span class="tier-badge">'+p.tier+'T</span><h2>'+displayName+'</h2></div><p>포켓몬 이름 · '+p.name+(p.nickname?' / 별명 · '+p.nickname:'')+'</p></div>'+
-          '<button class="nickname-button" id="nicknameBtn" type="button">별명 설정</button>'+
+          '<div class="detail-icon">'+escapeHtml(p.icon||"PK")+'</div>'+
+          '<div class="pokemon-profile-title">'+
+            '<div class="pokemon-name-line">'+
+              '<span class="tier-badge">'+p.tier+'T</span>'+
+              '<h2 title="'+displayName+'">'+displayName+'</h2>'+
+              genderIcon(p.gender)+
+              '<button class="nickname-icon-button" id="nicknameBtn" type="button" title="별명 설정" aria-label="별명 설정">✎</button>'+
+            '</div>'+
+          '</div>'+
         '</div>'+
-        '<div class="profile-info-grid">'+
-          '<div><span>포켓몬 이름</span><b>'+displayName+'</b></div>'+
-          '<div><span>성격</span><b>'+p.nature+'</b></div>'+
-          '<div><span>성별</span><b>'+p.gender+'</b></div>'+
+        '<div class="profile-info-grid compact-profile-info">'+
+          '<div><span>성격</span><b>'+escapeHtml(p.nature)+'</b></div>'+
           '<div><span>레벨</span><b>Lv.'+p.level+'</b></div>'+
           '<div><span>경험치</span><b>'+p.exp+' / '+p.expRequired+'</b></div>'+
-          '<div><span>타입</span><b>'+p.type.join(" / ")+'</b></div>'+
+          '<div><span>타입</span><b>'+types+'</b></div>'+
         '</div>'+
         '<div class="detail-section"><h3>능력치</h3><div class="pokemon-stat-grid">'+
           '<div><span>HP</span><b>'+p.hp+'</b></div>'+
@@ -444,29 +475,50 @@
           '<div class="detail-section"><h3>도구</h3><div class="profile-value-row"><span>장착 도구</span><b>'+itemName+'</b></div></div>'+
         '</div>'+
         '<div class="detail-section"><h3>기술</h3><div class="move-slot-list">'+
-          '<div class="move-slot"><span>속공</span><b>'+p.quick+'</b></div>'+
-          '<div class="move-slot"><span>강공 1</span><b>'+(p.strong1||"없음")+'</b></div>'+
-          '<div class="move-slot"><span>강공 2</span><b>'+(p.strong2||"없음")+'</b></div>'+
+          '<div class="move-slot"><span>속공</span><b>'+escapeHtml(p.quick)+'</b></div>'+
+          '<div class="move-slot"><span>강공 1</span><b>'+escapeHtml(p.strong1||"없음")+'</b></div>'+
+          '<div class="move-slot"><span>강공 2</span><b>'+escapeHtml(p.strong2||"없음")+'</b></div>'+
         '</div></div>'+
         '<div class="detail-section"><h3>현재 상태</h3><div class="current-status">'+status+'</div></div>'+
       '</div>';
 
-    $("#nicknameBtn").onclick=()=>setPokemonNickname(p.id);
+    $("#nicknameBtn").onclick=()=>openNicknameModal(p.id);
   }
 
-  function setPokemonNickname(pokemonId){
+  function openNicknameModal(pokemonId){
     const p=pokemonById(pokemonId);
     if(!p)return;
-    const current=p.nickname||"";
-    const input=window.prompt("별명을 입력하세요. (최대 12글자)\n빈칸으로 저장하면 원래 이름으로 되돌아갑니다.",current);
-    if(input===null)return;
-    const nickname=input.trim();
+    nicknameTargetPokemonId=pokemonId;
+    const modal=$("#nicknameModal");
+    const input=$("#nicknameInput");
+    input.value=p.nickname||"";
+    $("#nicknameCount").textContent=input.value.length+" / 12";
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden","false");
+    requestAnimationFrame(()=>{
+      input.focus();
+      input.select();
+    });
+  }
+
+  function closeNicknameModal(){
+    nicknameTargetPokemonId=null;
+    const modal=$("#nicknameModal");
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden","true");
+  }
+
+  function saveNicknameFromModal(){
+    const p=pokemonById(nicknameTargetPokemonId);
+    if(!p){closeNicknameModal();return;}
+    const nickname=$("#nicknameInput").value.trim();
     if(nickname.length>12){
       toast("별명은 최대 12글자까지 설정할 수 있습니다.");
       return;
     }
     p.nickname=nickname;
     log("포켓몬",p.name+"의 별명을 "+(nickname?nickname:"원래 이름")+"(으)로 설정했습니다.");
+    closeNicknameModal();
     renderPokemon();
   }
 
@@ -650,6 +702,20 @@
       state.settings.fontSize=btn.dataset.fontSize;
       applyFontSize();
       toast("글자 크기를 "+btn.dataset.fontSize+"로 변경했습니다.");
+    });
+
+    $("#nicknameModalClose").onclick=closeNicknameModal;
+    $("#nicknameModalCancel").onclick=closeNicknameModal;
+    $("#nicknameModalSave").onclick=saveNicknameFromModal;
+    $("#nicknameInput").addEventListener("input",e=>{
+      $("#nicknameCount").textContent=e.target.value.length+" / 12";
+    });
+    $("#nicknameInput").addEventListener("keydown",e=>{
+      if(e.key==="Enter")saveNicknameFromModal();
+      if(e.key==="Escape")closeNicknameModal();
+    });
+    $("#nicknameModal").addEventListener("mousedown",e=>{
+      if(e.target===$("#nicknameModal"))closeNicknameModal();
     });
 
     $("#saveNowBtn").onclick=()=>save(true);
