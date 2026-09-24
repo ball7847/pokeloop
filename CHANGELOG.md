@@ -1,5 +1,21 @@
 # PokeLoop Changelog
 
+## 0.1.11 — 2026-09-24
+
+### 데이터 구조 분리
+- 기존 단일 data.js를 data/ 폴더의 종류별 데이터 파일로 분리
+- pokemon / moves / items / recipes / merchant / regions / depths 데이터를 각각 독립 파일로 관리
+- data/index.js에서 분리된 데이터를 기존 POKELOOP_DATA 구조로 통합해 app.js 호환성 유지
+- 기존 루트 data.js 제거
+
+### 이미지 폴더
+- assets/images/pokemon/
+- assets/images/items/
+- assets/images/regions/
+- assets/images/ui/
+- Git에서 빈 폴더가 유지되도록 각 폴더에 .gitkeep 추가
+
+---
 ## 0.1.10 — 2026-09-24
 
 ### 포켓몬 상세정보
