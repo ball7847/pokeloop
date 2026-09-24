@@ -651,7 +651,6 @@
   function renderSettings(){
     applyFontSize();
     $("#autosaveToggle").checked=state.settings.autosave;
-    $("#battleLogToggle").checked=state.settings.battleLog;
   }
 
   function renderAll(){
@@ -712,7 +711,6 @@
     $("#saveNowBtn").onclick=()=>save(true);
     $("#exportSaveBtn").onclick=exportSave;
     $("#autosaveToggle").onchange=e=>{state.settings.autosave=e.target.checked;toast("자동 저장 설정을 변경했습니다.");};
-    $("#battleLogToggle").onchange=e=>{state.settings.battleLog=e.target.checked;};
     window.addEventListener("beforeunload",()=>save(false));
   }
   bindStaticEvents();
