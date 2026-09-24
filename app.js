@@ -690,7 +690,7 @@
       renderStorage();
     });
 
-    $("#fontSizeControl button").forEach(btn=>btn.onclick=()=>{
+    $$("#fontSizeControl button").forEach(btn=>btn.onclick=()=>{
       state.settings.fontSize=btn.dataset.fontSize;
       applyFontSize();
       toast("글자 크기를 "+btn.dataset.fontSize+"로 변경했습니다.");
