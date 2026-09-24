@@ -9,69 +9,101 @@
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">PokeLoop <span>Idle Expedition</span></div>
+    <div class="brand">
+      <div class="brand-mark">PL</div>
+      <div><strong>PokeLoop</strong><span>IDLE EXPEDITION</span></div>
+    </div>
     <div class="resources">
-      <span>코인 <b id="coin">0</b></span>
-      <span>식량 <b id="food">0</b></span>
-      <span>나무 <b id="wood">0</b></span>
-      <span>돌 <b id="stone">0</b></span>
+      <div><span>코인</span><b id="coin">0</b></div>
+      <div><span>식량</span><b id="food">0</b></div>
+      <div><span>나무</span><b id="wood">0</b></div>
+      <div><span>돌</span><b id="stone">0</b></div>
     </div>
     <div class="top-actions">
-      <button id="saveBtn">저장</button>
-      <button id="resetBtn">초기화</button>
+      <button id="saveBtn" class="ui-btn subtle">저장</button>
+      <button id="resetBtn" class="ui-btn subtle">초기화</button>
     </div>
   </header>
 
   <div class="layout">
     <aside class="sidebar">
-      <button class="nav active" data-view="expedition">탐험</button>
-      <button class="nav" data-view="pokemon">포켓몬</button>
-      <button class="nav" data-view="items">도구</button>
-      <button class="nav" data-view="town">마을</button>
-      <button class="nav" data-view="dex">도감</button>
+      <div class="nav-title">MENU</div>
+      <button class="nav active" data-view="expedition"><span>01</span><b>탐험</b></button>
+      <button class="nav" data-view="pokemon"><span>02</span><b>포켓몬</b></button>
+      <button class="nav" data-view="items"><span>03</span><b>도구</b></button>
+      <button class="nav" data-view="town"><span>04</span><b>마을</b></button>
+      <button class="nav" data-view="dex"><span>05</span><b>도감</b></button>
+      <div class="sidebar-note">
+        <span>AUTO SAVE</span>
+        <b>Local Storage</b>
+      </div>
     </aside>
 
     <main>
       <section id="view-expedition" class="view active">
         <div id="expeditionLobby">
           <div class="page-head">
-            <div><small>EXPEDITION</small><h1>탐험</h1><p>지역을 고르고 출전 포켓몬 1~4마리를 선택한 뒤 탐험을 시작합니다.</p></div>
+            <div>
+              <small>EXPEDITION</small>
+              <h1>탐험 준비</h1>
+              <p>지역을 선택하고 출전 포켓몬 1~3마리를 편성하세요.</p>
+            </div>
+            <div class="head-chip">PARTY LIMIT <b>3</b></div>
           </div>
 
-          <div class="lobby-grid">
-            <section class="panel">
-              <div class="section-head"><h2>지역 선택</h2><span>AVAILABLE AREAS</span></div>
+          <div class="prep-layout">
+            <section class="panel area-panel">
+              <div class="section-head">
+                <div><small>STEP 01</small><h2>지역 선택</h2></div>
+                <span>AVAILABLE AREAS</span>
+              </div>
               <div id="areaList" class="area-list"></div>
             </section>
 
-            <section class="panel prep-panel">
+            <section class="panel detail-panel">
+              <div class="section-head">
+                <div><small>STEP 02</small><h2>지역 정보</h2></div>
+                <span>AREA INFO</span>
+              </div>
               <div id="areaDetail" class="area-detail"></div>
-              <div class="divider"></div>
-              <div class="section-head"><h2>탐험대 편성</h2><span id="partyCount">0 / 4</span></div>
+            </section>
+
+            <section class="panel party-panel">
+              <div class="section-head">
+                <div><small>STEP 03</small><h2>탐험대 편성</h2></div>
+                <span id="partyCount">0 / 3</span>
+              </div>
               <div id="partyPicker" class="party-picker"></div>
-              <button id="startExpeditionBtn" class="primary" disabled>탐험 시작</button>
+              <div class="party-hint">최소 1마리 · 최대 3마리</div>
+              <button id="startExpeditionBtn" class="ui-btn primary large" disabled>
+                <span>탐험 시작</span>
+                <b>▶</b>
+              </button>
             </section>
           </div>
         </div>
 
         <div id="expeditionRunning" class="hidden">
           <div class="run-head panel">
-            <div>
+            <div class="run-title">
               <small>NOW EXPLORING</small>
               <h1 id="runAreaName">-</h1>
-              <p>선택한 탐험대가 자동으로 지역을 탐색합니다.</p>
+              <p>탐험대가 자동으로 다음 구역을 진행합니다.</p>
             </div>
             <div class="run-stats">
-              <span>구역 <b id="roomCount">0</b></span>
-              <span>승리 <b id="runWins">0</b></span>
-              <span>획득 코인 <b id="runCoins">0</b></span>
+              <div><span>구역</span><b id="roomCount">0</b></div>
+              <div><span>승리</span><b id="runWins">0</b></div>
+              <div><span>획득 코인</span><b id="runCoins">0</b></div>
             </div>
-            <button id="returnBtn" class="danger">귀환</button>
+            <button id="returnBtn" class="ui-btn danger">귀환</button>
           </div>
 
           <div class="run-grid">
-            <section class="panel">
-              <div class="section-head"><h2>탐험대</h2><span id="speedText">1x</span></div>
+            <section class="panel team-panel">
+              <div class="section-head">
+                <div><small>PARTY</small><h2>탐험대</h2></div>
+                <span id="speedText">1x</span>
+              </div>
               <div id="activeParty" class="active-party"></div>
               <div class="speed-row">
                 <button class="speed active" data-speed="1">1x</button>
@@ -82,24 +114,34 @@
             </section>
 
             <section class="panel battle-panel">
-              <div class="section-head"><h2 id="encounterTitle">탐색 중</h2><span id="nextAction">3.0초</span></div>
+              <div class="section-head">
+                <div><small>BATTLE</small><h2 id="encounterTitle">탐색 중</h2></div>
+                <span id="nextAction">3.0초</span>
+              </div>
               <div id="enemyZone" class="enemy-zone">
-                <div class="empty-state">다음 구역을 탐색 중입니다.</div>
+                <div class="empty-state">
+                  <div class="scan-ring"></div>
+                  <b>다음 구역 탐색 중</b>
+                  <span>조우를 기다리고 있습니다.</span>
+                </div>
               </div>
             </section>
 
             <section class="panel log-panel">
-              <div class="section-head"><h2>탐험 기록</h2><button id="clearLogBtn" class="link-btn">비우기</button></div>
+              <div class="section-head">
+                <div><small>ACTIVITY</small><h2>탐험 기록</h2></div>
+                <button id="clearLogBtn" class="ui-btn tiny">비우기</button>
+              </div>
               <div id="log" class="log"></div>
             </section>
           </div>
         </div>
       </section>
 
-      <section id="view-pokemon" class="view"><div class="panel placeholder"><h1>포켓몬</h1><div id="pokemonList"></div></div></section>
-      <section id="view-items" class="view"><div class="panel placeholder"><h1>도구</h1><p>도구 1칸은 특성 1개와 비슷한 파워 버짓을 갖는 방향.</p></div></section>
-      <section id="view-town" class="view"><div class="panel placeholder"><h1>마을</h1><p>회복, 제작, 보관, 시설 성장 영역.</p></div></section>
-      <section id="view-dex" class="view"><div class="panel placeholder"><h1>도감</h1><p>발견 포켓몬과 지역 출현 정보를 표시.</p></div></section>
+      <section id="view-pokemon" class="view"><div class="panel placeholder"><small>POKEMON</small><h1>포켓몬</h1><div id="pokemonList"></div></div></section>
+      <section id="view-items" class="view"><div class="panel placeholder"><small>HELD ITEMS</small><h1>도구</h1><p>도구 1칸은 특성 1개와 비슷한 파워 버짓을 갖는 방향.</p></div></section>
+      <section id="view-town" class="view"><div class="panel placeholder"><small>TOWN</small><h1>마을</h1><p>회복, 제작, 보관, 시설 성장 영역.</p></div></section>
+      <section id="view-dex" class="view"><div class="panel placeholder"><small>POKEDEX</small><h1>도감</h1><p>발견 포켓몬과 지역 출현 정보를 표시.</p></div></section>
     </main>
   </div>
 </div>
