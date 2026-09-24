@@ -1,69 +1,91 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PokeLoop</title>
-<link rel="stylesheet" href="./styles.css"/>
+<link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-<div class="app">
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">PL</div>
-      <div><strong>PokeLoop</strong><span>IDLE EXPEDITION</span></div>
+<div class="game">
+  <header class="appbar">
+    <button class="menu-mark" aria-label="메뉴"><span></span><span></span><span></span></button>
+    <div class="screen-title">
+      <strong id="screenTitle">탐험</strong>
+      <span>POKELOOP</span>
     </div>
-    <div class="resources">
-      <div><span>코인</span><b id="coin">0</b></div>
-      <div><span>식량</span><b id="food">0</b></div>
-      <div><span>나무</span><b id="wood">0</b></div>
-      <div><span>돌</span><b id="stone">0</b></div>
+    <div class="currency-bar">
+      <div class="currency"><i>●</i><b id="coin">0</b><span>코인</span></div>
+      <div class="currency"><i>◆</i><b id="food">0</b><span>식량</span></div>
+      <div class="currency"><i>■</i><b id="wood">0</b><span>나무</span></div>
+      <div class="currency"><i>▲</i><b id="stone">0</b><span>돌</span></div>
     </div>
-    <div class="top-actions">
-      <button class="ui-btn subtle" id="saveBtn">저장</button>
-      <button class="ui-btn subtle" id="resetBtn">초기화</button>
+    <div class="app-actions">
+      <button class="text-button" id="saveBtn">저장</button>
+      <button class="text-button" id="resetBtn">초기화</button>
     </div>
   </header>
 
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="nav-title">GUILD MENU</div>
-      <button class="nav active" data-view="expedition"><span>01</span><b>탐험</b><small>지역 / 원정</small></button>
-      <button class="nav" data-view="pokemon"><span>02</span><b>포켓몬</b><small>보유 / 기술 / 도구</small></button>
-      <button class="nav" data-view="items"><span>03</span><b>창고</b><small>도구 / 재료</small></button>
-      <button class="nav" data-view="town"><span>04</span><b>마을</b><small>센터 / 공방 / 연구</small></button>
-      <button class="nav" data-view="dex"><span>05</span><b>도감</b><small>발견 / 출현</small></button>
-      <div class="sidebar-note"><span>ACTIVE EXPEDITIONS</span><b id="activeExpeditionCount">0</b></div>
+  <div class="game-body">
+    <aside class="drawer">
+      <div class="drawer-group">
+        <span class="drawer-label">길드</span>
+        <button class="nav active" data-view="expedition"><b>탐험</b><small>지역 · 원정</small></button>
+        <button class="nav" data-view="pokemon"><b>포켓몬</b><small>보유 · 편성</small></button>
+        <button class="nav" data-view="items"><b>창고</b><small>도구 · 재료</small></button>
+      </div>
+      <div class="drawer-group">
+        <span class="drawer-label">시설</span>
+        <button class="nav" data-view="town"><b>마을</b><small>센터 · 공방 · 연구</small></button>
+        <button class="nav" data-view="dex"><b>도감</b><small>발견 · 출현</small></button>
+      </div>
+      <div class="drawer-status">
+        <span>진행 중인 원정</span>
+        <b id="activeExpeditionCount">0</b>
+      </div>
     </aside>
 
-    <main>
+    <main class="content">
       <section id="view-expedition" class="view active">
-        <div class="page-head">
-          <div><small>EXPEDITION</small><h1>탐험</h1><p>여러 지역에 서로 다른 탐험대를 동시에 보낼 수 있습니다.</p></div>
-          <div class="head-actions">
-            <button class="subtab active" data-exp-subtab="areas">지역</button>
-            <button class="subtab" data-exp-subtab="running">원정 현황</button>
+        <div class="content-heading">
+          <div>
+            <h1>탐험</h1>
+            <p>지역을 선택해 탐험대를 보내고, 진행 중인 여러 원정을 관리합니다.</p>
+          </div>
+          <div class="tabs">
+            <button class="subtab active" data-exp-subtab="areas">지역 선택</button>
+            <button class="subtab" data-exp-subtab="running">원정 현황 <span id="runningTabCount">0</span></button>
           </div>
         </div>
 
         <div id="expAreasPanel">
-          <div class="expedition-layout">
-            <section class="panel area-panel">
-              <div class="section-head"><div><small>AREAS</small><h2>지역 목록</h2></div><span id="areaRunningBadge">0 RUNNING</span></div>
+          <div class="explore-layout">
+            <section class="surface region-list-surface">
+              <div class="surface-title">
+                <h2>탐험 지역</h2>
+                <span id="areaRunningBadge">0 RUNNING</span>
+              </div>
               <div id="areaList" class="area-list"></div>
             </section>
 
-            <section class="panel detail-panel">
-              <div class="section-head"><div><small>AREA INFO</small><h2>지역 정보</h2></div><span id="selectedAreaStatus">IDLE</span></div>
+            <section class="surface region-detail-surface">
+              <div class="surface-title">
+                <h2>지역 정보</h2>
+                <span id="selectedAreaStatus">IDLE</span>
+              </div>
               <div id="areaDetail" class="area-detail"></div>
             </section>
 
-            <section class="panel expedition-control">
-              <div class="section-head"><div><small>PARTY</small><h2>탐험대 편성</h2></div><span id="partyCount">0 / 3</span></div>
+            <section class="surface party-surface">
+              <div class="surface-title">
+                <h2>탐험대</h2>
+                <span id="partyCount">0 / 3</span>
+              </div>
+              <p class="surface-help">이 지역에 보낼 포켓몬을 1~3마리 선택합니다.</p>
               <div id="partyPicker" class="party-picker"></div>
-              <div id="selectedExpeditionSummary" class="selected-expedition-summary"></div>
-              <button id="startExpeditionBtn" class="ui-btn primary large" disabled><span>탐험 시작</span><b>▶</b></button>
-              <button id="returnSelectedBtn" class="ui-btn danger large hidden"><span>이 지역에서 귀환</span><b>↩</b></button>
+              <div id="selectedExpeditionSummary" class="selection-summary"></div>
+              <button id="startExpeditionBtn" class="action-button primary" disabled>탐험 시작</button>
+              <button id="returnSelectedBtn" class="action-button warning hidden">귀환</button>
             </section>
           </div>
         </div>
@@ -72,59 +94,91 @@
           <div id="expeditionCards" class="expedition-cards"></div>
         </div>
 
-        <section class="panel global-log-panel">
-          <div class="section-head"><div><small>ACTIVITY</small><h2>전체 탐험 기록</h2></div><button id="clearLogBtn" class="ui-btn tiny">비우기</button></div>
+        <section class="surface activity-surface">
+          <div class="surface-title">
+            <h2>탐험 기록</h2>
+            <button id="clearLogBtn" class="inline-button">비우기</button>
+          </div>
           <div id="log" class="log"></div>
         </section>
       </section>
 
       <section id="view-pokemon" class="view">
-        <div class="page-head">
-          <div><small>POKEMON</small><h1>포켓몬</h1><p>아이콘을 선택해 상세 능력치와 기술, 도구를 관리합니다.</p></div>
-          <div class="head-actions">
-            <button class="subtab active" data-poke-subtab="owned">보유 포켓몬</button>
+        <div class="content-heading">
+          <div>
+            <h1>포켓몬</h1>
+            <p>보유 포켓몬을 확인하고 기술과 도구를 설정합니다.</p>
+          </div>
+          <div class="tabs">
+            <button class="subtab active" data-poke-subtab="owned">전체</button>
             <button class="subtab" data-poke-subtab="assigned">원정 중</button>
           </div>
         </div>
-        <div class="master-detail">
-          <section class="panel icon-browser">
+
+        <div class="management-layout">
+          <section class="surface collection-surface">
+            <div class="surface-title">
+              <h2>보유 포켓몬</h2>
+              <span>SELECT</span>
+            </div>
             <div id="pokemonGrid" class="pokemon-grid"></div>
           </section>
-          <section class="panel detail-browser">
+          <section class="surface inspector-surface">
             <div id="pokemonDetail" class="empty-detail">포켓몬을 선택하세요.</div>
           </section>
         </div>
       </section>
 
       <section id="view-items" class="view">
-        <div class="page-head">
-          <div><small>STORAGE</small><h1>창고</h1><p>아이콘으로 보유 아이템과 수량을 확인합니다.</p></div>
-          <div class="head-actions">
+        <div class="content-heading">
+          <div>
+            <h1>창고</h1>
+            <p>도구와 재료의 보유 수량 및 상세 정보를 확인합니다.</p>
+          </div>
+          <div class="tabs">
             <button class="subtab active" data-item-filter="all">전체</button>
             <button class="subtab" data-item-filter="held">도구</button>
             <button class="subtab" data-item-filter="material">재료</button>
           </div>
         </div>
-        <div class="master-detail">
-          <section class="panel icon-browser"><div id="itemGrid" class="item-grid"></div></section>
-          <section class="panel detail-browser"><div id="itemDetail" class="empty-detail">아이템을 선택하세요.</div></section>
+
+        <div class="management-layout">
+          <section class="surface collection-surface">
+            <div class="surface-title">
+              <h2>아이템</h2>
+              <span>STORAGE</span>
+            </div>
+            <div id="itemGrid" class="item-grid"></div>
+          </section>
+          <section class="surface inspector-surface">
+            <div id="itemDetail" class="empty-detail">아이템을 선택하세요.</div>
+          </section>
         </div>
       </section>
 
       <section id="view-town" class="view">
-        <div class="page-head">
-          <div><small>TOWN</small><h1>마을</h1><p>하나의 탭 안에서 여러 시설을 이용하는 구조입니다.</p></div>
+        <div class="content-heading">
+          <div><h1>마을</h1><p>길드의 주요 시설을 관리합니다.</p></div>
         </div>
-        <div class="town-grid">
-          <article class="facility-card"><span>01</span><h2>포켓몬 센터</h2><p>귀환한 포켓몬을 회복합니다.</p><button class="ui-btn">전원 회복</button></article>
-          <article class="facility-card"><span>02</span><h2>공방</h2><p>재료로 도구를 제작하는 기능이 들어갈 자리입니다.</p><button class="ui-btn" disabled>준비 중</button></article>
-          <article class="facility-card"><span>03</span><h2>연구소</h2><p>도감과 성장 관련 연구 기능이 들어갈 자리입니다.</p><button class="ui-btn" disabled>준비 중</button></article>
+        <div class="facility-list">
+          <article class="surface facility-row">
+            <div><h2>포켓몬 센터</h2><p>귀환한 포켓몬의 상태를 정비합니다.</p></div>
+            <button class="action-button">이용</button>
+          </article>
+          <article class="surface facility-row">
+            <div><h2>공방</h2><p>탐험에서 모은 재료로 도구를 제작합니다.</p></div>
+            <button class="action-button" disabled>준비 중</button>
+          </article>
+          <article class="surface facility-row">
+            <div><h2>연구소</h2><p>도감과 성장 관련 연구를 진행합니다.</p></div>
+            <button class="action-button" disabled>준비 중</button>
+          </article>
         </div>
       </section>
 
       <section id="view-dex" class="view">
-        <div class="page-head"><div><small>POKEDEX</small><h1>도감</h1><p>발견 포켓몬과 지역 출현 정보를 관리할 영역입니다.</p></div></div>
-        <div class="panel placeholder">도감 시스템 준비 중</div>
+        <div class="content-heading"><div><h1>도감</h1><p>발견한 포켓몬과 지역 출현 정보를 확인합니다.</p></div></div>
+        <section class="surface placeholder">도감 시스템 준비 중</section>
       </section>
     </main>
   </div>
