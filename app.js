@@ -452,9 +452,9 @@
         '</div>'+
         '<div class="profile-info-grid compact-profile-info">'+
           '<div><span>성격</span><b>'+escapeHtml(p.nature)+'</b></div>'+
+          '<div><span>타입</span><b>'+types+'</b></div>'+
           '<div><span>레벨</span><b>Lv.'+p.level+'</b></div>'+
           '<div><span>경험치</span><b>'+p.exp+' / '+p.expRequired+'</b></div>'+
-          '<div><span>타입</span><b>'+types+'</b></div>'+
         '</div>'+
         '<div class="detail-section"><h3>능력치</h3><div class="pokemon-stat-grid">'+
           '<div><span>HP</span><b>'+p.hp+'</b></div>'+
@@ -464,10 +464,8 @@
           '<div><span>특수방어</span><b>'+p.spdef+'</b></div>'+
           '<div><span>스피드</span><b>'+p.speed+'</b></div>'+
         '</div></div>'+
-        '<div class="profile-columns">'+
-          '<div class="detail-section"><h3>특성</h3><div class="profile-value-list">'+abilityHtml+'</div></div>'+
-          '<div class="detail-section"><h3>도구</h3><div class="profile-value-row"><span>장착 도구</span><b>'+itemName+'</b></div></div>'+
-        '</div>'+
+        '<div class="detail-section"><h3>특성</h3><div class="profile-value-list">'+abilityHtml+'</div></div>'+
+        '<div class="detail-section"><h3>도구</h3><div class="profile-value-row"><span>장착 도구</span><b>'+itemName+'</b></div></div>'+
         '<div class="detail-section"><h3>기술</h3><div class="move-slot-list">'+
           '<div class="move-slot"><span>속공</span><b>'+escapeHtml(p.quick)+'</b></div>'+
           '<div class="move-slot"><span>강공 1</span><b>'+escapeHtml(p.strong1||"없음")+'</b></div>'+
