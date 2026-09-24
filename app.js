@@ -1,381 +1,46 @@
 (() => {
-  const STORAGE_KEY = "pokeloop_idle_v1";
-
-  const pokemonTemplate = [
-    {
-      id: "bulbasaur", name: "이상해씨", type: "풀", level: 5,
-      maxHp: 72, hp: 72, attack: 15, defense: 12, pp: 0,
-      quick: { name: "덩굴채찍", power: 10, ppGain: 20 },
-      strong: { name: "씨폭탄", power: 42, ppCost: 100 },
-      ability: "심록", item: "없음"
-    },
-    {
-      id: "charmander", name: "파이리", type: "불꽃", level: 5,
-      maxHp: 64, hp: 64, attack: 18, defense: 9, pp: 0,
-      quick: { name: "불꽃세례", power: 11, ppGain: 20 },
-      strong: { name: "화염바퀴", power: 46, ppCost: 100 },
-      ability: "맹화", item: "없음"
-    },
-    {
-      id: "squirtle", name: "꼬부기", type: "물", level: 5,
-      maxHp: 80, hp: 80, attack: 13, defense: 16, pp: 0,
-      quick: { name: "물대포", power: 9, ppGain: 25 },
-      strong: { name: "아쿠아테일", power: 40, ppCost: 100 },
-      ability: "급류", item: "없음"
-    }
-  ];
-
-  const encounterTable = [
-    { chance: 0.20, name: "꼬렛", icon: "N", hp: 52, attack: 6, reward: { coin: [2, 4], food: [0, 1] } },
-    { chance: 0.16, name: "구구", icon: "F", hp: 45, attack: 7, reward: { coin: [2, 5], wood: [0, 1] } },
-    { chance: 0.10, name: "캐터피", icon: "B", hp: 62, attack: 4, reward: { coin: [2, 4], food: [1, 2] } },
-    { chance: 0.04, name: "깨비참", icon: "R", hp: 92, attack: 10, reward: { coin: [6, 10], stone: [0, 1] } }
-  ];
-  const noEncounterChance = 0.50;
-
-  const initialState = () => ({
-    resources: { coin: 0, food: 0, wood: 0, stone: 0 },
-    party: structuredClone(pokemonTemplate),
-    area: { name: "새싹 들판", progress: 0, goal: 25 },
-    totalRuns: 0,
-    totalWins: 0,
-    totalCoins: 0,
-    battleWins: 0,
-    speed: 1,
-    enemy: null,
-    log: [],
-    loot: [],
-    savedAt: Date.now()
-  });
-
-  let state = loadState();
-  let actionRemaining = 3000;
-  let lastFrame = performance.now();
-
-  const $ = (s) => document.querySelector(s);
-  const $$ = (s) => [...document.querySelectorAll(s)];
-
-  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-  function roll(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-  function nowTime() { return new Date().toLocaleTimeString("ko-KR", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
-  function format(n) { return Math.floor(n).toLocaleString("ko-KR"); }
-
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return initialState();
-      const parsed = JSON.parse(raw);
-      const fresh = initialState();
-      return {
-        ...fresh,
-        ...parsed,
-        resources: { ...fresh.resources, ...(parsed.resources || {}) },
-        area: { ...fresh.area, ...(parsed.area || {}) },
-        party: Array.isArray(parsed.party) && parsed.party.length ? parsed.party : fresh.party,
-        enemy: null
-      };
-    } catch {
-      return initialState();
-    }
-  }
-
-  function saveState(showLog = false) {
-    state.savedAt = Date.now();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, enemy: null }));
-    if (showLog) addLog("게임을 저장했습니다.", "good");
-    renderMeta();
-  }
-
-  function resetState() {
-    if (!confirm("저장 데이터를 초기화할까요?")) return;
-    state = initialState();
-    actionRemaining = 3000;
-    localStorage.removeItem(STORAGE_KEY);
-    addLog("새로운 탐험을 시작합니다.", "good");
-    renderAll();
-  }
-
-  function addLog(text, kind = "") {
-    state.log.push({ time: nowTime(), text, kind });
-    if (state.log.length > 120) state.log.splice(0, state.log.length - 120);
-    renderLog();
-  }
-
-  function addLoot(name, amount) {
-    if (!amount) return;
-    const existing = state.loot.find(x => x.name === name);
-    if (existing) existing.amount += amount;
-    else state.loot.unshift({ name, amount });
-    state.loot = state.loot.slice(0, 8);
-  }
-
-  function spawnEncounter() {
-    state.totalRuns += 1;
-    if (Math.random() < noEncounterChance) {
-      state.enemy = null;
-      addLog("주변을 탐색했지만 아무것도 만나지 않았다.");
-      state.area.progress = Math.min(state.area.goal, state.area.progress + 1);
-      if (Math.random() < 0.18) {
-        const wood = roll(1, 2);
-        state.resources.wood += wood;
-        addLoot("나무", wood);
-        addLog("탐색 중 나무 +" + wood + " 획득.", "loot");
-      }
-      return;
-    }
-
-    let pick = Math.random() * (1 - noEncounterChance);
-    let selected = encounterTable[0];
-    for (const entry of encounterTable) {
-      if (pick < entry.chance) { selected = entry; break; }
-      pick -= entry.chance;
-    }
-
-    state.enemy = {
-      ...selected,
-      maxHp: selected.hp,
-      hp: selected.hp
-    };
-    addLog(selected.name + "이(가) 나타났다.");
-  }
-
-  function aliveParty() {
-    return state.party.filter(p => p.hp > 0);
-  }
-
-  function playerTurn() {
-    if (!state.enemy) return;
-    const alive = aliveParty();
-    if (!alive.length) {
-      returnToTown(true);
-      return;
-    }
-
-    for (const p of alive) {
-      if (!state.enemy || state.enemy.hp <= 0) break;
-      const useStrong = p.pp >= p.strong.ppCost;
-      const move = useStrong ? p.strong : p.quick;
-      const base = Math.max(1, Math.round((p.attack * 0.55) + move.power));
-      const damage = Math.max(1, Math.round(base * (0.90 + Math.random() * 0.20)));
-
-      if (useStrong) p.pp -= p.strong.ppCost;
-      else p.pp = Math.min(200, p.pp + p.quick.ppGain);
-
-      state.enemy.hp -= damage;
-      addLog(
-        p.name + "의 " + move.name + "! " + state.enemy.name + "에게 " + damage + " 피해." +
-        (useStrong ? " [강공]" : ""),
-        useStrong ? "good" : ""
-      );
-    }
-
-    if (state.enemy && state.enemy.hp <= 0) {
-      winBattle();
-      return;
-    }
-
-    enemyTurn();
-  }
-
-  function enemyTurn() {
-    if (!state.enemy) return;
-    const targets = aliveParty();
-    if (!targets.length) returnToTown(true);
-    const target = targets[roll(0, targets.length - 1)];
-    const mitigated = Math.max(1, state.enemy.attack - Math.floor(target.defense * 0.22));
-    const damage = Math.max(1, Math.round(mitigated * (0.85 + Math.random() * 0.3)));
-    target.hp = Math.max(0, target.hp - damage);
-    addLog(state.enemy.name + "의 공격! " + target.name + "에게 " + damage + " 피해.", "bad");
-    if (target.hp <= 0) addLog(target.name + "이(가) 쓰러졌다.", "bad");
-    if (!aliveParty().length) returnToTown(true);
-  }
-
-  function winBattle() {
-    const e = state.enemy;
-    state.totalWins += 1;
-    state.battleWins += 1;
-    state.area.progress = Math.min(state.area.goal, state.area.progress + 1);
-
-    const coin = roll(e.reward.coin[0], e.reward.coin[1]);
-    state.resources.coin += coin;
-    state.totalCoins += coin;
-    addLoot("코인", coin);
-
-    ["food", "wood", "stone"].forEach(key => {
-      if (!e.reward[key]) return;
-      const amount = roll(e.reward[key][0], e.reward[key][1]);
-      if (amount > 0) {
-        state.resources[key] += amount;
-        addLoot({ food: "식량", wood: "나무", stone: "돌" }[key], amount);
-      }
-    });
-
-    addLog(e.name + "을(를) 쓰러뜨렸다. 코인 +" + coin, "loot");
-    state.enemy = null;
-
-    if (state.area.progress >= state.area.goal) {
-      addLog("새싹 들판의 지역 진행도를 모두 채웠다. 다음 지역 확장용 자리 확보.", "good");
-    }
-  }
-
-  function returnToTown(auto = false) {
-    state.enemy = null;
-    state.party.forEach(p => {
-      p.hp = p.maxHp;
-      p.pp = 0;
-    });
-    state.battleWins = 0;
-    addLog(auto ? "탐험대가 전멸하여 자동으로 귀환했다. 전원 회복." : "마을로 귀환했다. 전원 회복.", auto ? "bad" : "good");
-    actionRemaining = 3000;
-    saveState(false);
-  }
-
-  function actionTick() {
-    if (!state.enemy) spawnEncounter();
-    else playerTurn();
-    renderAll();
-    if (state.totalRuns % 10 === 0) saveState(false);
-  }
-
-  function renderParty() {
-    $("#partyList").innerHTML = state.party.map(p => {
-      const hpPct = clamp((p.hp / p.maxHp) * 100, 0, 100);
-      const ppPct = clamp((p.pp / 100) * 100, 0, 100);
-      return '<article class="member">' +
-        '<div class="member-top">' +
-          '<div class="portrait">' + p.type.slice(0,1) + '</div>' +
-          '<div><strong>' + p.name + '</strong><small>' + p.quick.name + ' · ' + p.strong.name + '</small></div>' +
-          '<span class="level">Lv.' + p.level + '</span>' +
-        '</div>' +
-        '<div class="statline"><span>HP</span><div class="bar hp"><i style="width:' + hpPct + '%"></i></div><b>' + p.hp + '/' + p.maxHp + '</b></div>' +
-        '<div class="statline"><span>PP</span><div class="bar pp"><i style="width:' + ppPct + '%"></i></div><b>' + p.pp + '/100</b></div>' +
-      '</article>';
-    }).join("");
-  }
-
-  function renderEncounter() {
-    const e = state.enemy;
-    $("#battleState").textContent = e ? "전투 중" : "탐색 중";
-    $("#enemyCard").classList.toggle("idle", !e);
-    $("#enemyHpRow").classList.toggle("hidden", !e);
-    if (!e) {
-      $("#enemyIcon").textContent = "?";
-      $("#enemyName").textContent = "주변을 탐색 중...";
-      $("#enemyMeta").textContent = "다음 조우를 기다립니다.";
-      return;
-    }
-    $("#enemyIcon").textContent = e.icon;
-    $("#enemyName").textContent = e.name;
-    $("#enemyMeta").textContent = "새싹 들판 · 야생 포켓몬";
-    const pct = clamp((e.hp / e.maxHp) * 100, 0, 100);
-    $("#enemyHpBar").style.width = pct + "%";
-    $("#enemyHpText").textContent = Math.max(0, e.hp) + " / " + e.maxHp;
-  }
-
-  function renderResources() {
-    $("#coinValue").textContent = format(state.resources.coin);
-    $("#foodValue").textContent = format(state.resources.food);
-    $("#woodValue").textContent = format(state.resources.wood);
-    $("#stoneValue").textContent = format(state.resources.stone);
-  }
-
-  function renderArea() {
-    $("#areaName").textContent = state.area.name;
-    $("#areaProgressText").textContent = state.area.progress + " / " + state.area.goal;
-    $("#areaProgressBar").style.width = clamp((state.area.progress / state.area.goal) * 100, 0, 100) + "%";
-    $("#battleWins").textContent = state.battleWins;
-  }
-
-  function renderLog() {
-    const box = $("#battleLog");
-    if (!state.log.length) {
-      box.innerHTML = '<div class="empty">아직 기록이 없습니다.</div>';
-      return;
-    }
-    box.innerHTML = state.log.slice(-60).map(x =>
-      '<div class="log-line ' + (x.kind || "") + '"><time>' + x.time + '</time><span>' + x.text + '</span></div>'
-    ).join("");
-    box.scrollTop = box.scrollHeight;
-  }
-
-  function renderLoot() {
-    $("#lootList").innerHTML = state.loot.length
-      ? state.loot.map(x => '<div class="loot-entry"><span>' + x.name + '</span><b>× ' + format(x.amount) + '</b></div>').join("")
-      : '<div class="empty">아직 획득한 보상이 없습니다.</div>';
-  }
-
-  function renderMeta() {
-    $("#totalRuns").textContent = format(state.totalRuns);
-    $("#totalWins").textContent = format(state.totalWins);
-    $("#totalCoins").textContent = format(state.totalCoins);
-    const sec = Math.max(0, Math.floor((Date.now() - state.savedAt) / 1000));
-    $("#lastSaveText").textContent = sec < 5 ? "방금 전" : sec < 60 ? sec + "초 전" : Math.floor(sec / 60) + "분 전";
-  }
-
-  function renderRoster() {
-    $("#rosterGrid").innerHTML = state.party.map(p =>
-      '<article class="roster-card"><h3>' + p.name + ' · Lv.' + p.level + '</h3>' +
-      '<p>HP ' + p.maxHp + ' · 공격 ' + p.attack + ' · 방어 ' + p.defense + '<br>' +
-      '특성: ' + p.ability + '<br>속공: ' + p.quick.name + ' / 강공: ' + p.strong.name + '<br>도구: ' + p.item + '</p></article>'
-    ).join("");
-    $("#itemGrid").innerHTML = [
-      ["울퉁불퉁멧", "접촉 피해를 받을 때 공격자에게 반사 피해."],
-      ["클리어참", "능력치 하락 계열 방해를 막는 방어형 도구."],
-      ["속임수주사위", "연속 공격 계열의 기대 성능을 안정화."],
-      ["기합의띠", "가득 찬 HP에서 치명적인 피해를 1회 버팀."]
-    ].map(x => '<article class="item-card"><h3>' + x[0] + '</h3><p>' + x[1] + '</p></article>').join("");
-  }
-
-  function renderAll() {
-    renderResources();
-    renderParty();
-    renderEncounter();
-    renderArea();
-    renderLog();
-    renderLoot();
-    renderMeta();
-    renderRoster();
-  }
-
-  function bindUI() {
-    $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => {
-      $$(".nav-btn").forEach(x => x.classList.remove("active"));
-      $$(".view").forEach(x => x.classList.remove("active"));
-      btn.classList.add("active");
-      $("#view-" + btn.dataset.view).classList.add("active");
-    }));
-
-    $$(".speed").forEach(btn => btn.addEventListener("click", () => {
-      $$(".speed").forEach(x => x.classList.remove("active"));
-      btn.classList.add("active");
-      state.speed = Number(btn.dataset.speed);
-    }));
-
-    $("#saveBtn").addEventListener("click", () => saveState(true));
-    $("#resetBtn").addEventListener("click", resetState);
-    $("#returnBtn").addEventListener("click", () => returnToTown(false));
-    $("#clearLogBtn").addEventListener("click", () => {
-      state.log = [];
-      renderLog();
-    });
-  }
-
-  function loop(now) {
-    const delta = Math.min(100, now - lastFrame);
-    lastFrame = now;
-    actionRemaining -= delta * state.speed;
-    if (actionRemaining <= 0) {
-      actionTick();
-      actionRemaining += 3000;
-    }
-    $("#turnTimer").textContent = (Math.max(0, actionRemaining) / 1000).toFixed(1) + "초";
-    renderMeta();
-    requestAnimationFrame(loop);
-  }
-
-  bindUI();
-  if (!state.log.length) addLog("새싹 들판 탐험을 시작합니다.", "good");
-  renderAll();
-  requestAnimationFrame(loop);
-  window.addEventListener("beforeunload", () => saveState(false));
+const KEY="pokeloop_guildflow_v2";
+const roster=[
+{id:"bulba",name:"이상해씨",type:"풀",lv:5,maxHp:72,hp:72,atk:15,def:12,pp:0,quick:{name:"덩굴채찍",pow:10,gain:20},strong:{name:"씨폭탄",pow:42,cost:100}},
+{id:"char",name:"파이리",type:"불꽃",lv:5,maxHp:64,hp:64,atk:18,def:9,pp:0,quick:{name:"불꽃세례",pow:11,gain:20},strong:{name:"화염바퀴",pow:46,cost:100}},
+{id:"squirt",name:"꼬부기",type:"물",lv:5,maxHp:80,hp:80,atk:13,def:16,pp:0,quick:{name:"물대포",pow:9,gain:25},strong:{name:"아쿠아테일",pow:40,cost:100}},
+{id:"rattata",name:"꼬렛",type:"노말",lv:4,maxHp:58,hp:58,atk:16,def:8,pp:0,quick:{name:"전광석화",pow:10,gain:25},strong:{name:"필살앞니",pow:38,cost:100}},
+{id:"pidgey",name:"구구",type:"비행",lv:4,maxHp:60,hp:60,atk:14,def:9,pp:0,quick:{name:"바람일으키기",pow:10,gain:20},strong:{name:"날개치기",pow:40,cost:100}}
+];
+const areas=[
+{id:"meadow",name:"새싹 들판",difficulty:"쉬움",desc:"초기 포켓몬이 자주 출현하는 평온한 지역.",enemies:[
+{name:"꼬렛",icon:"N",hp:52,atk:6,w:28,reward:[2,4]},{name:"구구",icon:"F",hp:46,atk:7,w:24,reward:[2,5]},{name:"캐터피",icon:"B",hp:64,atk:4,w:18,reward:[2,4]},{name:"뿔충이",icon:"B",hp:60,atk:5,w:16,reward:[2,4]},{name:"깨비참",icon:"R",hp:92,atk:10,w:8,reward:[6,10]},{name:"피카츄",icon:"E",hp:110,atk:12,w:6,reward:[8,13]}]},
+{id:"forest",name:"깊은 초록 숲",difficulty:"보통",desc:"다수 조우가 늘어나며 탐험대 유지력이 중요해지는 지역.",enemies:[
+{name:"파라스",icon:"B",hp:88,atk:9,w:24,reward:[4,7]},{name:"뚜벅쵸",icon:"G",hp:100,atk:8,w:24,reward:[4,7]},{name:"아보",icon:"P",hp:110,atk:11,w:20,reward:[5,8]},{name:"니드런",icon:"P",hp:125,atk:12,w:18,reward:[5,9]},{name:"스라크",icon:"B",hp:180,atk:18,w:8,reward:[12,18]},{name:"피카츄",icon:"E",hp:135,atk:16,w:6,reward:[10,15]}]},
+{id:"cliff",name:"바람 깎인 절벽",difficulty:"어려움",desc:"공격적인 비행·바위 포켓몬이 등장하는 상위 지역.",enemies:[
+{name:"깨비참",icon:"R",hp:130,atk:16,w:25,reward:[6,10]},{name:"꼬마돌",icon:"R",hp:180,atk:14,w:25,reward:[7,11]},{name:"롱스톤",icon:"R",hp:260,atk:20,w:18,reward:[10,16]},{name:"골뱃",icon:"P",hp:210,atk:22,w:18,reward:[10,16]},{name:"프테라",icon:"R",hp:320,atk:28,w:8,reward:[18,28]},{name:"망나뇽",icon:"D",hp:520,atk:38,w:6,reward:[35,50]}]}
+];
+const fresh=()=>({resources:{coin:0,food:0,wood:0,stone:0},roster:structuredClone(roster),selectedArea:"meadow",selectedParty:[],run:null,speed:1,log:[],savedAt:Date.now()});
+let state=load(),remaining=3000,last=performance.now();
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(!x)return fresh();const f=fresh();return {...f,...x,resources:{...f.resources,...x.resources},roster:Array.isArray(x.roster)?x.roster:f.roster,run:null};}catch{return fresh();}}
+function save(msg=false){state.savedAt=Date.now();localStorage.setItem(KEY,JSON.stringify({...state,run:null}));if(msg)addLog("게임을 저장했습니다.","good");render();}
+function time(){return new Date().toLocaleTimeString("ko-KR",{hour12:false,hour:"2-digit",minute:"2-digit",second:"2-digit"});}
+function addLog(t,k=""){state.log.push({t:time(),m:t,k});if(state.log.length>120)state.log.shift();renderLog();}
+function area(){return areas.find(a=>a.id===state.selectedArea)||areas[0];}
+function roll(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function pickEnemy(a){let total=a.enemies.reduce((s,e)=>s+e.w,0),r=Math.random()*total;for(const e of a.enemies){if(r<e.w)return e;r-=e.w;}return a.enemies[0];}
+function renderAreas(){const a=area();$("#areaList").innerHTML=areas.map(x=>`<article class="area-card ${x.id===a.id?"active":""}" data-area="${x.id}"><strong>${x.name}</strong><p>${x.desc}</p><div class="area-meta"><span>${x.difficulty}</span><span>출현 ${x.enemies.length}종</span></div></article>`).join("");$("#areaDetail").innerHTML=`<small>SELECTED AREA</small><h3>${a.name}</h3><p>${a.desc}</p><div class="encounter-tags">${a.enemies.map(e=>`<span>${e.name}</span>`).join("")}</div>`;$$(".area-card").forEach(c=>c.onclick=()=>{state.selectedArea=c.dataset.area;render();});}
+function renderPicker(){const sel=state.selectedParty;$("#partyCount").textContent=sel.length+" / 4";$("#partyPicker").innerHTML=state.roster.map(p=>{const on=sel.includes(p.id),disabled=!on&&sel.length>=4;return `<article class="pick-card ${on?"selected":""} ${disabled?"disabled":""}" data-poke="${p.id}"><strong>${p.name}</strong><small>Lv.${p.lv} · ${p.type} · HP ${p.maxHp}</small></article>`}).join("");$$(".pick-card").forEach(c=>c.onclick=()=>{if(c.classList.contains("disabled"))return;const id=c.dataset.poke,i=state.selectedParty.indexOf(id);if(i>=0)state.selectedParty.splice(i,1);else if(state.selectedParty.length<4)state.selectedParty.push(id);render();});$("#startExpeditionBtn").disabled=sel.length<1;}
+function start(){if(!state.selectedParty.length)return;const party=state.roster.filter(p=>state.selectedParty.includes(p.id)).map(p=>({...structuredClone(p),hp:p.maxHp,pp:0}));state.run={areaId:state.selectedArea,party,room:0,wins:0,coins:0,enemies:[]};state.log=[];remaining=3000;addLog(area().name+" 탐험을 시작했습니다.","good");render();}
+function spawnRoom(){const r=state.run,a=areas.find(x=>x.id===r.areaId);r.room++;if(Math.random()<.42){addLog("구역 "+r.room+": 아무것도 발견하지 못했습니다.");if(Math.random()<.18){state.resources.wood++;addLog("나무 +1 획득.","loot");}return;}
+let n=1;if(r.room>5&&Math.random()<.3)n=2;if(r.room>12&&Math.random()<.18)n=3;r.enemies=[];for(let i=0;i<n;i++){const base=pickEnemy(a);r.enemies.push({...base,maxHp:base.hp,hp:base.hp});}addLog("구역 "+r.room+": "+r.enemies.map(e=>e.name).join(", ")+" 조우.");}
+function aliveParty(){return state.run.party.filter(p=>p.hp>0);}
+function aliveEnemies(){return state.run.enemies.filter(e=>e.hp>0);}
+function turn(){const r=state.run;if(!r)return;if(!r.enemies.length){spawnRoom();render();return;}const allies=aliveParty(),foes=aliveEnemies();if(!allies.length){finish(true);return;}for(const p of allies){const targets=aliveEnemies();if(!targets.length)break;const e=targets[Math.floor(Math.random()*targets.length)],strong=p.pp>=p.strong.cost,move=strong?p.strong:p.quick,dmg=Math.max(1,Math.round((p.atk*.55+move.pow)*(.9+Math.random()*.2)));if(strong)p.pp-=p.strong.cost;else p.pp=Math.min(200,p.pp+p.quick.gain);e.hp=Math.max(0,e.hp-dmg);addLog(`${p.name}의 ${move.name}! ${e.name}에게 ${dmg} 피해.${strong?" [강공]":""}`,strong?"good":"");}
+if(!aliveEnemies().length){let coins=0;r.enemies.forEach(e=>coins+=roll(e.reward[0],e.reward[1]));state.resources.coin+=coins;r.coins+=coins;r.wins++;addLog("전투 승리. 코인 +"+coins,"loot");r.enemies=[];return;}
+for(const e of aliveEnemies()){const targets=aliveParty();if(!targets.length)break;const p=targets[Math.floor(Math.random()*targets.length)],dmg=Math.max(1,Math.round((e.atk-p.def*.2)*(.85+Math.random()*.3)));p.hp=Math.max(0,p.hp-dmg);addLog(`${e.name}의 공격! ${p.name}에게 ${dmg} 피해.`,"bad");if(p.hp<=0)addLog(p.name+"이(가) 쓰러졌습니다.","bad");}if(!aliveParty().length)finish(true);}
+function finish(wipe=false){if(!state.run)return;addLog(wipe?"탐험대가 전멸했습니다.":"탐험대가 귀환했습니다.",wipe?"bad":"good");state.roster.forEach(p=>{p.hp=p.maxHp;p.pp=0});state.run=null;state.selectedParty=[];save(false);render();}
+function renderRun(){const r=state.run;$("#expeditionLobby").classList.toggle("hidden",!!r);$("#expeditionRunning").classList.toggle("hidden",!r);if(!r)return;const a=areas.find(x=>x.id===r.areaId);$("#runAreaName").textContent=a.name;$("#roomCount").textContent=r.room;$("#runWins").textContent=r.wins;$("#runCoins").textContent=r.coins;$("#activeParty").innerHTML=r.party.map(p=>`<article class="member"><div class="member-top"><strong>${p.name}</strong><small>Lv.${p.lv}</small></div><div class="bar hp"><i style="width:${p.hp/p.maxHp*100}%"></i></div><div class="bar pp"><i style="width:${Math.min(100,p.pp)}%"></i></div></article>`).join("");const es=aliveEnemies();$("#encounterTitle").textContent=es.length?("전투 중 · 적 "+es.length+"마리"):"탐색 중";$("#enemyZone").innerHTML=es.length?es.map(e=>`<article class="enemy-card"><div class="icon">${e.icon}</div><strong>${e.name}</strong><small>HP ${e.hp} / ${e.maxHp}</small><div class="bar hp"><i style="width:${e.hp/e.maxHp*100}%"></i></div></article>`).join(""):'<div class="empty-state">다음 구역을 탐색 중입니다.</div>';}
+function renderLog(){const el=$("#log");if(!el)return;el.innerHTML=state.log.length?state.log.slice(-60).map(x=>`<div class="log-line ${x.k}"><time>${x.t}</time><span>${x.m}</span></div>`).join(""):'<div class="empty-state">기록 없음</div>';el.scrollTop=el.scrollHeight;}
+function renderPokemon(){$("#pokemonList").innerHTML=state.roster.map(p=>`<article class="poke-card"><strong>${p.name}</strong><small>Lv.${p.lv} · ${p.type}<br>HP ${p.maxHp} / 공격 ${p.atk} / 방어 ${p.def}<br>${p.quick.name} / ${p.strong.name}</small></article>`).join("");}
+function render(){$("#coin").textContent=state.resources.coin;$("#food").textContent=state.resources.food;$("#wood").textContent=state.resources.wood;$("#stone").textContent=state.resources.stone;renderAreas();renderPicker();renderRun();renderLog();renderPokemon();}
+function bind(){$$(".nav").forEach(b=>b.onclick=()=>{if(state.run&&b.dataset.view!=="expedition")return;$$(".nav").forEach(x=>x.classList.remove("active"));$$(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#view-"+b.dataset.view).classList.add("active");});$("#startExpeditionBtn").onclick=start;$("#returnBtn").onclick=()=>finish(false);$("#saveBtn").onclick=()=>save(true);$("#resetBtn").onclick=()=>{if(confirm("모든 저장 데이터를 초기화할까요?")){localStorage.removeItem(KEY);state=fresh();remaining=3000;render();}};$("#clearLogBtn").onclick=()=>{state.log=[];renderLog();};$$(".speed").forEach(b=>b.onclick=()=>{$$(".speed").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.speed=Number(b.dataset.speed);$("#speedText").textContent=b.dataset.speed+"x";});}
+function loop(now){const d=Math.min(100,now-last);last=now;if(state.run){remaining-=d*state.speed;if(remaining<=0){turn();remaining+=3000;}$("#nextAction").textContent=(Math.max(0,remaining)/1000).toFixed(1)+"초";}requestAnimationFrame(loop);}
+bind();render();requestAnimationFrame(loop);window.addEventListener("beforeunload",()=>save(false));
 })();
