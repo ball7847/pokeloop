@@ -25,62 +25,62 @@
     <div class="app-body">
       <aside class="sidebar">
         <nav id="mainNav" class="main-nav">
-          <section class="nav-group" data-group="camp">
-            <button class="nav-main active" data-main="camp">
-              <span class="nav-icon">⌂</span>
-              <span>캠프</span>
-              <span class="nav-arrow">⌄</span>
-            </button>
-            <div class="subnav open">
-              <button class="nav-sub active" data-view="soup">포켓수프</button>
-              <button class="nav-sub" data-view="storage">창고</button>
-              <button class="nav-sub" data-view="craft">제작</button>
-              <button class="nav-sub" data-view="merchant">유랑상인</button>
-            </div>
-          </section>
-
           <section class="nav-group" data-group="pokemon">
-            <button class="nav-main" data-main="pokemon" data-view="pokemon">
+            <button class="nav-main" data-main="pokemon" data-view="pokemon" type="button">
               <span class="nav-icon">◉</span>
               <span>포켓몬</span>
             </button>
           </section>
 
+          <section class="nav-group" data-group="camp">
+            <button class="nav-main active" data-main="camp" type="button">
+              <span class="nav-icon">⌂</span>
+              <span>캠프</span>
+              <span class="nav-arrow">⌄</span>
+            </button>
+            <div class="subnav open">
+              <button class="nav-sub active" data-view="soup" type="button">포켓수프</button>
+              <button class="nav-sub" data-view="storage" type="button">창고</button>
+              <button class="nav-sub" data-view="craft" type="button">제작</button>
+              <button class="nav-sub" data-view="merchant" type="button">유랑상인</button>
+            </div>
+          </section>
+
           <section class="nav-group" data-group="exploration">
-            <button class="nav-main" data-main="exploration">
+            <button class="nav-main" data-main="exploration" type="button">
               <span class="nav-icon">◆</span>
               <span>탐험</span>
               <span class="nav-arrow">⌄</span>
             </button>
             <div class="subnav">
-              <button class="nav-sub" data-view="regions">지역</button>
-              <button class="nav-sub" data-view="depths">심층부</button>
+              <button class="nav-sub" data-view="regions" type="button">지역</button>
+              <button class="nav-sub" data-view="depths" type="button">심층부</button>
             </div>
           </section>
 
           <section class="nav-group" data-group="dex">
-            <button class="nav-main" data-main="dex">
+            <button class="nav-main" data-main="dex" type="button">
               <span class="nav-icon">▣</span>
               <span>도감</span>
               <span class="nav-arrow">⌄</span>
             </button>
             <div class="subnav">
-              <button class="nav-sub" data-view="pokemonDex">포켓몬도감</button>
-              <button class="nav-sub" data-view="moveDex">기술도감</button>
-              <button class="nav-sub" data-view="explorationDex">탐험도감</button>
-              <button class="nav-sub" data-view="itemDex">아이템도감</button>
+              <button class="nav-sub" data-view="pokemonDex" type="button">포켓몬도감</button>
+              <button class="nav-sub" data-view="moveDex" type="button">기술도감</button>
+              <button class="nav-sub" data-view="explorationDex" type="button">탐험도감</button>
+              <button class="nav-sub" data-view="itemDex" type="button">아이템도감</button>
             </div>
           </section>
 
           <section class="nav-group" data-group="settings">
-            <button class="nav-main" data-main="settings">
+            <button class="nav-main" data-main="settings" type="button">
               <span class="nav-icon">⚙</span>
               <span>설정</span>
               <span class="nav-arrow">⌄</span>
             </button>
             <div class="subnav">
-              <button class="nav-sub" data-view="records">기록</button>
-              <button class="nav-sub" data-view="system">시스템설정</button>
+              <button class="nav-sub" data-view="records" type="button">기록</button>
+              <button class="nav-sub" data-view="system" type="button">시스템설정</button>
             </div>
           </section>
         </nav>
