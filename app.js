@@ -239,7 +239,7 @@ function render(){
  $("#expAreasPanel").classList.toggle("hidden",state.expSubtab!=="areas");$("#expRunningPanel").classList.toggle("hidden",state.expSubtab!=="running");
 }
 function bind(){
- $(".nav").forEach(b=>b.onclick=()=>{$(".nav").forEach(x=>x.classList.remove("active"));$(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#view-"+b.dataset.view).classList.add("active");const titleMap={expedition:"탐험",pokemon:"포켓몬",items:"창고",town:"마을",dex:"도감"};const st=$("#screenTitle");if(st)st.textContent=titleMap[b.dataset.view]||"PokeLoop";});
+ $$(".nav").forEach(b=>b.onclick=()=>{$$(".nav").forEach(x=>x.classList.remove("active"));$$(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#view-"+b.dataset.view).classList.add("active");const titleMap={expedition:"탐험",pokemon:"포켓몬",items:"창고",town:"마을",dex:"도감"};const st=$("#screenTitle");if(st)st.textContent=titleMap[b.dataset.view]||"PokeLoop";});
  $$("#view-expedition .subtab").forEach(b=>b.onclick=()=>{state.expSubtab=b.dataset.expSubtab;$$("[data-exp-subtab]").forEach(x=>x.classList.toggle("active",x===b));render();});
  $$("#view-pokemon .subtab").forEach(b=>b.onclick=()=>{state.pokeFilter=b.dataset.pokeSubtab;$$("[data-poke-subtab]").forEach(x=>x.classList.toggle("active",x===b));renderPokemonGrid();});
  $$("#view-items .subtab").forEach(b=>b.onclick=()=>{state.itemFilter=b.dataset.itemFilter;$$("[data-item-filter]").forEach(x=>x.classList.toggle("active",x===b));renderItems();});
