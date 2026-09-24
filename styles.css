@@ -1386,23 +1386,23 @@ body{font-size:max(10px,calc(14px * var(--font-scale,1)));}
     padding-top:9px;
   }
 
-  #view-pokemon .pokemon-profile > .detail-section:nth-of-type(1){
+  #view-pokemon .pokemon-section-stats{
     grid-column:1 / -1;
   }
 
-  #view-pokemon .pokemon-profile > .detail-section:nth-of-type(2){
+  #view-pokemon .pokemon-section-abilities{
     grid-column:1;
   }
 
-  #view-pokemon .pokemon-profile > .detail-section:nth-of-type(3){
+  #view-pokemon .pokemon-section-item{
     grid-column:2;
   }
 
-  #view-pokemon .pokemon-profile > .detail-section:nth-of-type(4){
+  #view-pokemon .pokemon-section-moves{
     grid-column:1;
   }
 
-  #view-pokemon .pokemon-profile > .detail-section:nth-of-type(5){
+  #view-pokemon .pokemon-section-status{
     grid-column:2;
   }
 
