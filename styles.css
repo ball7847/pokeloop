@@ -34,7 +34,7 @@ html,body{
     var(--bg);
   background-size:auto,20px 20px,20px 20px;
 }
-body{font-size:14px}
+body{font-size:calc(14px * var(--font-scale,1))}
 button,select,input{font:inherit}
 button{cursor:pointer}
 button:disabled{cursor:not-allowed;opacity:.45}
@@ -52,19 +52,19 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .topbar-mark{
   width:40px;height:40px;display:grid;place-items:center;
   background:linear-gradient(#3a3d40,#303234);
-  color:white;font-weight:900;font-size:12px;
+  color:white;font-weight:900;font-size:calc(12px * var(--font-scale,1));
   border:2px solid #242628;
   box-shadow:2px 2px 0 #9ed7c4 inset,-2px -2px 0 rgba(0,0,0,.08) inset;
 }
-.topbar-title strong{display:block;font-size:21px;color:#2d2f30;letter-spacing:.2px}
-.topbar-title small{display:block;margin-top:1px;color:#777875;font-size:9px;letter-spacing:1.5px}
+.topbar-title strong{display:block;font-size:calc(21px * var(--font-scale,1));color:#2d2f30;letter-spacing:.2px}
+.topbar-title small{display:block;margin-top:1px;color:#777875;font-size:calc(9px * var(--font-scale,1));letter-spacing:1.5px}
 .topbar-wallet{
   min-width:172px;padding:7px 12px;text-align:right;
   background:var(--cream);border:2px solid #b69b50;
   box-shadow:2px 2px 0 #e7d89f inset;
 }
-.topbar-wallet span{display:block;font-size:8px;color:#7c6c3b;letter-spacing:1.2px}
-.topbar-wallet b{display:block;margin-top:1px;font-size:17px;color:#5b4c22}
+.topbar-wallet span{display:block;font-size:calc(8px * var(--font-scale,1));color:#7c6c3b;letter-spacing:1.2px}
+.topbar-wallet b{display:block;margin-top:1px;font-size:calc(17px * var(--font-scale,1));color:#5b4c22}
 
 .app-body{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 68px)}
 .sidebar{
@@ -95,7 +95,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
   text-align:center;font-weight:700;
 }
 .nav-main.active .nav-icon{background:#deded9;border-color:#75a89b}
-.nav-arrow{font-size:12px}
+.nav-arrow{font-size:calc(12px * var(--font-scale,1))}
 .subnav{
   display:none;padding:5px 5px 2px 35px;
   background:rgba(255,255,255,.05);
@@ -104,7 +104,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .subnav.open{display:grid}
 .nav-sub{
   width:100%;padding:7px 8px;border:0;border-bottom:1px solid rgba(255,255,255,.18);
-  background:transparent;color:#d9dad6;text-align:left;font-size:11px
+  background:transparent;color:#d9dad6;text-align:left;font-size:calc(11px * var(--font-scale,1))
 }
 .nav-sub:hover{background:rgba(255,255,255,.13)}
 .nav-sub.active{
@@ -122,10 +122,10 @@ button:disabled{cursor:not-allowed;opacity:.45}
   box-shadow:var(--shadow);
 }
 .eyebrow,.panel-kicker{
-  display:block;color:#686967;font-size:9px;font-weight:800;letter-spacing:1.4px
+  display:block;color:#686967;font-size:calc(9px * var(--font-scale,1));font-weight:800;letter-spacing:1.4px
 }
-.page-header h1{font-size:25px;margin:3px 0 4px;color:#214b45}
-.page-header p{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
+.page-header h1{font-size:calc(25px * var(--font-scale,1));margin:3px 0 4px;color:#214b45}
+.page-header p{margin:0;color:var(--muted);font-size:calc(11px * var(--font-scale,1));line-height:1.5}
 
 .panel{
   background:var(--panel);
@@ -137,17 +137,17 @@ button:disabled{cursor:not-allowed;opacity:.45}
   border-bottom:2px solid var(--line);
   background:linear-gradient(#f2f2ef,#e5e5e1);
 }
-.panel-head h2{margin:2px 0 0;font-size:14px;color:#285a54}
+.panel-head h2{margin:2px 0 0;font-size:calc(14px * var(--font-scale,1));color:#285a54}
 .two-column{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .master-detail-layout{display:grid;grid-template-columns:minmax(600px,1fr) 410px;gap:12px}
 .collection-panel,.detail-panel{min-height:590px}
 .detail-panel{padding:14px;background:#fbfcf6}
-.section-label{margin:16px 0 8px;color:#45796f;font-size:10px;font-weight:700}
+.section-label{margin:16px 0 8px;color:#45796f;font-size:calc(10px * var(--font-scale,1));font-weight:700}
 .status-badge,.reset-info,.merchant-status{
-  padding:6px 9px;border:2px solid #bdbdb8;background:#f6f6f2;color:#666765;font-size:9px
+  padding:6px 9px;border:2px solid #bdbdb8;background:#f6f6f2;color:#666765;font-size:calc(9px * var(--font-scale,1))
 }
 .empty-state{
-  min-height:250px;display:grid;place-items:center;text-align:center;color:#68837e;font-size:11px
+  min-height:250px;display:grid;place-items:center;text-align:center;color:#68837e;font-size:calc(11px * var(--font-scale,1))
 }
 .primary-button,.secondary-button{
   border:2px solid #7b847d;background:linear-gradient(#3a3d40,#303234);
@@ -171,10 +171,10 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .pot-visual{
   width:66px;height:66px;display:grid;place-items:center;
   border:2px solid #618d87;background:linear-gradient(#ffffff,#e1f2eb);
-  font-size:27px;color:#d28842;box-shadow:2px 2px 0 #b8dad1 inset
+  font-size:calc(27px * var(--font-scale,1));color:#d28842;box-shadow:2px 2px 0 #b8dad1 inset
 }
-.soup-pot strong{display:block;font-size:17px}
-.soup-pot p{margin:5px 0 0;color:#67807b;font-size:10px}
+.soup-pot strong{display:block;font-size:calc(17px * var(--font-scale,1))}
+.soup-pot p{margin:5px 0 0;color:#67807b;font-size:calc(10px * var(--font-scale,1))}
 .berry-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px}
 .berry-button{
   padding:10px;border:2px solid #7ba59d;background:#f8fbf2;color:#355f57;text-align:left;
@@ -183,16 +183,16 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .berry-button:hover{background:#eef9ed}
 .berry-button.active{border-color:#7c8b7f;background:#d7f1df}
 .berry-button b,.berry-button span{display:block}
-.berry-button b{font-size:11px}.berry-button span{margin-top:2px;color:#688079;font-size:9px}
+.berry-button b{font-size:calc(11px * var(--font-scale,1))}.berry-button span{margin-top:2px;color:#688079;font-size:calc(9px * var(--font-scale,1))}
 .soup-settings{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
 .soup-settings>div{padding:9px;border:2px solid #9cbdb6;background:#f8fcf6}
 .soup-settings span,.soup-settings b{display:block}
-.soup-settings span{color:#688079;font-size:8px}.soup-settings b{margin-top:3px;font-size:12px}
+.soup-settings span{color:#688079;font-size:calc(8px * var(--font-scale,1))}.soup-settings b{margin-top:3px;font-size:calc(12px * var(--font-scale,1))}
 #cookSoupBtn{margin:0 14px 14px;width:calc(100% - 28px)}
 
 .visitor-card{padding:18px}
-.visitor-card h3{margin:0 0 4px;font-size:18px}
-.visitor-card p{margin:0;color:#6d827d;font-size:10px}
+.visitor-card h3{margin:0 0 4px;font-size:calc(18px * var(--font-scale,1))}
+.visitor-card p{margin:0;color:#6d827d;font-size:calc(10px * var(--font-scale,1))}
 .visitor-actions{display:flex;gap:8px;margin-top:16px}
 
 .icon-grid,.pokemon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;padding:10px}
@@ -205,16 +205,16 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .item-icon,.pokemon-icon{
   height:58px;display:grid;place-items:center;
   border:2px solid #8aa8a4;background:linear-gradient(#ffffff,#e6f3ed);
-  color:#3c6b63;font-weight:900;font-size:14px
+  color:#3c6b63;font-weight:900;font-size:calc(14px * var(--font-scale,1))
 }
 .icon-card strong,.pokemon-card strong{
-  display:block;margin-top:6px;font-size:10px;color:#2f5851;
+  display:block;margin-top:6px;font-size:calc(10px * var(--font-scale,1));color:#2f5851;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
-.icon-card small,.pokemon-card small{display:block;margin-top:2px;color:#688079;font-size:8px}
+.icon-card small,.pokemon-card small{display:block;margin-top:2px;color:#688079;font-size:calc(8px * var(--font-scale,1))}
 .count-badge{
   position:absolute;right:5px;top:5px;padding:2px 5px;
-  background:#f1efe5;border:1px solid #b9b39c;color:#5c5849;font-size:8px
+  background:#f1efe5;border:1px solid #b9b39c;color:#5c5849;font-size:calc(8px * var(--font-scale,1))
 }
 
 .detail-title{display:flex;gap:12px;align-items:center}
@@ -223,15 +223,15 @@ button:disabled{cursor:not-allowed;opacity:.45}
   border:2px solid #709b94;background:linear-gradient(#fff,#e4f3ec);
   font-weight:900;color:#315e56
 }
-.detail-title h2{margin:0 0 3px;font-size:20px}
-.detail-title p{margin:0;color:#69827c;font-size:10px}
+.detail-title h2{margin:0 0 3px;font-size:calc(20px * var(--font-scale,1))}
+.detail-title p{margin:0;color:#69827c;font-size:calc(10px * var(--font-scale,1))}
 .detail-section{margin-top:16px;padding-top:12px;border-top:2px solid #bdd5cf}
-.detail-section h3{margin:0 0 8px;font-size:11px;color:#366c62}
-.detail-section p{margin:0;color:#607a74;font-size:10px;line-height:1.6}
+.detail-section h3{margin:0 0 8px;font-size:calc(11px * var(--font-scale,1));color:#366c62}
+.detail-section p{margin:0;color:#607a74;font-size:calc(10px * var(--font-scale,1));line-height:1.6}
 .detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .detail-stats>div{padding:9px;border:2px solid #9abcb5;background:#f7fbf5}
 .detail-stats span,.detail-stats b{display:block}
-.detail-stats span{font-size:8px;color:#668079}.detail-stats b{font-size:13px;margin-top:2px}
+.detail-stats span{font-size:calc(8px * var(--font-scale,1));color:#668079}.detail-stats b{font-size:calc(13px * var(--font-scale,1));margin-top:2px}
 .detail-actions{display:flex;gap:7px;margin-top:12px}
 .detail-actions button{
   padding:8px 10px;border:2px solid #729e95;background:#e8f5ed;color:#315d55
@@ -243,11 +243,11 @@ button:disabled{cursor:not-allowed;opacity:.45}
   display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px;
   border:2px solid #91b3ac;background:#f7fbf4
 }
-.list-row h3{margin:0;font-size:11px}
-.list-row p{margin:4px 0 0;color:#6e837e;font-size:9px}
+.list-row h3{margin:0;font-size:calc(11px * var(--font-scale,1))}
+.list-row p{margin:4px 0 0;color:#6e837e;font-size:calc(9px * var(--font-scale,1))}
 .list-row aside{text-align:right}
 .list-row aside b,.list-row aside span{display:block}
-.list-row aside b{font-size:11px}.list-row aside span{margin-top:3px;color:#718680;font-size:8px}
+.list-row aside b{font-size:calc(11px * var(--font-scale,1))}.list-row aside span{margin-top:3px;color:#718680;font-size:calc(8px * var(--font-scale,1))}
 .list-row button{
   margin-top:5px;padding:6px 8px;border:2px solid #4f8b72;background:#d9efdf;color:#28594c
 }
@@ -260,11 +260,11 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .region-card:hover{background:#eaf6ec}
 .region-card.active{border-color:#11775a;background:#d3efe0}
 .region-card.running{box-shadow:inset 5px 0 #4d9dcc}
-.region-card strong{display:block;font-size:12px}
-.region-card p{margin:4px 0;color:#6d827c;font-size:9px}
+.region-card strong{display:block;font-size:calc(12px * var(--font-scale,1))}
+.region-card p{margin:4px 0;color:#6d827c;font-size:calc(9px * var(--font-scale,1))}
 .region-meta{display:flex;gap:6px;margin-top:8px}
 .region-meta span{
-  padding:3px 5px;background:#edf6f0;border:1px solid #9ebdb6;color:#58716b;font-size:8px
+  padding:3px 5px;background:#edf6f0;border:1px solid #9ebdb6;color:#58716b;font-size:calc(8px * var(--font-scale,1))
 }
 .region-party-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
 .region-party-option{
@@ -272,13 +272,13 @@ button:disabled{cursor:not-allowed;opacity:.45}
 }
 .region-party-option.active{border-color:#7c897f;background:#cfeeda}
 .progress-block{margin-top:12px}
-.progress-label{display:flex;justify-content:space-between;color:#638079;font-size:9px;margin-bottom:5px}
+.progress-label{display:flex;justify-content:space-between;color:#638079;font-size:calc(9px * var(--font-scale,1));margin-bottom:5px}
 .progress-bar{height:9px;background:#ecf3ef;border:2px solid #769d96}
 .progress-bar i{display:block;height:100%;background:#39b378}
 .expedition-party{display:grid;gap:6px;margin-top:12px}
 .expedition-member{padding:8px;border:2px solid #93b4ad;background:#f7fbf4}
-.member-line{display:flex;justify-content:space-between;font-size:9px}
-.member-bars{display:grid;grid-template-columns:28px 1fr 66px;gap:5px;align-items:center;margin-top:5px;color:#6c827c;font-size:8px}
+.member-line{display:flex;justify-content:space-between;font-size:calc(9px * var(--font-scale,1))}
+.member-bars{display:grid;grid-template-columns:28px 1fr 66px;gap:5px;align-items:center;margin-top:5px;color:#6c827c;font-size:calc(8px * var(--font-scale,1))}
 .member-bars b{text-align:right;color:#365e57}
 .mini-bar{height:7px;border:1px solid #6f9690;background:#edf4f0}
 .mini-bar i{display:block;height:100%}
@@ -291,10 +291,10 @@ button:disabled{cursor:not-allowed;opacity:.45}
   box-shadow:var(--shadow)
 }
 .depth-card.locked{filter:grayscale(.7);opacity:.58}
-.depth-card h2{font-size:15px;margin:0 0 5px}
-.depth-card p{color:#6d827c;font-size:9px;line-height:1.5;min-height:40px}
+.depth-card h2{font-size:calc(15px * var(--font-scale,1));margin:0 0 5px}
+.depth-card p{color:#6d827c;font-size:calc(9px * var(--font-scale,1));line-height:1.5;min-height:40px}
 .depth-meta{display:grid;gap:5px;margin-top:10px}
-.depth-meta div{display:flex;justify-content:space-between;font-size:9px;color:#58736c}
+.depth-meta div{display:flex;justify-content:space-between;font-size:calc(9px * var(--font-scale,1));color:#58736c}
 .depth-card button{
   width:100%;margin-top:12px;padding:8px;border:2px solid #3e8068;background:#d4eddc;color:#295647
 }
@@ -302,23 +302,23 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .table-list{display:grid}
 .table-row{
   display:grid;grid-template-columns:120px 130px 120px 1fr;gap:12px;padding:10px 12px;
-  border-bottom:1px solid #a9c6c0;font-size:9px;background:#f8fbf6
+  border-bottom:1px solid #a9c6c0;font-size:calc(9px * var(--font-scale,1));background:#f8fbf6
 }
 .table-row.header{background:#e5e5e1;color:#535553;font-weight:800;border-bottom:2px solid #759e97}
 .table-row:last-child{border-bottom:0}
 
 .stat-list{display:grid;padding:10px}
 .stat-list-row{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:1px solid #b1cbc5}
-.stat-list-row span{color:#617c75;font-size:10px}.stat-list-row b{font-size:11px}
+.stat-list-row span{color:#617c75;font-size:calc(10px * var(--font-scale,1))}.stat-list-row b{font-size:calc(11px * var(--font-scale,1))}
 .record-log{height:330px;overflow:auto;padding:10px;background:#fbfcf7}
-.record-entry{display:grid;grid-template-columns:70px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid #c2d8d3;font-size:9px}
+.record-entry{display:grid;grid-template-columns:70px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid #c2d8d3;font-size:calc(9px * var(--font-scale,1))}
 .record-entry time{color:#6c827c}.record-entry span{color:#405f58}
 
 .settings-panel{max-width:800px}
 .setting-row{display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:2px solid #b9d2cc}
 .setting-row:last-child{border-bottom:0}
 .setting-row strong,.setting-row span{display:block}
-.setting-row strong{font-size:11px}.setting-row span{margin-top:3px;color:#668079;font-size:9px}
+.setting-row strong{font-size:calc(11px * var(--font-scale,1))}.setting-row span{margin-top:3px;color:#668079;font-size:calc(9px * var(--font-scale,1))}
 .switch input{display:none}
 .switch span{
   display:block;width:40px;height:21px;border:2px solid #6e9891;background:#e4ece8;position:relative
@@ -332,7 +332,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .toast-container{position:fixed;right:18px;bottom:18px;display:grid;gap:7px;z-index:100}
 .toast{
   min-width:220px;padding:10px 12px;border:2px solid #5b8d83;background:#f8fbee;color:#315850;
-  box-shadow:var(--shadow);font-size:10px
+  box-shadow:var(--shadow);font-size:calc(10px * var(--font-scale,1))
 }
 
 @media(max-width:1360px){
@@ -740,7 +740,7 @@ html,body,.app-shell,.app-body,.game-area,.view{
   .nav-icon{
     width:20px;
     height:20px;
-    font-size:10px;
+    font-size:calc(10px * var(--font-scale,1));
   }
 
   .subnav{
@@ -810,7 +810,7 @@ html,body,.app-shell,.app-body,.game-area,.view{
   }
 
   .topbar-title strong{
-    font-size:18px;
+    font-size:calc(18px * var(--font-scale,1));
   }
 
   .game-area{
@@ -822,16 +822,16 @@ html,body,.app-shell,.app-body,.game-area,.view{
   }
 
   .page-header h1{
-    font-size:19px;
+    font-size:calc(19px * var(--font-scale,1));
   }
 
   .page-header p{
-    font-size:8px;
+    font-size:calc(8px * var(--font-scale,1));
   }
 
   .eyebrow,
   .panel-kicker{
-    font-size:8px;
+    font-size:calc(8px * var(--font-scale,1));
   }
 
   .two-column{
@@ -878,11 +878,11 @@ html,body,.app-shell,.app-body,.game-area,.view{
   }
 
   .list-row h3{
-    font-size:10px;
+    font-size:calc(10px * var(--font-scale,1));
   }
 
   .list-row p{
-    font-size:8px;
+    font-size:calc(8px * var(--font-scale,1));
   }
 }
 
@@ -893,11 +893,11 @@ html,body,.app-shell,.app-body,.game-area,.view{
 
   .nav-main{
     grid-template-columns:20px minmax(0,1fr) 10px;
-    font-size:11px;
+    font-size:calc(11px * var(--font-scale,1));
   }
 
   .nav-sub{
-    font-size:9px;
+    font-size:calc(9px * var(--font-scale,1));
     padding-left:6px;
   }
 
@@ -948,7 +948,7 @@ html,body,.app-shell,.app-body,.game-area,.view{
 
 .pokemon-profile-title h2{
   margin:0;
-  font-size:20px;
+  font-size:calc(20px * var(--font-scale,1));
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -957,7 +957,7 @@ html,body,.app-shell,.app-body,.game-area,.view{
 .pokemon-profile-title p{
   margin:4px 0 0;
   color:var(--muted);
-  font-size:10px;
+  font-size:calc(10px * var(--font-scale,1));
   line-height:1.4;
 }
 
@@ -967,7 +967,7 @@ html,body,.app-shell,.app-body,.game-area,.view{
   border:1px solid #9a9a95;
   background:#e8e8e4;
   color:#3d3e3e;
-  font-size:9px;
+  font-size:calc(9px * var(--font-scale,1));
   font-weight:800;
 }
 
@@ -1008,14 +1008,14 @@ html,body,.app-shell,.app-body,.game-area,.view{
 .profile-info-grid span,
 .pokemon-stat-grid span{
   color:#747572;
-  font-size:8px;
+  font-size:calc(8px * var(--font-scale,1));
 }
 
 .profile-info-grid b,
 .pokemon-stat-grid b{
   margin-top:3px;
   color:#303132;
-  font-size:11px;
+  font-size:calc(11px * var(--font-scale,1));
   overflow-wrap:anywhere;
 }
 
@@ -1025,11 +1025,7 @@ html,body,.app-shell,.app-body,.game-area,.view{
   gap:6px;
 }
 
-.profile-columns{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
+.profile-columns{display:block;}
 
 .profile-value-list,
 .move-slot-list{
@@ -1051,13 +1047,13 @@ html,body,.app-shell,.app-body,.game-area,.view{
 .profile-value-row span,
 .move-slot span{
   color:#747572;
-  font-size:9px;
+  font-size:calc(9px * var(--font-scale,1));
 }
 
 .profile-value-row b,
 .move-slot b{
   color:#303132;
-  font-size:10px;
+  font-size:calc(10px * var(--font-scale,1));
   text-align:right;
 }
 
@@ -1066,7 +1062,7 @@ html,body,.app-shell,.app-body,.game-area,.view{
   border:1px solid #aeb4af;
   background:#eef1ed;
   color:#3d5047;
-  font-size:10px;
+  font-size:calc(10px * var(--font-scale,1));
   font-weight:700;
 }
 
@@ -1096,90 +1092,18 @@ html,body,.app-shell,.app-body,.game-area,.view{
 }
 
 /* Font-size presets. M is the default. */
-html[data-font-size="S"]{
-  --ui-body-size:12px;
-  --ui-small-size:8px;
-  --ui-label-size:9px;
-  --ui-title-size:22px;
-  --ui-section-size:10px;
-}
+html[data-font-size="S"]{ --font-scale:.86; }
+html[data-font-size="M"]{ --font-scale:1; }
+html[data-font-size="L"]{ --font-scale:1.14; }
+html[data-font-size="XL"]{ --font-scale:1.28; }
 
-html[data-font-size="M"]{
-  --ui-body-size:14px;
-  --ui-small-size:9px;
-  --ui-label-size:10px;
-  --ui-title-size:25px;
-  --ui-section-size:11px;
-}
+body{font-size:calc(14px * var(--font-scale,1));}
 
-html[data-font-size="L"]{
-  --ui-body-size:16px;
-  --ui-small-size:10px;
-  --ui-label-size:11px;
-  --ui-title-size:28px;
-  --ui-section-size:12px;
-}
 
-html[data-font-size="XL"]{
-  --ui-body-size:18px;
-  --ui-small-size:11px;
-  --ui-label-size:12px;
-  --ui-title-size:31px;
-  --ui-section-size:13px;
-}
 
-body{
-  font-size:var(--ui-body-size,14px);
-}
 
-.nav-main,
-button,
-select,
-input{
-  font-size:inherit;
-}
 
-.page-header h1{
-  font-size:var(--ui-title-size,25px) !important;
-}
 
-.page-header p,
-.soup-pot p,
-.list-row p,
-.detail-title p,
-.detail-section p,
-.pokemon-profile-title p{
-  font-size:var(--ui-small-size,9px) !important;
-}
-
-.eyebrow,
-.panel-kicker,
-.nav-sub,
-.icon-card small,
-.pokemon-card small,
-.profile-info-grid span,
-.pokemon-stat-grid span,
-.profile-value-row span,
-.move-slot span{
-  font-size:var(--ui-small-size,9px) !important;
-}
-
-.panel-head h2,
-.detail-section h3,
-.section-label{
-  font-size:var(--ui-section-size,11px) !important;
-}
-
-.icon-card strong,
-.pokemon-card strong,
-.list-row h3,
-.profile-info-grid b,
-.pokemon-stat-grid b,
-.profile-value-row b,
-.move-slot b,
-.current-status{
-  font-size:var(--ui-label-size,10px) !important;
-}
 
 @media(max-width:960px){
   #view-pokemon .master-detail-layout{
@@ -1206,9 +1130,7 @@ input{
     padding:6px;
   }
 
-  .profile-columns{
-    gap:6px;
-  }
+  .profile-columns{display:block;}
 }
 
 
@@ -1261,7 +1183,7 @@ input{
   height:20px;
   display:grid;
   place-items:center;
-  font-size:16px;
+  font-size:calc(16px * var(--font-scale,1));
   font-weight:900;
   line-height:1;
 }
@@ -1283,7 +1205,7 @@ input{
   border:1px solid #999a95;
   background:#ecece8;
   color:#4c4d4d;
-  font-size:14px;
+  font-size:calc(14px * var(--font-scale,1));
 }
 
 .nickname-icon-button:hover{
@@ -1325,7 +1247,7 @@ input{
 
 .game-modal-head h2{
   margin:3px 0 0;
-  font-size:18px;
+  font-size:calc(18px * var(--font-scale,1));
 }
 
 .modal-icon-button{
@@ -1337,7 +1259,7 @@ input{
   border:1px solid #9c9d98;
   background:#f2f2ee;
   color:#555653;
-  font-size:18px;
+  font-size:calc(18px * var(--font-scale,1));
   line-height:1;
 }
 
@@ -1349,7 +1271,7 @@ input{
   display:block;
   margin-bottom:6px;
   color:#555653;
-  font-size:10px;
+  font-size:calc(10px * var(--font-scale,1));
   font-weight:700;
 }
 
@@ -1373,7 +1295,7 @@ input{
   gap:10px;
   margin-top:7px;
   color:#777874;
-  font-size:9px;
+  font-size:calc(9px * var(--font-scale,1));
 }
 
 .nickname-modal-meta b{
@@ -1402,7 +1324,7 @@ input{
   .gender-icon{
     width:18px;
     height:18px;
-    font-size:14px;
+    font-size:calc(14px * var(--font-scale,1));
   }
 
   .nickname-icon-button{
