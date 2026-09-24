@@ -37,7 +37,7 @@
       selectedRegionParty: [],
       selectedDexPokemon: null,
       storageFilter: "all",
-      settings: { fontSize:"M", compactNumbers:false, autosave:true, battleLog:true },
+      settings: { fontSize:"M", autosave:true, battleLog:true },
       stats: {
         saveCreatedAt: Date.now(),
         totalExplorationSteps: 0,
@@ -143,13 +143,7 @@
   function expeditionForPokemon(id){ return Object.values(state.expeditions).find(e=>e.party.some(p=>p.id===id))||null; }
 
   function formatNumber(value) {
-    if (!state.settings.compactNumbers) return Math.floor(value).toLocaleString("ko-KR");
-    const n=Number(value);
-    if(n>=1e12)return(n/1e12).toFixed(2)+"T";
-    if(n>=1e9)return(n/1e9).toFixed(2)+"B";
-    if(n>=1e6)return(n/1e6).toFixed(2)+"M";
-    if(n>=1e3)return(n/1e3).toFixed(1)+"K";
-    return Math.floor(n).toString();
+    return Math.floor(value).toLocaleString("ko-KR");
   }
 
   function formatDuration(ms){
@@ -640,7 +634,6 @@
 
   function renderRecords(){
     renderSaveStats();
-    $("#recordLog").innerHTML=state.logs.length?state.logs.slice(-60).reverse().map(e=>'<div class="record-entry"><time>'+timeText(e.time)+'</time><span>['+e.category+'] '+e.message+'</span></div>').join(""):'<div class="empty-state">기록이 없습니다.</div>';
   }
 
   function exportSave(){
@@ -657,7 +650,6 @@
 
   function renderSettings(){
     applyFontSize();
-    $("#compactNumbersToggle").checked=state.settings.compactNumbers;
     $("#autosaveToggle").checked=state.settings.autosave;
     $("#battleLogToggle").checked=state.settings.battleLog;
   }
@@ -704,7 +696,6 @@
       toast("글자 크기를 "+btn.dataset.fontSize+"로 변경했습니다.");
     });
 
-    $("#nicknameModalClose").onclick=closeNicknameModal;
     $("#nicknameModalCancel").onclick=closeNicknameModal;
     $("#nicknameModalSave").onclick=saveNicknameFromModal;
     $("#nicknameInput").addEventListener("input",e=>{
@@ -720,7 +711,6 @@
 
     $("#saveNowBtn").onclick=()=>save(true);
     $("#exportSaveBtn").onclick=exportSave;
-    $("#compactNumbersToggle").onchange=e=>{state.settings.compactNumbers=e.target.checked;renderMoney();renderSaveStats();};
     $("#autosaveToggle").onchange=e=>{state.settings.autosave=e.target.checked;toast("자동 저장 설정을 변경했습니다.");};
     $("#battleLogToggle").onchange=e=>{state.settings.battleLog=e.target.checked;};
     window.addEventListener("beforeunload",()=>save(false));
