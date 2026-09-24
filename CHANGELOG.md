@@ -1,5 +1,14 @@
 # PokeLoop Changelog
 
+## 0.1.12 — 2026-09-24
+
+### 폰트
+- 기본 UI 폰트를 Galmuri11(갈무리11)로 변경
+- Galmuri 공식 웹폰트 배포 방식에 따라 jsDelivr의 galmuri.css를 로드
+- 웹폰트 로드 실패 시 Noto Sans KR → 맑은 고딕 → sans-serif 순으로 대체
+- Galmuri는 SIL Open Font License 1.1 기반 오픈 폰트
+
+---
 ## 0.1.11 — 2026-09-24
 
 ### 데이터 구조 분리
