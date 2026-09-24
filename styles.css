@@ -339,3 +339,333 @@ button:disabled{cursor:not-allowed;opacity:.45}
   .icon-grid,.pokemon-grid{grid-template-columns:repeat(5,1fr)}
   .master-detail-layout{grid-template-columns:minmax(520px,1fr) 360px}
 }
+
+
+/* Adaptive viewport layout: fixed game frame, internal scrolling only */
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+
+body{
+  min-height:0;
+}
+
+.app-shell{
+  width:100%;
+  height:100vh;
+  min-height:0;
+  overflow:hidden;
+}
+
+.topbar{
+  height:clamp(56px,6.2vh,68px);
+  min-height:56px;
+  padding-inline:clamp(14px,1.4vw,22px);
+}
+
+.app-body{
+  height:calc(100vh - clamp(56px,6.2vh,68px));
+  min-height:0;
+  overflow:hidden;
+  grid-template-columns:clamp(172px,11.5vw,220px) minmax(0,1fr);
+}
+
+.sidebar{
+  height:100%;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:clamp(8px,1vh,12px) clamp(7px,.7vw,10px);
+  scrollbar-width:thin;
+  scrollbar-color:#777872 transparent;
+}
+
+.game-area{
+  height:100%;
+  min-height:0;
+  max-width:none;
+  overflow:hidden;
+  padding:clamp(12px,1.8vh,20px) clamp(14px,1.5vw,22px) clamp(14px,2vh,24px);
+}
+
+.view{
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+}
+
+.view.active{
+  display:flex;
+  flex-direction:column;
+}
+
+.page-header{
+  flex:0 0 auto;
+  min-height:0;
+  margin-bottom:clamp(8px,1.2vh,14px);
+  padding:clamp(8px,1vh,11px) clamp(9px,1vw,13px);
+}
+
+.page-header h1{
+  font-size:clamp(20px,1.45vw,25px);
+}
+
+.page-header p{
+  font-size:clamp(9px,.72vw,11px);
+}
+
+.two-column,
+.master-detail-layout,
+.region-layout,
+.depth-grid{
+  flex:1 1 auto;
+  min-height:0;
+}
+
+.two-column{
+  height:100%;
+}
+
+.two-column > .panel,
+.master-detail-layout > .panel{
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+}
+
+.collection-panel,
+.detail-panel{
+  min-height:0;
+}
+
+.collection-panel{
+  overflow:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#8a8a84 transparent;
+}
+
+.detail-panel{
+  overflow:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#8a8a84 transparent;
+}
+
+.list-stack,
+.icon-grid,
+.pokemon-grid,
+.region-list,
+.table-list,
+.stat-list,
+.record-log{
+  min-height:0;
+}
+
+#recipeList,
+#craftQueue,
+#merchantBuyList,
+#merchantSellList,
+#storageGrid,
+#pokemonGrid,
+#regionList,
+#pokemonDexGrid,
+#moveDexList,
+#explorationDexList,
+#itemDexList,
+#recordLog{
+  overflow:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#8a8a84 transparent;
+}
+
+#recipeList,
+#craftQueue,
+#merchantBuyList,
+#merchantSellList,
+#recordLog{
+  max-height:100%;
+}
+
+#view-storage .master-detail-layout,
+#view-pokemon .master-detail-layout,
+#view-regions .master-detail-layout,
+#view-pokemonDex .master-detail-layout{
+  height:100%;
+}
+
+#view-craft .two-column,
+#view-merchant .two-column,
+#view-records .two-column,
+#view-soup .two-column{
+  height:100%;
+}
+
+#view-craft .panel,
+#view-merchant .panel,
+#view-records .panel,
+#view-soup .panel{
+  min-height:0;
+  overflow:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#8a8a84 transparent;
+}
+
+#view-depths .depth-grid{
+  overflow:auto;
+  align-content:start;
+  scrollbar-width:thin;
+  scrollbar-color:#8a8a84 transparent;
+}
+
+#view-moveDex > .panel,
+#view-explorationDex > .panel,
+#view-itemDex > .panel,
+#view-system > .panel{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#8a8a84 transparent;
+}
+
+.nav-main{
+  padding:clamp(8px,1.05vh,10px) clamp(8px,.7vw,10px);
+  font-size:clamp(12px,.78vw,14px);
+}
+
+.nav-sub{
+  padding:clamp(6px,.8vh,7px) 8px;
+  font-size:clamp(10px,.65vw,11px);
+}
+
+.icon-grid,
+.pokemon-grid{
+  grid-template-columns:repeat(auto-fill,minmax(clamp(82px,6vw,108px),1fr));
+  gap:clamp(5px,.5vw,7px);
+  padding:clamp(7px,.7vw,10px);
+}
+
+.icon-card,
+.pokemon-card{
+  min-height:clamp(92px,11vh,108px);
+}
+
+.item-icon,
+.pokemon-icon{
+  height:clamp(48px,6.5vh,58px);
+}
+
+.two-column{
+  gap:clamp(8px,.8vw,12px);
+}
+
+.master-detail-layout{
+  gap:clamp(8px,.8vw,12px);
+  grid-template-columns:minmax(0,1fr) clamp(320px,29vw,410px);
+}
+
+.region-layout{
+  grid-template-columns:clamp(310px,27vw,390px) minmax(0,1fr);
+}
+
+.depth-grid{
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:clamp(7px,.7vw,10px);
+}
+
+.table-row{
+  grid-template-columns:clamp(90px,8vw,120px) clamp(100px,9vw,130px) clamp(90px,8vw,120px) minmax(0,1fr);
+}
+
+@media (max-height:820px){
+  .panel-head{min-height:42px;height:42px}
+  .detail-section{margin-top:10px;padding-top:9px}
+  .soup-pot{padding:11px}
+  .pot-visual{width:54px;height:54px}
+  .soup-settings{padding:10px}
+  .depth-card{padding:11px}
+  .list-row{padding:8px}
+}
+
+@media (max-width:1400px){
+  .master-detail-layout{
+    grid-template-columns:minmax(0,1fr) clamp(300px,28vw,360px);
+  }
+  .region-layout{
+    grid-template-columns:clamp(285px,25vw,340px) minmax(0,1fr);
+  }
+}
+
+@media (max-width:1280px){
+  .app-body{
+    grid-template-columns:165px minmax(0,1fr);
+  }
+  .game-area{
+    padding:10px 12px 14px;
+  }
+  .page-header{
+    padding:8px 9px;
+  }
+  .nav-icon{
+    width:21px;height:21px;
+  }
+  .subnav{
+    padding-left:28px;
+  }
+  .master-detail-layout{
+    grid-template-columns:minmax(0,1fr) 300px;
+  }
+  .region-layout{
+    grid-template-columns:280px minmax(0,1fr);
+  }
+}
+
+/* WebKit internal scrollbars */
+.sidebar::-webkit-scrollbar,
+.collection-panel::-webkit-scrollbar,
+.detail-panel::-webkit-scrollbar,
+#recipeList::-webkit-scrollbar,
+#craftQueue::-webkit-scrollbar,
+#merchantBuyList::-webkit-scrollbar,
+#merchantSellList::-webkit-scrollbar,
+#storageGrid::-webkit-scrollbar,
+#pokemonGrid::-webkit-scrollbar,
+#regionList::-webkit-scrollbar,
+#pokemonDexGrid::-webkit-scrollbar,
+#moveDexList::-webkit-scrollbar,
+#explorationDexList::-webkit-scrollbar,
+#itemDexList::-webkit-scrollbar,
+#recordLog::-webkit-scrollbar,
+#view-depths .depth-grid::-webkit-scrollbar,
+#view-moveDex > .panel::-webkit-scrollbar,
+#view-explorationDex > .panel::-webkit-scrollbar,
+#view-itemDex > .panel::-webkit-scrollbar,
+#view-system > .panel::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.collection-panel::-webkit-scrollbar-thumb,
+.detail-panel::-webkit-scrollbar-thumb,
+#recipeList::-webkit-scrollbar-thumb,
+#craftQueue::-webkit-scrollbar-thumb,
+#merchantBuyList::-webkit-scrollbar-thumb,
+#merchantSellList::-webkit-scrollbar-thumb,
+#storageGrid::-webkit-scrollbar-thumb,
+#pokemonGrid::-webkit-scrollbar-thumb,
+#regionList::-webkit-scrollbar-thumb,
+#pokemonDexGrid::-webkit-scrollbar-thumb,
+#moveDexList::-webkit-scrollbar-thumb,
+#explorationDexList::-webkit-scrollbar-thumb,
+#itemDexList::-webkit-scrollbar-thumb,
+#recordLog::-webkit-scrollbar-thumb,
+#view-depths .depth-grid::-webkit-scrollbar-thumb,
+#view-moveDex > .panel::-webkit-scrollbar-thumb,
+#view-explorationDex > .panel::-webkit-scrollbar-thumb,
+#view-itemDex > .panel::-webkit-scrollbar-thumb,
+#view-system > .panel::-webkit-scrollbar-thumb{
+  background:#8a8a84;
+  border-radius:999px;
+}
