@@ -12,6 +12,25 @@
   const $$ = (s) => [...document.querySelectorAll(s)];
   const clone = (v) => JSON.parse(JSON.stringify(v));
 
+  function pokemonImageFile(p, useGender=true){
+    const imageData=DATA.pokemonImages||{};
+    const entry=imageData.entries?.[p.id];
+    if(!entry)return null;
+    if(useGender&&p.gender==="암컷"&&entry.female)return entry.female;
+    if(p.imageFormKey&&entry.forms?.[p.imageFormKey])return entry.forms[p.imageFormKey];
+    return entry.base||null;
+  }
+
+  function pokemonImageMarkup(p, className="pokemon-sprite", useGender=true){
+    const file=pokemonImageFile(p,useGender);
+    const fallback=escapeHtml(p.icon||p.id||"PK");
+    if(!file)return '<span class="pokemon-sprite-fallback">'+fallback+'</span>';
+    const src=escapeHtml((DATA.pokemonImages?.basePath||"")+file);
+    const alt=escapeHtml(displayPokemonName(p));
+    return '<img class="'+className+'" src="'+src+'" alt="'+alt+'" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+
+      '<span class="pokemon-sprite-fallback" hidden>'+fallback+'</span>';
+  }
+
   function dateKey() {
     const d = new Date();
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -440,7 +459,7 @@
     detail.innerHTML=
       '<div class="pokemon-profile">'+
         '<div class="pokemon-profile-head">'+
-          '<div class="detail-icon">'+escapeHtml(p.icon||"PK")+'</div>'+
+          '<div class="detail-icon">'+pokemonImageMarkup(p,"pokemon-sprite detail-sprite",true)+'</div>'+
           '<div class="pokemon-profile-title">'+
             '<div class="pokemon-name-line">'+
               '<span class="tier-badge">'+p.tier+'T</span>'+
@@ -611,7 +630,7 @@
     $("#pokemonDexGrid").innerHTML=DATA.pokemon.map(p=>'<button class="pokemon-card '+(state.selectedDexPokemon===p.id?"active":"")+'" data-dex-pokemon="'+p.id+'"><div class="pokemon-icon">'+p.icon+'</div><strong>'+p.name+'</strong><small>'+p.type.join("/")+'</small></button>').join("");
     $$("[data-dex-pokemon]").forEach(btn=>btn.onclick=()=>{state.selectedDexPokemon=btn.dataset.dexPokemon;renderDexes();});
     const p=DATA.pokemon.find(x=>x.id===state.selectedDexPokemon);
-    $("#pokemonDexDetail").innerHTML=p?'<div class="detail-title"><div class="detail-icon">'+p.icon+'</div><div><h2>'+p.name+'</h2><p>'+p.type.join(" / ")+'</p></div></div><div class="detail-section"><h3>기본 데이터</h3><div class="detail-stats"><div><span>HP</span><b>'+p.hp+'</b></div><div><span>공격</span><b>'+p.atk+'</b></div><div><span>방어</span><b>'+p.def+'</b></div></div></div><div class="detail-section"><h3>기술</h3><p>'+p.quick+' / '+(p.strong1||p.strong||"없음")+'</p></div>':'<div class="empty-state">포켓몬을 선택하세요.</div>';
+    $("#pokemonDexDetail").innerHTML=p?'<div class="detail-title"><div class="detail-icon">'+pokemonImageMarkup(p,"pokemon-sprite detail-sprite",false)+'</div><div><h2>'+p.name+'</h2><p>'+p.type.join(" / ")+'</p></div></div><div class="detail-section"><h3>기본 데이터</h3><div class="detail-stats"><div><span>HP</span><b>'+p.hp+'</b></div><div><span>공격</span><b>'+p.atk+'</b></div><div><span>방어</span><b>'+p.def+'</b></div></div></div><div class="detail-section"><h3>기술</h3><p>'+p.quick+' / '+(p.strong1||p.strong||"없음")+'</p></div>':'<div class="empty-state">포켓몬을 선택하세요.</div>';
     $("#moveDexList").innerHTML='<div class="table-row header"><span>ID</span><span>기술</span><span>구분</span><span>효과</span></div>'+DATA.moves.map(m=>'<div class="table-row"><span>'+m.id+'</span><span>'+m.name+'</span><span>'+m.kind+' · '+m.type+'</span><span>'+m.description+'</span></div>').join("");
     $("#explorationDexList").innerHTML='<div class="table-row header"><span>지역</span><span>난이도</span><span>권장</span><span>정보</span></div>'+DATA.regions.map(r=>'<div class="table-row"><span>'+r.name+'</span><span>'+r.difficulty+'</span><span>'+r.recommended+'</span><span>'+r.encounters.join(", ")+' / '+r.drops.join(", ")+'</span></div>').join("");
     $("#itemDexList").innerHTML='<div class="table-row header"><span>아이템</span><span>분류</span><span>기준가</span><span>설명</span></div>'+DATA.items.map(i=>'<div class="table-row"><span>'+i.name+'</span><span>'+categoryName(i.category)+'</span><span>'+i.price+' P</span><span>'+i.description+'</span></div>').join("");
