@@ -1500,3 +1500,15 @@ body{font-size:max(10px,calc(14px * var(--font-scale,1)));}
 .pokemon-sprite-fallback[hidden]{
   display:none;
 }
+
+
+/* 0.1.16: Pokemon list images and 1:1 Pokedex layout */
+#view-pokemonDex .master-detail-layout{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+}
+
+#view-pokemonDex .collection-panel,
+#view-pokemonDex .detail-panel{
+  min-width:0;
+  width:100%;
+}
