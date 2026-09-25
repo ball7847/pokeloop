@@ -1,5 +1,19 @@
 # PokeLoop Changelog
 
+## 0.1.15 — 2026-09-25
+
+### 포켓몬 이미지
+- 실제 포켓몬 PNG 스프라이트 업로드
+- 이상해씨: BULBASAUR.png
+- 파이리: CHARMANDER.png
+- 꼬부기: SQUIRTLE.png
+- 구구: PIDGEY.png
+- 꼬렛: RATTATA.png
+- 암컷 꼬렛: RATTATA_female.png
+- 저장 경로: assets/images/pokemon/front/
+- 기존 pokemonImages.js 매핑을 통해 보유 포켓몬/상세/도감 화면에서 자동 표시
+
+---
 ## 0.1.14 — 2026-09-25
 
 ### 포켓몬 이미지 매핑
