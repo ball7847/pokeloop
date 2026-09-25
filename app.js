@@ -433,7 +433,7 @@
     $("#pokemonGrid").innerHTML=state.pokemon.map(p=>{
       const exp=expeditionForPokemon(p.id);
       const displayName=escapeHtml(displayPokemonName(p));
-      return '<button class="pokemon-card '+(state.selectedPokemon===p.id?"active":"")+'" data-pokemon="'+escapeHtml(p.id)+'"><div class="pokemon-icon">'+escapeHtml(p.icon||"PK")+'</div><strong>'+displayName+'</strong><small>'+p.tier+'T · Lv.'+p.level+' · '+escapeHtml(p.type.join("/"))+(exp?" · 탐험 중":"")+'</small></button>';
+      return '<button class="pokemon-card '+(state.selectedPokemon===p.id?"active":"")+'" data-pokemon="'+escapeHtml(p.id)+'"><div class="pokemon-icon">'+pokemonImageMarkup(p,"pokemon-sprite",true)+'</div><strong>'+displayName+'</strong><small>'+p.tier+'T · Lv.'+p.level+' · '+escapeHtml(p.type.join("/"))+(exp?" · 탐험 중":"")+'</small></button>';
     }).join("");
 
     $$(".pokemon-card").forEach(btn=>btn.onclick=()=>{
@@ -627,7 +627,7 @@
   }
 
   function renderDexes(){
-    $("#pokemonDexGrid").innerHTML=DATA.pokemon.map(p=>'<button class="pokemon-card '+(state.selectedDexPokemon===p.id?"active":"")+'" data-dex-pokemon="'+p.id+'"><div class="pokemon-icon">'+p.icon+'</div><strong>'+p.name+'</strong><small>'+p.type.join("/")+'</small></button>').join("");
+    $("#pokemonDexGrid").innerHTML=DATA.pokemon.map(p=>'<button class="pokemon-card '+(state.selectedDexPokemon===p.id?"active":"")+'" data-dex-pokemon="'+p.id+'"><div class="pokemon-icon">'+pokemonImageMarkup(p,"pokemon-sprite",false)+'</div><strong>'+p.name+'</strong><small>'+p.type.join("/")+'</small></button>').join("");
     $$("[data-dex-pokemon]").forEach(btn=>btn.onclick=()=>{state.selectedDexPokemon=btn.dataset.dexPokemon;renderDexes();});
     const p=DATA.pokemon.find(x=>x.id===state.selectedDexPokemon);
     $("#pokemonDexDetail").innerHTML=p?'<div class="detail-title"><div class="detail-icon">'+pokemonImageMarkup(p,"pokemon-sprite detail-sprite",false)+'</div><div><h2>'+p.name+'</h2><p>'+p.type.join(" / ")+'</p></div></div><div class="detail-section"><h3>기본 데이터</h3><div class="detail-stats"><div><span>HP</span><b>'+p.hp+'</b></div><div><span>공격</span><b>'+p.atk+'</b></div><div><span>방어</span><b>'+p.def+'</b></div></div></div><div class="detail-section"><h3>기술</h3><p>'+p.quick+' / '+(p.strong1||p.strong||"없음")+'</p></div>':'<div class="empty-state">포켓몬을 선택하세요.</div>';
