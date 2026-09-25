@@ -6,7 +6,7 @@ Rule:
 1) crop to non-transparent alpha bounds
 2) add 12% breathing room based on the longer side
 3) center on a square transparent canvas
-4) resize to 128x128 with nearest-neighbor sampling
+4) keep original sprite pixels; do not resample
 """
 
 from __future__ import annotations
@@ -19,12 +19,12 @@ from pathlib import Path
 from PIL import Image
 
 
-def normalize_sprite(image: Image.Image, size: int = 128, padding_ratio: float = 0.12) -> Image.Image:
+def normalize_sprite(image: Image.Image, padding_ratio: float = 0.20) -> Image.Image:
     image = image.convert("RGBA")
     bbox = image.getchannel("A").getbbox()
 
     if bbox is None:
-        return Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        return Image.new("RGBA", image.size, (0, 0, 0, 0))
 
     cropped = image.crop(bbox)
     width, height = cropped.size
@@ -37,7 +37,7 @@ def normalize_sprite(image: Image.Image, size: int = 128, padding_ratio: float =
     y = (canvas_size - height) // 2
     canvas.alpha_composite(cropped, (x, y))
 
-    return canvas.resize((size, size), Image.Resampling.NEAREST)
+    return canvas
 
 
 def normalize_zip(zip_path: Path, output_dir: Path, prefix: str = "Front/") -> int:
