@@ -147,8 +147,24 @@ function loadGame() {
     }
 
     if (payload.battle && typeof payload.battle === "object") {
-      battle = payload.battle;
-      if (!Array.isArray(battle.battleLog)) battle.battleLog = ["전투를 이어서 시작합니다."];
+      const compatibleEnemies =
+        Array.isArray(payload.battle.enemies) &&
+        payload.battle.enemies.every((enemy) =>
+          Array.isArray(enemy.types) &&
+          Array.isArray(enemy.moves) &&
+          Number.isFinite(enemy.spe) &&
+          Number.isFinite(enemy.spd)
+        );
+
+      if (compatibleEnemies) {
+        battle = payload.battle;
+        if (!Array.isArray(battle.battleLog)) battle.battleLog = ["전투를 이어서 시작합니다."];
+      } else {
+        battle = null;
+        action = { kind: "idle" };
+        if (tab === "combat") tab = "explore";
+        logs.unshift("이전 버전의 전투는 종료되었습니다. 새 전투 규칙으로 다시 탐험하세요.");
+      }
     }
 
     if (typeof payload.tab === "string") {
