@@ -604,20 +604,22 @@ function combatTick() {
 function finishBattle(victory) {
   if (!battle) return;
 
-  battle.result = victory ? "victory" : "defeat";
+  if (!victory) {
+    addLog(battle.areaName + " 전투에서 사망했습니다.");
+    rebirth("combatDeath");
+    return;
+  }
+
+  battle.result = "victory";
   action = { kind: "idle" };
 
-  if (victory) {
-    money += battle.reward;
-    const factionId = battle.factionId;
-    if (factionId && FACTIONS[factionId]) {
-      reputation[factionId] = Math.min(1000, reputation[factionId] + 5);
-      addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward + " · " + FACTIONS[factionId].name + " 평판 +5");
-    } else {
-      addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward);
-    }
+  money += battle.reward;
+  const factionId = battle.factionId;
+  if (factionId && FACTIONS[factionId]) {
+    reputation[factionId] = Math.min(1000, reputation[factionId] + 5);
+    addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward + " · " + FACTIONS[factionId].name + " 평판 +5");
   } else {
-    addLog(battle.areaName + "에서 패배했습니다. 보상 없이 귀환합니다.");
+    addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward);
   }
 
   saveGame();
@@ -664,10 +666,14 @@ function rebirth(reason = "manual") {
   action = { kind: "idle" };
   tab = "training";
 
-  const ending =
-    reason === "lifespan"
-      ? "제" + previousLife + "생의 " + previousSpecies + "은(는) " + previousAgeYears + "세 " + previousAgeMonths + "개월에 천수를 다했습니다. 세력 평판은 새 생에 계승되지 않습니다."
-      : "제" + previousLife + "생을 스스로 마쳤습니다. 세력 평판은 새 생에 계승되지 않습니다.";
+  let ending;
+  if (reason === "lifespan") {
+    ending = "제" + previousLife + "생의 " + previousSpecies + "은(는) " + previousAgeYears + "세 " + previousAgeMonths + "개월에 천수를 다했습니다. 세력 평판은 새 생에 계승되지 않습니다.";
+  } else if (reason === "combatDeath") {
+    ending = "제" + previousLife + "생의 " + previousSpecies + "은(는) 전투에서 생을 마쳤습니다. 세력 평판은 새 생에 계승되지 않습니다.";
+  } else {
+    ending = "제" + previousLife + "생을 스스로 마쳤습니다. 세력 평판은 새 생에 계승되지 않습니다.";
+  }
 
   logs = [
     "0세 0개월 · " + ending,
