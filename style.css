@@ -14,3 +14,17 @@
 .agecard.late-life .lifespan-bar i{background:var(--red)}
 .agecard.late-life strong{color:#8f3f39}
 @media(max-width:1380px){.rebirthgrid{grid-template-columns:repeat(3,1fr)}}
+.faction-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.faction-card{border:1px solid var(--line);background:#fff;padding:15px}
+.faction-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.faction-head h3{margin:3px 0 0;font:700 17px Georgia,"Noto Serif KR",serif}
+.faction-head>strong{color:var(--jade2);font-size:12px}
+.faction-card>p{min-height:38px;color:var(--muted);font-size:11px;line-height:1.55}
+.rep-row,.faction-bonus{display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.rep-row span,.faction-bonus span{color:var(--muted)}
+.faction-progress{margin:8px 0 12px}
+.faction-progress i{background:var(--purple)}
+.faction-bonus{padding:9px 0;border-top:1px solid var(--line2)}
+.faction-bonus strong{color:var(--jade2)}
+.faction-card small{color:#8a8378;font-size:9px}
+@media(max-width:1380px){.faction-grid{grid-template-columns:1fr}}
