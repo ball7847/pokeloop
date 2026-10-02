@@ -4,29 +4,64 @@ const SPECIES = {
   rattata: {
     id: "rattata", name: "꼬렛", mark: "꼬", types: ["노말"],
     bs: { hp: 30, atk: 56, def: 35, spa: 25, spd: 35, spe: 72 },
-    affinity: { quick: "매우 쉬움", tail: "쉬움", meteor: "극악" }
+    affinity: { quick: "매우 쉬움", bite: "쉬움", tail: "쉬움", thunderbolt: "보통", meteor: "극악" }
   },
   pidgey: {
     id: "pidgey", name: "구구", mark: "구", types: ["노말", "비행"],
     bs: { hp: 40, atk: 45, def: 40, spa: 35, spd: 35, spe: 56 },
-    affinity: { quick: "매우 쉬움", tail: "어려움", meteor: "극악" }
+    affinity: { quick: "매우 쉬움", aerial: "쉬움", bite: "보통", tail: "어려움", meteor: "극악" }
   },
   mankey: {
     id: "mankey", name: "망키", mark: "망", types: ["격투"],
     bs: { hp: 40, atk: 80, def: 35, spa: 35, spd: 45, spe: 70 },
-    affinity: { quick: "쉬움", tail: "보통", meteor: "극악" }
+    affinity: { rocksmash: "매우 쉬움", quick: "쉬움", tail: "보통", aura: "어려움", meteor: "극악" }
   },
   abra: {
     id: "abra", name: "캐이시", mark: "캐", types: ["에스퍼"],
     bs: { hp: 25, atk: 20, def: 15, spa: 105, spd: 55, spe: 90 },
-    affinity: { quick: "어려움", tail: "극악", meteor: "어려움" }
+    affinity: { confusion: "매우 쉬움", shadowball: "쉬움", aura: "보통", quick: "어려움", tail: "극악" }
   },
   chimchar: {
     id: "chimchar", name: "파이숭이", mark: "파", types: ["불꽃"],
     bs: { hp: 44, atk: 58, def: 44, spa: 58, spd: 44, spe: 61 },
-    affinity: { quick: "쉬움", tail: "보통", meteor: "극악" }
+    affinity: { ember: "매우 쉬움", rocksmash: "쉬움", quick: "쉬움", tail: "보통", meteor: "극악" }
+  },
+  pikachu: {
+    id: "pikachu", name: "피카츄", mark: "피", types: ["전기"],
+    bs: { hp: 35, atk: 55, def: 40, spa: 50, spd: 50, spe: 90 },
+    affinity: { shock: "매우 쉬움", thunderbolt: "매우 쉬움", quick: "쉬움", tail: "보통", meteor: "극악" }
+  },
+  eevee: {
+    id: "eevee", name: "이브이", mark: "이", types: ["노말"],
+    bs: { hp: 55, atk: 55, def: 50, spa: 45, spd: 65, spe: 55 },
+    affinity: { quick: "쉬움", bite: "쉬움", tail: "보통", shadowball: "보통", meteor: "극악" }
+  },
+  gastly: {
+    id: "gastly", name: "고오스", mark: "고", types: ["고스트", "독"],
+    bs: { hp: 30, atk: 35, def: 30, spa: 100, spd: 35, spe: 80 },
+    affinity: { shadowball: "매우 쉬움", confusion: "쉬움", thunderbolt: "보통", quick: "극악", tail: "극악" }
+  },
+  zubat: {
+    id: "zubat", name: "주뱃", mark: "주", types: ["독", "비행"],
+    bs: { hp: 40, atk: 45, def: 35, spa: 30, spd: 40, spe: 55 },
+    affinity: { aerial: "쉬움", bite: "쉬움", quick: "보통", shadowball: "어려움", meteor: "극악" }
+  },
+  dratini: {
+    id: "dratini", name: "미뇽", mark: "미", types: ["드래곤"],
+    bs: { hp: 41, atk: 64, def: 45, spa: 50, spd: 50, spe: 50 },
+    affinity: { meteor: "쉬움", icebeam: "보통", watergun: "보통", tail: "보통", quick: "쉬움" }
+  },
+  riolu: {
+    id: "riolu", name: "리오르", mark: "리", types: ["격투"],
+    bs: { hp: 40, atk: 70, def: 40, spa: 35, spd: 40, spe: 60 },
+    affinity: { rocksmash: "매우 쉬움", aura: "쉬움", quick: "쉬움", tail: "보통", meteor: "극악" }
+  },
+  magikarp: {
+    id: "magikarp", name: "잉어킹", mark: "잉", types: ["물"],
+    bs: { hp: 20, atk: 10, def: 55, spa: 15, spd: 20, spe: 80 },
+    affinity: { watergun: "쉬움", quick: "어려움", bite: "극악", tail: "극악", meteor: "극악" }
   }
-};
+}
 
 const speciesIds = Object.keys(SPECIES);
 let currentSpeciesId = "rattata";
@@ -67,11 +102,33 @@ let action = { kind: "idle" };
 let battle = null;
 
 let moves = [
-  { id: "quick",  name: "전광석화",   stars: 0, progress: 0, affinity: "매우 쉬움", power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", category: "물리" },
-  { id: "tail",   name: "아이언테일", stars: 0, progress: 0, affinity: "쉬움",      power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리" },
-  { id: "meteor", name: "용성군",     stars: 0, progress: 0, affinity: "극악",      power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수" }
+  { id: "quick",       name: "전광석화",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", category: "물리" },
+  { id: "bite",        name: "물기",       stars: 0, progress: 0, affinity: "보통", power: 60,  accuracy: 100, priority: 0, type: "악",     soul: 0, stat: "atk", category: "물리" },
+  { id: "tail",        name: "아이언테일", stars: 0, progress: 0, affinity: "보통", power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리" },
+  { id: "rocksmash",   name: "바위깨기",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "atk", category: "물리" },
+  { id: "aerial",      name: "제비반환",   stars: 0, progress: 0, affinity: "보통", power: 60,  accuracy: 100, priority: 0, type: "비행",   soul: 0, stat: "atk", category: "물리" },
+  { id: "watergun",    name: "물대포",     stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "물",     soul: 0, stat: "spa", category: "특수" },
+  { id: "ember",       name: "불꽃세례",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "불꽃",   soul: 0, stat: "spa", category: "특수" },
+  { id: "shock",       name: "전기쇼크",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수" },
+  { id: "confusion",   name: "염동력",     stars: 0, progress: 0, affinity: "보통", power: 50,  accuracy: 100, priority: 0, type: "에스퍼", soul: 0, stat: "spa", category: "특수" },
+  { id: "shadowball",  name: "섀도볼",     stars: 0, progress: 0, affinity: "보통", power: 80,  accuracy: 100, priority: 0, type: "고스트", soul: 0, stat: "spa", category: "특수" },
+  { id: "thunderbolt", name: "10만볼트",   stars: 0, progress: 0, affinity: "어려움", power: 90, accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수" },
+  { id: "icebeam",     name: "냉동빔",     stars: 0, progress: 0, affinity: "어려움", power: 90, accuracy: 100, priority: 0, type: "얼음",   soul: 0, stat: "spa", category: "특수" },
+  { id: "aura",        name: "파동탄",     stars: 0, progress: 0, affinity: "어려움", power: 80, accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "spa", category: "특수" },
+  { id: "meteor",      name: "용성군",     stars: 0, progress: 0, affinity: "극악", power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수" }
 ];
 
+const ITEMS = {
+  healthFeather: { id: "healthFeather", name: "체력깃털", desc: "HP EV를 즉시 +10 올립니다.", kind: "ev", stat: "hp", amount: 10 },
+  muscleFeather: { id: "muscleFeather", name: "근력깃털", desc: "공격 EV를 즉시 +10 올립니다.", kind: "ev", stat: "atk", amount: 10 },
+  resistFeather: { id: "resistFeather", name: "저항력깃털", desc: "방어 EV를 즉시 +10 올립니다.", kind: "ev", stat: "def", amount: 10 },
+  geniusFeather: { id: "geniusFeather", name: "지력깃털", desc: "특공 EV를 즉시 +10 올립니다.", kind: "ev", stat: "spa", amount: 10 },
+  cleverFeather: { id: "cleverFeather", name: "정신력깃털", desc: "특방 EV를 즉시 +10 올립니다.", kind: "ev", stat: "spd", amount: 10 },
+  swiftFeather:  { id: "swiftFeather",  name: "순발력깃털", desc: "스피드 EV를 즉시 +10 올립니다.", kind: "ev", stat: "spe", amount: 10 },
+  revive:        { id: "revive", name: "기력의조각", desc: "전투에서 HP가 0이 될 때 자동으로 1개 사용해 HP 50%로 한 번 부활합니다.", kind: "revive" }
+};
+const itemIds = Object.keys(ITEMS);
+let inventory = Object.fromEntries(itemIds.map((id) => [id, 0]));
 const areas = [
   {
     id: "luoyang",
@@ -358,13 +415,24 @@ const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(mo
 const learnedMoves = () => moves.filter((move) => move.stars > 0);
 const TYPE_CHART = {
   "노말":   { "바위": 0.5, "강철": 0.5, "고스트": 0 },
-  "격투":   { "노말": 2, "바위": 2, "강철": 2, "악": 2, "얼음": 2, "비행": 0.5, "에스퍼": 0.5, "페어리": 0.5, "고스트": 0 },
-  "비행":   { "격투": 2, "벌레": 2, "풀": 2, "바위": 0.5, "강철": 0.5, "전기": 0.5 },
-  "에스퍼": { "격투": 2, "독": 2, "에스퍼": 0.5, "강철": 0.5, "악": 0 },
   "불꽃":   { "풀": 2, "얼음": 2, "벌레": 2, "강철": 2, "불꽃": 0.5, "물": 0.5, "바위": 0.5, "드래곤": 0.5 },
-  "강철":   { "바위": 2, "얼음": 2, "페어리": 2, "불꽃": 0.5, "물": 0.5, "전기": 0.5, "강철": 0.5 },
-  "드래곤": { "드래곤": 2, "강철": 0.5, "페어리": 0 }
-};
+  "물":     { "불꽃": 2, "땅": 2, "바위": 2, "물": 0.5, "풀": 0.5, "드래곤": 0.5 },
+  "전기":   { "물": 2, "비행": 2, "전기": 0.5, "풀": 0.5, "드래곤": 0.5, "땅": 0 },
+  "풀":     { "물": 2, "땅": 2, "바위": 2, "불꽃": 0.5, "풀": 0.5, "독": 0.5, "비행": 0.5, "벌레": 0.5, "드래곤": 0.5, "강철": 0.5 },
+  "얼음":   { "풀": 2, "땅": 2, "비행": 2, "드래곤": 2, "불꽃": 0.5, "물": 0.5, "얼음": 0.5, "강철": 0.5 },
+  "격투":   { "노말": 2, "얼음": 2, "바위": 2, "악": 2, "강철": 2, "독": 0.5, "비행": 0.5, "에스퍼": 0.5, "벌레": 0.5, "페어리": 0.5, "고스트": 0 },
+  "독":     { "풀": 2, "페어리": 2, "독": 0.5, "땅": 0.5, "바위": 0.5, "고스트": 0.5, "강철": 0 },
+  "땅":     { "불꽃": 2, "전기": 2, "독": 2, "바위": 2, "강철": 2, "풀": 0.5, "벌레": 0.5, "비행": 0 },
+  "비행":   { "풀": 2, "격투": 2, "벌레": 2, "전기": 0.5, "바위": 0.5, "강철": 0.5 },
+  "에스퍼": { "격투": 2, "독": 2, "에스퍼": 0.5, "강철": 0.5, "악": 0 },
+  "벌레":   { "풀": 2, "에스퍼": 2, "악": 2, "불꽃": 0.5, "격투": 0.5, "독": 0.5, "비행": 0.5, "고스트": 0.5, "강철": 0.5, "페어리": 0.5 },
+  "바위":   { "불꽃": 2, "얼음": 2, "비행": 2, "벌레": 2, "격투": 0.5, "땅": 0.5, "강철": 0.5 },
+  "고스트": { "에스퍼": 2, "고스트": 2, "악": 0.5, "노말": 0 },
+  "드래곤": { "드래곤": 2, "강철": 0.5, "페어리": 0 },
+  "악":     { "에스퍼": 2, "고스트": 2, "격투": 0.5, "악": 0.5, "페어리": 0.5 },
+  "강철":   { "얼음": 2, "바위": 2, "페어리": 2, "불꽃": 0.5, "물": 0.5, "전기": 0.5, "강철": 0.5 },
+  "페어리": { "격투": 2, "드래곤": 2, "악": 2, "불꽃": 0.5, "독": 0.5, "강철": 0.5 }
+}
 
 function typeEffectiveness(moveType, targetTypes) {
   return targetTypes.reduce((mult, type) => {
