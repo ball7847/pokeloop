@@ -435,13 +435,33 @@ function trainMove(id) {
   render();
 }
 
-function explore(id) {
+function explore(id, repeat = false) {
   if (action.kind === "combat") return;
   const area = areas.find((item) => item.id === id);
-  action = { kind: "explore", id, progress: 0 };
-  addLog(area.name + " 탐색을 시작했습니다.");
+  action = { kind: "explore", id, progress: 0, repeat };
+  addLog(area.name + (repeat ? " 반복 탐험을 시작했습니다." : " 탐색을 시작했습니다."));
   saveGame();
   render();
+}
+
+function stopRepeat() {
+  if (battle) {
+    battle.repeat = false;
+    if (action.kind === "repeatWait") {
+      action = { kind: "idle" };
+    }
+    addLog("반복 탐험 예약을 중지했습니다.");
+    saveGame();
+    render();
+    return;
+  }
+
+  if (action.kind === "explore" && action.repeat) {
+    action.repeat = false;
+    addLog("반복 탐험 예약을 중지했습니다.");
+    saveGame();
+    render();
+  }
 }
 
 function stopAction() {
@@ -452,12 +472,14 @@ function stopAction() {
 }
 
 function startBattle(area) {
+  const repeat = Boolean(action.repeat);
   const playerMaxHP = Math.max(60, Math.floor(finalStat("hp") * 4));
   battle = {
     areaId: area.id,
     areaName: area.name,
     factionId: area.faction,
     reward: area.reward,
+    repeat,
     playerHP: playerMaxHP,
     playerMaxHP,
     enemies: area.enemies.map((enemy, index) => ({
@@ -611,7 +633,6 @@ function finishBattle(victory) {
   }
 
   battle.result = "victory";
-  action = { kind: "idle" };
 
   money += battle.reward;
   const factionId = battle.factionId;
@@ -620,6 +641,17 @@ function finishBattle(victory) {
     addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward + " · " + FACTIONS[factionId].name + " 평판 +5");
   } else {
     addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward);
+  }
+
+  if (battle.repeat) {
+    action = {
+      kind: "repeatWait",
+      areaId: battle.areaId,
+      until: Date.now() + 1500
+    };
+    addLog(battle.areaName + " 반복 탐험을 계속합니다.");
+  } else {
+    action = { kind: "idle" };
   }
 
   saveGame();
@@ -689,6 +721,7 @@ function currentActionTitle() {
   if (action.kind === "move") return moves.find((item) => item.id === action.id).name;
   if (action.kind === "explore") return areas.find((item) => item.id === action.id).name + " 탐색";
   if (action.kind === "combat") return "전투 중";
+  if (action.kind === "repeatWait") return "재탐색 준비";
   return "휴식";
 }
 
@@ -750,7 +783,7 @@ function exploreView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">중원</p><h2>탐험</h2></div>
-      <p class="muted">탐색 완료 시 적 무리와 조우합니다. 강해질수록 같은 지역의 전투가 빨라집니다.</p>
+      <p class="muted">1회 탐험은 전투 1회 후 종료됩니다. 반복 탐험은 탐색 → 전투 → 승리 → 재탐색을 자동 반복합니다.</p>
     </div>
     <div class="areas">
       ${areas.map((area) => `
@@ -761,7 +794,10 @@ function exploreView() {
             <p>${area.desc}</p>
             <small>${FACTIONS[area.faction].name} 영향권 · 적 최대 ${area.enemies.length}마리 · 승리 보상 은전 ${area.reward} · 평판 +5</small>
           </div>
-          <button class="action" onclick="explore('${area.id}')">탐색 시작</button>
+          <div class="area-actions">
+            <button class="ghost" onclick="explore('${area.id}', false)">1회 탐험</button>
+            <button class="action" onclick="explore('${area.id}', true)">반복 탐험</button>
+          </div>
         </article>
       `).join("")}
     </div>
@@ -983,7 +1019,17 @@ function actionPanel() {
     return `
       <div class="metric"><span>남은 적</span><strong>${alive} / ${battle.enemies.length}</strong></div>
       <div class="metric"><span>전투 턴</span><strong>${battle.turn}</strong></div>
+      <div class="metric"><span>탐험 방식</span><strong>${battle.repeat ? "반복" : "1회"}</strong></div>
       <p class="muted">전투 중에는 다른 행동으로 전환할 수 없습니다.</p>
+      ${battle.repeat ? '<button class="ghost full" onclick="stopRepeat()">반복 중지</button>' : ""}
+    `;
+  }
+
+  if (action.kind === "repeatWait" && battle) {
+    return `
+      <div class="metric"><span>탐험 방식</span><strong>반복</strong></div>
+      <p class="muted">승리 결과를 표시한 뒤 같은 지역 탐험을 다시 시작합니다.</p>
+      <button class="ghost full" onclick="stopRepeat()">반복 중지</button>
     `;
   }
 
@@ -1150,6 +1196,16 @@ setInterval(() => {
     while (combatTickProgress >= 1 && action.kind === "combat") {
       combatTickProgress -= 1;
       combatTick();
+    }
+  } else if (action.kind === "repeatWait") {
+    combatTickProgress = 0;
+    if (battle && battle.repeat && Date.now() >= action.until) {
+      const area = areas.find((item) => item.id === action.areaId);
+      battle = null;
+      tab = "explore";
+      action = { kind: "explore", id: area.id, progress: 0, repeat: true };
+      addLog(area.name + " 재탐색을 시작했습니다.");
+      saveGame();
     }
   } else {
     combatTickProgress = 0;
