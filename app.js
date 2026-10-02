@@ -825,7 +825,7 @@ function render() {
           <div class="agecard">
             <span>나이</span>
             <strong>${years()}세 ${months()}개월</strong>
-            <small>수련·탐험·전투를 하는 동안 시간이 흐릅니다.</small>
+            <small>수련·기술 수련·탐험 중에만 시간이 흐릅니다. 전투 중에는 나이가 멈춥니다.</small>
           </div>
 
           ${statKeys.map((key) => `
@@ -887,7 +887,7 @@ render();
 window.addEventListener("beforeunload", saveGame);
 
 setInterval(() => {
-  if (action.kind !== "idle") {
+  if (action.kind === "training" || action.kind === "move" || action.kind === "explore") {
     ageTickProgress += DT;
     while (ageTickProgress >= 1) {
       ageTickProgress -= 1;
