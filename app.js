@@ -658,14 +658,16 @@ function rebirth(reason = "manual") {
     soul: Math.min(75, move.soul + move.stars * 0.7)
   }));
 
+  reputation = Object.fromEntries(factionIds.map((id) => [id, 0]));
+
   battle = null;
   action = { kind: "idle" };
   tab = "training";
 
   const ending =
     reason === "lifespan"
-      ? "제" + previousLife + "생의 " + previousSpecies + "은(는) " + previousAgeYears + "세 " + previousAgeMonths + "개월에 천수를 다했습니다."
-      : "제" + previousLife + "생을 스스로 마쳤습니다.";
+      ? "제" + previousLife + "생의 " + previousSpecies + "은(는) " + previousAgeYears + "세 " + previousAgeMonths + "개월에 천수를 다했습니다. 세력 평판은 새 생에 계승되지 않습니다."
+      : "제" + previousLife + "생을 스스로 마쳤습니다. 세력 평판은 새 생에 계승되지 않습니다.";
 
   logs = [
     "0세 0개월 · " + ending,
