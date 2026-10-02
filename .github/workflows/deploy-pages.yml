@@ -45,7 +45,7 @@ jobs:
           path: ./dist
 
       - name: Wait for legacy Pages deployment
-        run: sleep 60
+        run: sleep 90
 
       - name: Deploy to Pages
         id: deployment
