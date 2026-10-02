@@ -1,13 +1,58 @@
 const randomIV = () => Math.floor(Math.random() * 32);
 
-const stats = {
-  hp:  { label: "HP",     bs: 30, iv: randomIV(), ev: 0, color: "#6ea675" },
-  atk: { label: "공격",   bs: 56, iv: randomIV(), ev: 0, color: "#d07b55" },
-  def: { label: "방어",   bs: 35, iv: randomIV(), ev: 0, color: "#c5a34f" },
-  spa: { label: "특공",   bs: 25, iv: randomIV(), ev: 0, color: "#8a73b5" },
-  spd: { label: "특방",   bs: 35, iv: randomIV(), ev: 0, color: "#58999a" },
-  spe: { label: "스피드", bs: 72, iv: randomIV(), ev: 0, color: "#5b8fbd" }
+const SPECIES = {
+  rattata: {
+    id: "rattata", name: "꼬렛", mark: "꼬", types: ["노말"],
+    bs: { hp: 30, atk: 56, def: 35, spa: 25, spd: 35, spe: 72 },
+    affinity: { quick: "매우 쉬움", tail: "쉬움", meteor: "극악" }
+  },
+  pidgey: {
+    id: "pidgey", name: "구구", mark: "구", types: ["노말", "비행"],
+    bs: { hp: 40, atk: 45, def: 40, spa: 35, spd: 35, spe: 56 },
+    affinity: { quick: "매우 쉬움", tail: "어려움", meteor: "극악" }
+  },
+  mankey: {
+    id: "mankey", name: "망키", mark: "망", types: ["격투"],
+    bs: { hp: 40, atk: 80, def: 35, spa: 35, spd: 45, spe: 70 },
+    affinity: { quick: "쉬움", tail: "보통", meteor: "극악" }
+  },
+  abra: {
+    id: "abra", name: "캐이시", mark: "캐", types: ["에스퍼"],
+    bs: { hp: 25, atk: 20, def: 15, spa: 105, spd: 55, spe: 90 },
+    affinity: { quick: "어려움", tail: "극악", meteor: "어려움" }
+  },
+  chimchar: {
+    id: "chimchar", name: "파이숭이", mark: "파", types: ["불꽃"],
+    bs: { hp: 44, atk: 58, def: 44, spa: 58, spd: 44, spe: 61 },
+    affinity: { quick: "쉬움", tail: "보통", meteor: "극악" }
+  }
 };
+
+const speciesIds = Object.keys(SPECIES);
+let currentSpeciesId = "rattata";
+const currentSpecies = () => SPECIES[currentSpeciesId];
+
+const stats = {
+  hp:  { label: "HP",     bs: currentSpecies().bs.hp,  iv: randomIV(), ev: 0, color: "#6ea675" },
+  atk: { label: "공격",   bs: currentSpecies().bs.atk, iv: randomIV(), ev: 0, color: "#d07b55" },
+  def: { label: "방어",   bs: currentSpecies().bs.def, iv: randomIV(), ev: 0, color: "#c5a34f" },
+  spa: { label: "특공",   bs: currentSpecies().bs.spa, iv: randomIV(), ev: 0, color: "#8a73b5" },
+  spd: { label: "특방",   bs: currentSpecies().bs.spd, iv: randomIV(), ev: 0, color: "#58999a" },
+  spe: { label: "스피드", bs: currentSpecies().bs.spe, iv: randomIV(), ev: 0, color: "#5b8fbd" }
+};
+
+function applySpecies(id) {
+  currentSpeciesId = SPECIES[id] ? id : "rattata";
+  const species = currentSpecies();
+  Object.keys(species.bs).forEach((key) => {
+    stats[key].bs = species.bs[key];
+  });
+}
+
+function rollNextSpecies() {
+  const candidates = speciesIds.filter((id) => id !== currentSpeciesId);
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
 
 const statKeys = Object.keys(stats);
 
@@ -98,6 +143,7 @@ function saveGame() {
       life,
       ageMonths,
       money,
+      currentSpeciesId,
       tab,
       action,
       battle,
@@ -125,6 +171,11 @@ function loadGame() {
     if (Number.isFinite(payload.life) && payload.life >= 1) life = payload.life;
     if (Number.isFinite(payload.ageMonths) && payload.ageMonths >= 0) ageMonths = payload.ageMonths;
     if (Number.isFinite(payload.money) && payload.money >= 0) money = payload.money;
+    if (typeof payload.currentSpeciesId === "string" && SPECIES[payload.currentSpeciesId]) {
+      applySpecies(payload.currentSpeciesId);
+    } else {
+      applySpecies("rattata");
+    }
 
     if (payload.stats && typeof payload.stats === "object") {
       statKeys.forEach((key) => {
@@ -138,7 +189,9 @@ function loadGame() {
     if (Array.isArray(payload.moves) && payload.moves.length === moves.length) {
       moves = payload.moves.map((savedMove, index) => ({
         ...moves[index],
-        ...savedMove
+        stars: Number.isFinite(savedMove.stars) ? savedMove.stars : moves[index].stars,
+        progress: Number.isFinite(savedMove.progress) ? savedMove.progress : moves[index].progress,
+        soul: Number.isFinite(savedMove.soul) ? savedMove.soul : moves[index].soul
       }));
     }
 
@@ -221,6 +274,7 @@ const trainingSpeed = (key) => 1 + stats[key].iv / 100;
 const trainingInterval = (key) => 10 / trainingSpeed(key);
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
+const moveAffinity = (move) => currentSpecies().affinity[move.id] || move.affinity;
 const affinityMultiplier = (affinity) => ({
   "매우 쉬움": 1.00,
   "쉬움": 0.75,
@@ -231,12 +285,10 @@ const affinityMultiplier = (affinity) => ({
 const moveTrainingSpeed = (move) =>
   (1 + stats[move.stat].iv / 100) *
   (1 + move.soul / 100) *
-  affinityMultiplier(move.affinity);
+  affinityMultiplier(moveAffinity(move));
 const movePowerMultiplier = (move) => 1 + move.stars * 0.12;
 const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(move));
 const learnedMoves = () => moves.filter((move) => move.stars > 0);
-const PLAYER_TYPES = ["노말"];
-
 const TYPE_CHART = {
   "노말":   { "바위": 0.5, "강철": 0.5, "고스트": 0 },
   "격투":   { "노말": 2, "바위": 2, "강철": 2, "악": 2, "얼음": 2, "비행": 0.5, "에스퍼": 0.5, "페어리": 0.5, "고스트": 0 },
@@ -412,14 +464,14 @@ function combatTick() {
 
       if (Math.random() * 100 > act.move.accuracy) {
         battle.lastAction = act.move.name + " → 빗나감";
-        pushBattleLog("꼬렛의 " + act.move.name + "! 그러나 빗나갔다.");
+        pushBattleLog(currentSpecies().name + "의 " + act.move.name + "! 그러나 빗나갔다.");
         continue;
       }
 
       const attackStat = act.move.category === "특수" ? finalStat("spa") : finalStat("atk");
       const defenseStat = act.move.category === "특수" ? currentTarget.spd : currentTarget.def;
       const power = act.move.system ? act.move.power : moveCombatPower(act.move);
-      const stab = PLAYER_TYPES.includes(act.move.type) ? 1.5 : 1;
+      const stab = currentSpecies().types.includes(act.move.type) ? 1.5 : 1;
       const effectiveness = typeEffectiveness(act.move.type, currentTarget.types);
       const damage = effectiveness === 0 ? 0 : combatDamage({
         attackerStat: attackStat,
@@ -435,7 +487,7 @@ function combatTick() {
         act.move.name + (act.move.system ? "" : " " + act.move.stars + "성") +
         " → " + currentTarget.name + " · " + formatNumber(damage) + " 피해";
 
-      pushBattleLog("꼬렛의 " + act.move.name + "! " + currentTarget.name + "에게 " + formatNumber(damage) + " 피해.");
+      pushBattleLog(currentSpecies().name + "의 " + act.move.name + "! " + currentTarget.name + "에게 " + formatNumber(damage) + " 피해.");
       const effText = effectivenessText(effectiveness);
       if (effText) pushBattleLog(effText + "!");
 
@@ -454,7 +506,7 @@ function combatTick() {
       const attackStat = act.move.category === "특수" ? act.enemy.spa : act.enemy.atk;
       const defenseStat = act.move.category === "특수" ? finalStat("spd") : finalStat("def");
       const stab = act.enemy.types.includes(act.move.type) ? 1.5 : 1;
-      const effectiveness = typeEffectiveness(act.move.type, PLAYER_TYPES);
+      const effectiveness = typeEffectiveness(act.move.type, currentSpecies().types);
       const damage = effectiveness === 0 ? 0 : combatDamage({
         attackerStat: attackStat,
         defenderStat: defenseStat,
@@ -464,12 +516,12 @@ function combatTick() {
       });
 
       battle.playerHP = Math.max(0, battle.playerHP - damage);
-      pushBattleLog(act.enemy.name + "의 " + act.move.name + "! 꼬렛에게 " + formatNumber(damage) + " 피해.");
+      pushBattleLog(act.enemy.name + "의 " + act.move.name + "! " + currentSpecies().name + "에게 " + formatNumber(damage) + " 피해.");
       const effText = effectivenessText(effectiveness);
       if (effText) pushBattleLog(effText + "!");
 
       if (battle.playerHP <= 0) {
-        pushBattleLog("꼬렛은 쓰러졌다.");
+        pushBattleLog(currentSpecies().name + "은(는) 쓰러졌다.");
         finishBattle(false);
         break;
       }
@@ -511,6 +563,8 @@ function rebirth() {
   ageMonths = 0;
   money = 0;
 
+  applySpecies(rollNextSpecies());
+
   statKeys.forEach((key) => {
     stats[key].iv = randomIV();
     stats[key].ev = 0;
@@ -526,7 +580,7 @@ function rebirth() {
   battle = null;
   action = { kind: "idle" };
   tab = "training";
-  logs = ["0세 0개월 · 제" + life + "생이 시작되었습니다. 전생의 기술 경험이 영혼에 남아 있습니다."];
+  logs = ["0세 0개월 · 제" + life + "생이 시작되었습니다. " + currentSpecies().name + "의 몸으로 태어났습니다. 전생의 기술 경험이 영혼에 남아 있습니다."];
   saveGame();
   render();
 }
@@ -570,7 +624,7 @@ function movesView() {
       ${moves.map((move) => `
         <article class="card">
           <div class="cardtop">
-            <div><h3>${move.name}</h3><span class="muted">${move.affinity}</span></div>
+            <div><h3>${move.name}</h3><span class="muted">${moveAffinity(move)}</span></div>
             <strong>${move.stars ? move.stars + "성" : "미습득"}</strong>
           </div>
           <div class="progress move"><i style="width:${move.progress}%"></i></div>
@@ -582,7 +636,7 @@ function movesView() {
             <div><dt>우선도</dt><dd>${move.priority > 0 ? "+" + move.priority : move.priority}</dd></div>
             <div><dt>현재 실전 위력</dt><dd>${move.stars ? moveCombatPower(move) : "-"}</dd></div>
             <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
-            <div><dt>적합도 배율</dt><dd>×${affinityMultiplier(move.affinity).toFixed(2)}</dd></div>
+            <div><dt>적합도 배율</dt><dd>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</dd></div>
             <div><dt>수련 속도</dt><dd>×${moveTrainingSpeed(move).toFixed(2)}</dd></div>
             <div><dt>전생 숙련</dt><dd>+${move.soul.toFixed(1)}%</dd></div>
           </dl>
@@ -632,10 +686,10 @@ function battleView() {
     <div class="battlefield">
       <section class="fighter player-fighter">
         <div class="fighter-head">
-          <div class="battle-avatar player-avatar">꼬</div>
+          <div class="battle-avatar player-avatar">${currentSpecies().mark}</div>
           <div>
             <span class="side-label">PLAYER</span>
-            <h3>꼬렛</h3>
+            <h3>${currentSpecies().name}</h3>
           </div>
         </div>
         <div class="hp-label"><span>HP</span><strong>${Math.ceil(battle.playerHP)} / ${battle.playerMaxHP}</strong></div>
@@ -714,7 +768,7 @@ function rebirthView() {
       <p class="muted">현재 육신의 성장은 사라지지만, 기술을 익힌 경험은 영혼에 남습니다.</p>
 
       <div class="rebirthgrid">
-        <div><span>현재 종족</span><strong>꼬렛</strong></div>
+        <div><span>현재 종족</span><strong>${currentSpecies().name}</strong></div>
         <div><span>현재 나이</span><strong>${years()}세 ${months()}개월</strong></div>
         <div><span>총 EV</span><strong>${formatNumber(totalEV())}</strong></div>
         <div><span>최고 기술</span><strong>${Math.max(...moves.map((move) => move.stars))}성</strong></div>
@@ -765,7 +819,7 @@ function actionPanel() {
       <div class="metric"><span>현재 숙련</span><strong>${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
       <div class="breakdown">
         <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + stats[move.stat].iv / 100).toFixed(2)}</strong></div>
-        <div><span>적합도</span><strong>×${affinityMultiplier(move.affinity).toFixed(2)}</strong></div>
+        <div><span>적합도</span><strong>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</strong></div>
         <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
         <div><span>최종 수련 속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
         <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
@@ -814,11 +868,11 @@ function render() {
       <main class="workspace">
         <aside class="side panel">
           <div class="portrait">
-            <div class="orb">꼬</div>
+            <div class="orb">${currentSpecies().mark}</div>
             <div>
               <p class="eyebrow">현재 육신</p>
-              <h1>꼬렛</h1>
-              <p class="muted">제${life}생의 육신</p>
+              <h1>${currentSpecies().name}</h1>
+              <p class="muted">제${life}생 · ${currentSpecies().types.join(" / ")}</p>
             </div>
           </div>
 
