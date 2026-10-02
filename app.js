@@ -129,6 +129,8 @@ const ITEMS = {
 };
 const itemIds = Object.keys(ITEMS);
 let inventory = Object.fromEntries(itemIds.map((id) => [id, 0]));
+let moveLoadout = [];
+const MAX_MOVE_SLOTS = 4;
 const areas = [
   {
     id: "luoyang",
@@ -254,6 +256,7 @@ function saveGame() {
       currentSpeciesId,
       reputation,
       inventory,
+      moveLoadout,
       tab,
       action,
       battle,
@@ -324,6 +327,12 @@ function loadGame() {
           soul: Number.isFinite(savedMove.soul) ? savedMove.soul : move.soul
         };
       });
+    }
+
+    if (Array.isArray(payload.moveLoadout)) {
+      moveLoadout = payload.moveLoadout
+        .filter((id) => moves.some((move) => move.id === id && move.stars > 0))
+        .slice(0, MAX_MOVE_SLOTS);
     }
 
     if (payload.action && typeof payload.action.kind === "string") {
@@ -427,6 +436,32 @@ const moveTrainingSpeed = (move) =>
 const movePowerMultiplier = (move) => 1 + move.stars * 0.12;
 const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(move));
 const learnedMoves = () => moves.filter((move) => move.stars > 0);
+const equippedMoves = () =>
+  moveLoadout
+    .map((id) => moves.find((move) => move.id === id))
+    .filter((move) => move && move.stars > 0);
+
+function toggleMoveEquip(id) {
+  if (action.kind === "combat") return;
+  const move = moves.find((item) => item.id === id);
+  if (!move || move.stars <= 0) return;
+
+  if (moveLoadout.includes(id)) {
+    moveLoadout = moveLoadout.filter((moveId) => moveId !== id);
+    addLog(move.name + "을(를) 전투 기술에서 해제했습니다.");
+  } else {
+    if (moveLoadout.length >= MAX_MOVE_SLOTS) {
+      addLog("전투 기술은 최대 " + MAX_MOVE_SLOTS + "개까지 장착할 수 있습니다.");
+      render();
+      return;
+    }
+    moveLoadout.push(id);
+    addLog(move.name + "을(를) 전투 기술로 장착했습니다.");
+  }
+
+  saveGame();
+  render();
+}
 const TYPE_CHART = {
   "노말":   { "바위": 0.5, "강철": 0.5, "고스트": 0 },
   "불꽃":   { "풀": 2, "얼음": 2, "벌레": 2, "강철": 2, "불꽃": 0.5, "물": 0.5, "바위": 0.5, "드래곤": 0.5 },
@@ -470,7 +505,7 @@ function effectivenessText(mult) {
 }
 
 function pickBattleMove() {
-  const learned = learnedMoves();
+  const learned = equippedMoves();
   if (learned.length === 0) {
     return {
       id: "tackle",
@@ -824,6 +859,7 @@ function rebirth(reason = "manual") {
 
   reputation = Object.fromEntries(factionIds.map((id) => [id, 0]));
   inventory = Object.fromEntries(itemIds.map((id) => [id, 0]));
+  moveLoadout = [];
 
   battle = null;
   action = { kind: "idle" };
@@ -883,6 +919,23 @@ function movesView() {
       <div><p class="eyebrow">무공 수련</p><h2>기술</h2></div>
       <p class="muted">10성은 완성, 12성은 대성. 전생 숙련은 다음 생의 수련을 가속합니다.</p>
     </div>
+    <section class="move-loadout">
+      <div class="move-loadout-head">
+        <div>
+          <strong>전투 기술</strong>
+          <span>최대 ${MAX_MOVE_SLOTS}개 · 자동전투에서 왼쪽부터 순환 사용</span>
+        </div>
+        <b>${moveLoadout.length} / ${MAX_MOVE_SLOTS}</b>
+      </div>
+      <div class="move-slots">
+        ${Array.from({ length: MAX_MOVE_SLOTS }, (_, index) => {
+          const move = moves.find((item) => item.id === moveLoadout[index]);
+          return move
+            ? '<div class="move-slot filled"><span>' + (index + 1) + '</span><strong>' + move.name + '</strong><small>' + move.stars + '성 · ' + move.type + '</small></div>'
+            : '<div class="move-slot"><span>' + (index + 1) + '</span><strong>비어 있음</strong><small>습득한 기술을 장착하세요</small></div>';
+        }).join("")}
+      </div>
+    </section>
     <div class="cards">
       ${moves.map((move) => `
         <article class="card">
@@ -903,7 +956,14 @@ function movesView() {
             <div><dt>수련 속도</dt><dd>×${moveTrainingSpeed(move).toFixed(2)}</dd></div>
             <div><dt>전생 숙련</dt><dd>+${move.soul.toFixed(1)}%</dd></div>
           </dl>
-          <button class="action" onclick="trainMove('${move.id}')">${move.stars ? "수련" : "습득 수련"}</button>
+          <div class="move-card-actions">
+            <button class="action" onclick="trainMove('${move.id}')">${move.stars ? "수련" : "습득 수련"}</button>
+            <button
+              class="ghost ${moveLoadout.includes(move.id) ? "equipped" : ""}"
+              ${move.stars <= 0 ? "disabled" : ""}
+              onclick="toggleMoveEquip('${move.id}')"
+            >${moveLoadout.includes(move.id) ? "장착 해제" : "전투 장착"}</button>
+          </div>
         </article>
       `).join("")}
     </div>
@@ -967,8 +1027,8 @@ function battleView() {
           <span>기력의조각 ${inventory.revive}</span>
         </div>
         <div class="used-moves">
-          <span>사용 가능 기술</span>
-          <strong>${learnedMoves().length ? learnedMoves().map((move) => move.name + " " + move.stars + "성").join(" · ") : "몸통박치기(기본기)"}</strong>
+          <span>장착 전투 기술</span>
+          <strong>${equippedMoves().length ? equippedMoves().map((move) => move.name + " " + move.stars + "성").join(" · ") : "몸통박치기(기본기)"}</strong>
         </div>
       </section>
 
@@ -1344,6 +1404,10 @@ setInterval(() => {
       while (move.progress >= 100 && move.stars < 12) {
         move.progress -= 100;
         move.stars += 1;
+        if (move.stars === 1 && moveLoadout.length < MAX_MOVE_SLOTS && !moveLoadout.includes(move.id)) {
+          moveLoadout.push(move.id);
+          addLog(move.name + "을(를) 습득해 전투 기술에 자동 장착했습니다.");
+        }
         addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
 
         if (move.stars >= 12) {
