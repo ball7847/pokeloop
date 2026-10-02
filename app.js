@@ -253,6 +253,7 @@ function saveGame() {
       money,
       currentSpeciesId,
       reputation,
+      inventory,
       tab,
       action,
       battle,
@@ -294,6 +295,14 @@ function loadGame() {
       });
     }
 
+    if (payload.inventory && typeof payload.inventory === "object") {
+      itemIds.forEach((id) => {
+        if (Number.isFinite(payload.inventory[id])) {
+          inventory[id] = Math.max(0, Math.floor(payload.inventory[id]));
+        }
+      });
+    }
+
     if (payload.stats && typeof payload.stats === "object") {
       statKeys.forEach((key) => {
         const saved = payload.stats[key];
@@ -303,13 +312,18 @@ function loadGame() {
       });
     }
 
-    if (Array.isArray(payload.moves) && payload.moves.length === moves.length) {
-      moves = payload.moves.map((savedMove, index) => ({
-        ...moves[index],
-        stars: Number.isFinite(savedMove.stars) ? savedMove.stars : moves[index].stars,
-        progress: Number.isFinite(savedMove.progress) ? savedMove.progress : moves[index].progress,
-        soul: Number.isFinite(savedMove.soul) ? savedMove.soul : moves[index].soul
-      }));
+    if (Array.isArray(payload.moves)) {
+      const savedById = Object.fromEntries(payload.moves.map((move) => [move.id, move]));
+      moves = moves.map((move) => {
+        const savedMove = savedById[move.id];
+        if (!savedMove) return move;
+        return {
+          ...move,
+          stars: Number.isFinite(savedMove.stars) ? savedMove.stars : move.stars,
+          progress: Number.isFinite(savedMove.progress) ? savedMove.progress : move.progress,
+          soul: Number.isFinite(savedMove.soul) ? savedMove.soul : move.soul
+        };
+      });
     }
 
     if (payload.action && typeof payload.action.kind === "string") {
@@ -479,6 +493,38 @@ function addLog(message) {
   logs = logs.slice(0, 40);
 }
 
+function useItem(id) {
+  if (action.kind === "combat") return;
+  const item = ITEMS[id];
+  if (!item || inventory[id] <= 0) return;
+
+  if (item.kind === "ev") {
+    inventory[id] -= 1;
+    stats[item.stat].ev += item.amount;
+    addLog(item.name + " 사용 · " + stats[item.stat].label + " EV +" + item.amount);
+    saveGame();
+    render();
+  }
+}
+
+function rollBattleDrop() {
+  const roll = Math.random();
+
+  if (roll < 0.08) {
+    inventory.revive += 1;
+    return ITEMS.revive.name;
+  }
+
+  if (roll < 0.48) {
+    const featherIds = itemIds.filter((id) => ITEMS[id].kind === "ev");
+    const id = featherIds[Math.floor(Math.random() * featherIds.length)];
+    inventory[id] += 1;
+    return ITEMS[id].name;
+  }
+
+  return null;
+}
+
 function setTab(nextTab) {
   if (action.kind === "combat") return;
   tab = nextTab;
@@ -559,7 +605,8 @@ function startBattle(area) {
     result: null,
     lastAction: "전투 준비",
     totalDamage: 0,
-    battleLog: ["야생 포켓몬 무리가 나타났다!"]
+    battleLog: ["야생 포켓몬 무리가 나타났다!"],
+    revived: false
   };
   action = { kind: "combat" };
   tab = "combat";
@@ -679,9 +726,18 @@ function combatTick() {
       if (effText) pushBattleLog(effText + "!");
 
       if (battle.playerHP <= 0) {
-        pushBattleLog(currentSpecies().name + "은(는) 쓰러졌다.");
-        finishBattle(false);
-        break;
+        if (!battle.revived && inventory.revive > 0) {
+          inventory.revive -= 1;
+          battle.revived = true;
+          battle.playerHP = Math.max(1, Math.floor(battle.playerMaxHP * 0.5));
+          pushBattleLog("기력의조각이 빛났다! " + currentSpecies().name + "은(는) HP 50%로 다시 일어섰다.");
+          addLog("기력의조각 자동 사용 · 전투 사망 1회 방지");
+          saveGame();
+        } else {
+          pushBattleLog(currentSpecies().name + "은(는) 쓰러졌다.");
+          finishBattle(false);
+          break;
+        }
       }
     }
 
@@ -709,6 +765,12 @@ function finishBattle(victory) {
     addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward + " · " + FACTIONS[factionId].name + " 평판 +5");
   } else {
     addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward);
+  }
+
+  const drop = rollBattleDrop();
+  if (drop) {
+    addLog("전리품 획득 · " + drop);
+    pushBattleLog("전리품으로 " + drop + "을(를) 얻었다.");
   }
 
   if (battle.repeat) {
@@ -761,6 +823,7 @@ function rebirth(reason = "manual") {
   }));
 
   reputation = Object.fromEntries(factionIds.map((id) => [id, 0]));
+  inventory = Object.fromEntries(itemIds.map((id) => [id, 0]));
 
   battle = null;
   action = { kind: "idle" };
@@ -901,6 +964,7 @@ function battleView() {
           <span>공격 ${formatNumber(finalStat("atk"))}</span>
           <span>특공 ${formatNumber(finalStat("spa"))}</span>
           <span>방어 ${formatNumber(finalStat("def"))}</span>
+          <span>기력의조각 ${inventory.revive}</span>
         </div>
         <div class="used-moves">
           <span>사용 가능 기술</span>
@@ -993,6 +1057,42 @@ function rebirthView() {
   `;
 }
 
+function itemsView() {
+  const owned = itemIds.reduce((sum, id) => sum + inventory[id], 0);
+
+  return `
+    <div class="heading">
+      <div><p class="eyebrow">소지품</p><h2>아이템</h2></div>
+      <p class="muted">탐험 전투에서 아이템이 확률적으로 드롭됩니다. 깃털은 EV를 즉시 올리고, 기력의조각은 전투 사망을 한 번 막습니다.</p>
+    </div>
+    <div class="inventory-summary">
+      <span>총 보유 수량</span><strong>${formatNumber(owned)}</strong>
+    </div>
+    <div class="item-grid">
+      ${itemIds.map((id) => {
+        const item = ITEMS[id];
+        const count = inventory[id];
+        const usable = item.kind === "ev" && count > 0 && action.kind !== "combat";
+        return `
+          <article class="item-card ${count > 0 ? "owned" : ""}">
+            <div class="item-top">
+              <div>
+                <span class="item-kind">${item.kind === "ev" ? "능력 강화" : "전투 자동사용"}</span>
+                <h3>${item.name}</h3>
+              </div>
+              <strong>×${count}</strong>
+            </div>
+            <p>${item.desc}</p>
+            ${item.kind === "ev"
+              ? '<button class="action" ' + (usable ? '' : 'disabled') + ' onclick="useItem(\'' + id + '\')">사용</button>'
+              : '<small>보유 중이면 치명상 시 자동으로 사용됩니다. 전투당 1회.</small>'}
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function factionsView() {
   return `
     <div class="heading">
@@ -1035,6 +1135,7 @@ function centerView() {
   if (tab === "training") return trainingView();
   if (tab === "moves") return movesView();
   if (tab === "explore") return exploreView();
+  if (tab === "items") return itemsView();
   if (tab === "factions") return factionsView();
   return rebirthView();
 }
@@ -1160,6 +1261,7 @@ function render() {
               ["training", "수련"],
               ["moves", "기술"],
               ["explore", "탐험"],
+              ["items", "아이템"],
               ["factions", "세력"],
               ["rebirth", "환생"]
             ].map(([key, label]) => `
