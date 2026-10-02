@@ -75,6 +75,87 @@ const areas = [
 ];
 
 let logs = ["0세 0개월 · 제1생이 시작되었습니다."];
+
+const SAVE_KEY = "pokeloop-save-v1";
+let lastSaveAt = 0;
+
+function saveGame() {
+  try {
+    const payload = {
+      version: 1,
+      savedAt: Date.now(),
+      life,
+      ageMonths,
+      money,
+      tab,
+      action,
+      battle,
+      stats: Object.fromEntries(
+        statKeys.map((key) => [key, { iv: stats[key].iv, ev: stats[key].ev }])
+      ),
+      moves,
+      logs
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    lastSaveAt = payload.savedAt;
+  } catch (error) {
+    console.warn("PokeLoop save failed", error);
+  }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+
+    const payload = JSON.parse(raw);
+    if (!payload || payload.version !== 1) return false;
+
+    if (Number.isFinite(payload.life) && payload.life >= 1) life = payload.life;
+    if (Number.isFinite(payload.ageMonths) && payload.ageMonths >= 0) ageMonths = payload.ageMonths;
+    if (Number.isFinite(payload.money) && payload.money >= 0) money = payload.money;
+
+    if (payload.stats && typeof payload.stats === "object") {
+      statKeys.forEach((key) => {
+        const saved = payload.stats[key];
+        if (!saved) return;
+        if (Number.isFinite(saved.iv)) stats[key].iv = Math.max(0, Math.min(31, saved.iv));
+        if (Number.isFinite(saved.ev)) stats[key].ev = Math.max(0, saved.ev);
+      });
+    }
+
+    if (Array.isArray(payload.moves) && payload.moves.length === moves.length) {
+      moves = payload.moves.map((savedMove, index) => ({
+        ...moves[index],
+        ...savedMove
+      }));
+    }
+
+    if (payload.action && typeof payload.action.kind === "string") {
+      action = payload.action;
+    }
+
+    if (payload.battle && typeof payload.battle === "object") {
+      battle = payload.battle;
+    }
+
+    if (typeof payload.tab === "string") {
+      tab = payload.tab;
+    }
+
+    if (Array.isArray(payload.logs)) {
+      logs = payload.logs.slice(0, 40);
+    }
+
+    lastSaveAt = Number.isFinite(payload.savedAt) ? payload.savedAt : Date.now();
+    addLog("자동저장 데이터를 불러왔습니다.");
+    return true;
+  } catch (error) {
+    console.warn("PokeLoop load failed", error);
+    return false;
+  }
+}
+
 const TICKS_PER_SECOND = 20;
 const TICK_MS = 1000 / TICKS_PER_SECOND;
 const DT = 1 / TICKS_PER_SECOND;
@@ -151,6 +232,7 @@ function addLog(message) {
 function setTab(nextTab) {
   if (action.kind === "combat") return;
   tab = nextTab;
+  saveGame();
   render();
 }
 
@@ -158,6 +240,7 @@ function train(key) {
   if (action.kind === "combat") return;
   action = { kind: "training", stat: key, progress: 0 };
   addLog(stats[key].label + " 수련을 시작했습니다.");
+  saveGame();
   render();
 }
 
@@ -166,6 +249,7 @@ function trainMove(id) {
   const move = moves.find((item) => item.id === id);
   action = { kind: "move", id };
   addLog(move.name + " 수련을 시작했습니다.");
+  saveGame();
   render();
 }
 
@@ -174,12 +258,14 @@ function explore(id) {
   const area = areas.find((item) => item.id === id);
   action = { kind: "explore", id, progress: 0 };
   addLog(area.name + " 탐색을 시작했습니다.");
+  saveGame();
   render();
 }
 
 function stopAction() {
   if (action.kind === "combat") return;
   action = { kind: "idle" };
+  saveGame();
   render();
 }
 
@@ -204,6 +290,7 @@ function startBattle(area) {
   action = { kind: "combat" };
   tab = "combat";
   addLog(area.name + "에서 적 무리와 조우했습니다.");
+  saveGame();
 }
 
 function combatTick() {
@@ -272,6 +359,7 @@ function finishBattle(victory) {
     addLog(battle.areaName + "에서 패배했습니다. 보상 없이 귀환합니다.");
   }
 
+  saveGame();
   render();
 }
 
@@ -279,6 +367,7 @@ function leaveBattle() {
   battle = null;
   tab = "explore";
   action = { kind: "idle" };
+  saveGame();
   render();
 }
 
@@ -303,6 +392,7 @@ function rebirth() {
   action = { kind: "idle" };
   tab = "training";
   logs = ["0세 0개월 · 제" + life + "생이 시작되었습니다. 전생의 기술 경험이 영혼에 남아 있습니다."];
+  saveGame();
   render();
 }
 
@@ -570,7 +660,7 @@ function render() {
           <span>은전 ${formatNumber(money)}</span>
           <span>${battle && tab === "combat" ? battle.areaName : "낙양"}</span>
         </div>
-        <span>프로토타입</span>
+        <span class="save-status">자동저장</span>
       </header>
 
       <main class="workspace">
@@ -643,7 +733,10 @@ function render() {
   `;
 }
 
+loadGame();
 render();
+
+window.addEventListener("beforeunload", saveGame);
 
 setInterval(() => {
   if (action.kind !== "idle") {
@@ -700,6 +793,10 @@ setInterval(() => {
     }
   } else {
     combatTickProgress = 0;
+  }
+
+  if (Date.now() - lastSaveAt >= 1000) {
+    saveGame();
   }
 
   renderAccumulator += DT;
