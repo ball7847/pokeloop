@@ -86,6 +86,7 @@ const formatNumber = (n) => {
 const years = () => Math.floor(ageMonths / 12);
 const months = () => ageMonths % 12;
 const trainingSpeed = (key) => 1 + stats[key].iv / 100;
+const trainingInterval = (key) => 10 / trainingSpeed(key);
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
 const affinityMultiplier = (affinity) => ({
@@ -132,7 +133,7 @@ function setTab(nextTab) {
 
 function train(key) {
   if (action.kind === "combat") return;
-  action = { kind: "training", stat: key };
+  action = { kind: "training", stat: key, progress: 0 };
   addLog(stats[key].label + " 수련을 시작했습니다.");
   render();
 }
@@ -294,16 +295,16 @@ function trainingView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">육체 수련</p><h2>노력치 수련</h2></div>
-      <p class="muted">EV에는 상한이 없습니다. IV는 수련 속도에만 영향을 줍니다.</p>
+      <p class="muted">EV에는 상한이 없습니다. 일정 시간이 지나면 EV +1을 획득하고 같은 수련을 자동 반복합니다.</p>
     </div>
     <div class="table">
-      <div class="tr th"><span>능력</span><span>EV</span><span>IV</span><span>속도</span><span></span></div>
+      <div class="tr th"><span>능력</span><span>EV</span><span>IV</span><span>획득 주기</span><span></span></div>
       ${statKeys.map((key) => `
         <div class="tr ${action.kind === "training" && action.stat === key ? "selected" : ""}">
           <strong>${stats[key].label}</strong>
           <span>${formatNumber(stats[key].ev)}</span>
           <span>${stats[key].iv}</span>
-          <span>+${trainingSpeed(key).toFixed(2)} EV/s</span>
+          <span>${trainingInterval(key).toFixed(2)}초마다 +1</span>
           <button class="action" onclick="train('${key}')">수련</button>
         </div>
       `).join("")}
@@ -484,10 +485,13 @@ function centerView() {
 function actionPanel() {
   if (action.kind === "training") {
     return `
-      <div class="metric"><span>수련 속도</span><strong>+${trainingSpeed(action.stat).toFixed(2)} EV/s</strong></div>
+      <div class="progress"><i style="width:${action.progress}%"></i></div>
+      <div class="metric"><span>다음 EV +1</span><strong>${action.progress.toFixed(0)}%</strong></div>
       <div class="breakdown">
-        <div><span>기본</span><strong>1.00</strong></div>
+        <div><span>기본 주기</span><strong>10.00초</strong></div>
         <div><span>IV ${stats[action.stat].iv}</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
+        <div><span>현재 획득 주기</span><strong>${trainingInterval(action.stat).toFixed(2)}초</strong></div>
+        <div><span>반복</span><strong>무한 반복</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -622,7 +626,13 @@ setInterval(() => {
   if (action.kind !== "idle") ageMonths += 1;
 
   if (action.kind === "training") {
-    stats[action.stat].ev += trainingSpeed(action.stat);
+    const key = action.stat;
+    action.progress += 100 / trainingInterval(key);
+
+    while (action.progress >= 100) {
+      action.progress -= 100;
+      stats[key].ev += 1;
+    }
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
     if (move.stars >= 12) {
