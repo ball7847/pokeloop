@@ -19,9 +19,9 @@ let action = { kind: "idle" };
 let battle = null;
 
 let moves = [
-  { id: "quick",  name: "전광석화",   stars: 0, progress: 0, affinity: "매우 쉬움", power: 40,  soul: 0, stat: "atk", category: "물리" },
-  { id: "tail",   name: "아이언테일", stars: 0, progress: 0, affinity: "쉬움",      power: 100, soul: 0, stat: "atk", category: "물리" },
-  { id: "meteor", name: "용성군",     stars: 0, progress: 0, affinity: "극악",      power: 130, soul: 0, stat: "spa", category: "특수" }
+  { id: "quick",  name: "전광석화",   stars: 0, progress: 0, affinity: "매우 쉬움", power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", category: "물리" },
+  { id: "tail",   name: "아이언테일", stars: 0, progress: 0, affinity: "쉬움",      power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리" },
+  { id: "meteor", name: "용성군",     stars: 0, progress: 0, affinity: "극악",      power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수" }
 ];
 
 const areas = [
@@ -29,47 +29,58 @@ const areas = [
     id: "luoyang",
     name: "낙양 외곽",
     danger: "낮음",
-    desc: "초심자가 실전을 익히기 좋은 평야 지대",
+    desc: "초심자가 야생 포켓몬과 실전을 익히는 평야 지대",
     reward: 24,
     enemies: [
-      { name: "야생 꼬렛", hp: 180, atk: 7, def: 20 },
-      { name: "야생 구구", hp: 150, atk: 6, def: 18 }
+      { name: "야생 꼬렛", types: ["노말"], hp: 180, atk: 56, def: 35, spa: 25, spd: 35, spe: 72,
+        moves: [{ name: "몸통박치기", type: "노말", category: "물리", power: 40, accuracy: 100, priority: 0 }] },
+      { name: "야생 구구", types: ["노말","비행"], hp: 165, atk: 45, def: 40, spa: 35, spd: 35, spe: 56,
+        moves: [{ name: "바람일으키기", type: "비행", category: "특수", power: 40, accuracy: 100, priority: 0 }] }
     ]
   },
   {
     id: "songshan",
     name: "숭산 산길",
     danger: "보통",
-    desc: "거친 포켓몬이 자주 나타나는 소림 인근 산길",
+    desc: "격투계 야생 포켓몬이 자주 나타나는 소림 인근 산길",
     reward: 58,
     enemies: [
-      { name: "망키", hp: 310, atk: 13, def: 28 },
-      { name: "알통몬", hp: 360, atk: 15, def: 32 }
+      { name: "망키", types: ["격투"], hp: 290, atk: 80, def: 35, spa: 35, spd: 45, spe: 70,
+        moves: [{ name: "태권당수", type: "격투", category: "물리", power: 50, accuracy: 100, priority: 0 }] },
+      { name: "알통몬", types: ["격투"], hp: 330, atk: 80, def: 50, spa: 35, spd: 35, spe: 35,
+        moves: [{ name: "안다리걸기", type: "격투", category: "물리", power: 50, accuracy: 100, priority: 0 }] }
     ]
   },
   {
     id: "wudang",
     name: "무당산",
     danger: "높음",
-    desc: "안개와 계곡이 깊어 강한 상대가 출몰하는 수행지",
+    desc: "에스퍼와 격투의 기운이 뒤섞인 고지대",
     reward: 110,
     enemies: [
-      { name: "비구술", hp: 420, atk: 19, def: 38 },
-      { name: "요가랑", hp: 480, atk: 21, def: 40 },
-      { name: "비구술", hp: 420, atk: 19, def: 38 }
+      { name: "비구술", types: ["에스퍼"], hp: 400, atk: 35, def: 30, spa: 105, spd: 65, spe: 120,
+        moves: [{ name: "염동력", type: "에스퍼", category: "특수", power: 50, accuracy: 100, priority: 0 }] },
+      { name: "요가랑", types: ["격투","에스퍼"], hp: 440, atk: 40, def: 55, spa: 40, spd: 55, spe: 60,
+        moves: [{ name: "발경", type: "격투", category: "물리", power: 60, accuracy: 100, priority: 0 }] },
+      { name: "비구술", types: ["에스퍼"], hp: 400, atk: 35, def: 30, spa: 105, spd: 65, spe: 120,
+        moves: [{ name: "사이코빔", type: "에스퍼", category: "특수", power: 65, accuracy: 100, priority: 0 }] }
     ]
   },
   {
     id: "huashan",
     name: "화산",
     danger: "매우 높음",
-    desc: "강한 적이 무리를 이루는 험준한 고산 지대",
+    desc: "불꽃과 비행 포켓몬이 몰려드는 험준한 고산 지대",
     reward: 220,
     enemies: [
-      { name: "파이숭이", hp: 620, atk: 28, def: 48 },
-      { name: "불화살빈", hp: 570, atk: 27, def: 44 },
-      { name: "파이숭이", hp: 620, atk: 28, def: 48 },
-      { name: "불화살빈", hp: 570, atk: 27, def: 44 }
+      { name: "파이숭이", types: ["불꽃"], hp: 600, atk: 58, def: 44, spa: 58, spd: 44, spe: 61,
+        moves: [{ name: "불꽃세례", type: "불꽃", category: "특수", power: 40, accuracy: 100, priority: 0 }] },
+      { name: "불화살빈", types: ["불꽃","비행"], hp: 560, atk: 73, def: 55, spa: 56, spd: 52, spe: 84,
+        moves: [{ name: "날개치기", type: "비행", category: "물리", power: 60, accuracy: 100, priority: 0 }] },
+      { name: "파이숭이", types: ["불꽃"], hp: 600, atk: 58, def: 44, spa: 58, spd: 44, spe: 61,
+        moves: [{ name: "불꽃세례", type: "불꽃", category: "특수", power: 40, accuracy: 100, priority: 0 }] },
+      { name: "불화살빈", types: ["불꽃","비행"], hp: 560, atk: 73, def: 55, spa: 56, spd: 52, spe: 84,
+        moves: [{ name: "전광석화", type: "노말", category: "물리", power: 40, accuracy: 100, priority: 1 }] }
     ]
   }
 ];
@@ -137,6 +148,7 @@ function loadGame() {
 
     if (payload.battle && typeof payload.battle === "object") {
       battle = payload.battle;
+      if (!Array.isArray(battle.battleLog)) battle.battleLog = ["전투를 이어서 시작합니다."];
     }
 
     if (typeof payload.tab === "string") {
@@ -207,6 +219,38 @@ const moveTrainingSpeed = (move) =>
 const movePowerMultiplier = (move) => 1 + move.stars * 0.12;
 const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(move));
 const learnedMoves = () => moves.filter((move) => move.stars > 0);
+const PLAYER_TYPES = ["노말"];
+
+const TYPE_CHART = {
+  "노말":   { "바위": 0.5, "강철": 0.5, "고스트": 0 },
+  "격투":   { "노말": 2, "바위": 2, "강철": 2, "악": 2, "얼음": 2, "비행": 0.5, "에스퍼": 0.5, "페어리": 0.5, "고스트": 0 },
+  "비행":   { "격투": 2, "벌레": 2, "풀": 2, "바위": 0.5, "강철": 0.5, "전기": 0.5 },
+  "에스퍼": { "격투": 2, "독": 2, "에스퍼": 0.5, "강철": 0.5, "악": 0 },
+  "불꽃":   { "풀": 2, "얼음": 2, "벌레": 2, "강철": 2, "불꽃": 0.5, "물": 0.5, "바위": 0.5, "드래곤": 0.5 },
+  "강철":   { "바위": 2, "얼음": 2, "페어리": 2, "불꽃": 0.5, "물": 0.5, "전기": 0.5, "강철": 0.5 },
+  "드래곤": { "드래곤": 2, "강철": 0.5, "페어리": 0 }
+};
+
+function typeEffectiveness(moveType, targetTypes) {
+  return targetTypes.reduce((mult, type) => {
+    const chart = TYPE_CHART[moveType];
+    return mult * (chart && chart[type] !== undefined ? chart[type] : 1);
+  }, 1);
+}
+
+function combatDamage({ attackerStat, defenderStat, power, stab, effectiveness }) {
+  const ratio = Math.max(0.15, attackerStat / Math.max(1, defenderStat));
+  const base = Math.max(1, (power * ratio) / 2.5);
+  const random = 0.85 + Math.random() * 0.15;
+  return Math.max(1, Math.floor(base * stab * effectiveness * random));
+}
+
+function effectivenessText(mult) {
+  if (mult === 0) return "효과가 없다";
+  if (mult >= 2) return "효과가 굉장했다";
+  if (mult < 1) return "효과가 별로였다";
+  return "";
+}
 
 function pickBattleMove() {
   const learned = learnedMoves();
@@ -218,6 +262,9 @@ function pickBattleMove() {
       power: 40,
       stat: "atk",
       category: "물리",
+      accuracy: 100,
+      priority: 0,
+      type: "노말",
       system: true
     };
   }
@@ -285,12 +332,19 @@ function startBattle(area) {
     turn: 0,
     result: null,
     lastAction: "전투 준비",
-    totalDamage: 0
+    totalDamage: 0,
+    battleLog: ["야생 포켓몬 무리가 나타났다!"]
   };
   action = { kind: "combat" };
   tab = "combat";
   addLog(area.name + "에서 적 무리와 조우했습니다.");
   saveGame();
+}
+
+function pushBattleLog(message) {
+  if (!battle) return;
+  battle.battleLog.unshift(message);
+  battle.battleLog = battle.battleLog.slice(0, 24);
 }
 
 function combatTick() {
@@ -303,49 +357,114 @@ function combatTick() {
   }
 
   battle.turn += 1;
+  const playerMove = pickBattleMove();
+  const enemyMoveUsers = battle.enemies
+    .filter((enemy) => enemy.currentHP > 0)
+    .map((enemy) => ({
+      enemy,
+      move: enemy.moves[Math.floor(Math.random() * enemy.moves.length)]
+    }));
 
-  const usedMove = pickBattleMove();
-  const offensiveStat = finalStat(usedMove.stat);
-  const effectivePower = usedMove.system ? usedMove.power : moveCombatPower(usedMove);
-  const playerDamage = Math.max(
-    1,
-    Math.floor(offensiveStat * (effectivePower / 100) - target.def * 0.3)
-  );
+  const actions = [
+    {
+      side: "player",
+      priority: playerMove.priority || 0,
+      speed: finalStat("spe"),
+      move: playerMove
+    },
+    ...enemyMoveUsers.map(({ enemy, move }) => ({
+      side: "enemy",
+      enemy,
+      priority: move.priority || 0,
+      speed: enemy.spe,
+      move
+    }))
+  ].sort((a, b) => {
+    if (b.priority !== a.priority) return b.priority - a.priority;
+    if (b.speed !== a.speed) return b.speed - a.speed;
+    return Math.random() < 0.5 ? -1 : 1;
+  });
 
-  target.currentHP = Math.max(0, target.currentHP - playerDamage);
-  battle.totalDamage += playerDamage;
-  battle.lastAction =
-    usedMove.name +
-    (usedMove.system ? "" : " " + usedMove.stars + "성") +
-    " → " + target.name +
-    " · " + formatNumber(playerDamage) + " 피해";
+  pushBattleLog("— " + battle.turn + "턴 —");
 
-  if (target.currentHP <= 0) {
-    addLog(
-      usedMove.name + "으로 " + target.name +
-      "을(를) 쓰러뜨렸습니다. (" + formatNumber(playerDamage) + " 피해)"
-    );
-  }
+  for (const act of actions) {
+    if (battle.result || battle.playerHP <= 0) break;
 
-  const survivors = battle.enemies.filter((enemy) => enemy.currentHP > 0);
+    if (act.side === "player") {
+      const currentTarget = battle.enemies.find((enemy) => enemy.currentHP > 0);
+      if (!currentTarget) break;
 
-  if (survivors.length === 0) {
-    finishBattle(true);
-    return;
-  }
+      if (Math.random() * 100 > act.move.accuracy) {
+        battle.lastAction = act.move.name + " → 빗나감";
+        pushBattleLog("꼬렛의 " + act.move.name + "! 그러나 빗나갔다.");
+        continue;
+      }
 
-  const defense = finalStat("def");
-  const incoming = survivors.reduce((sum, enemy) => {
-    return sum + Math.max(1, Math.floor(enemy.atk - defense * 0.08));
-  }, 0);
+      const attackStat = act.move.category === "특수" ? finalStat("spa") : finalStat("atk");
+      const defenseStat = act.move.category === "특수" ? currentTarget.spd : currentTarget.def;
+      const power = act.move.system ? act.move.power : moveCombatPower(act.move);
+      const stab = PLAYER_TYPES.includes(act.move.type) ? 1.5 : 1;
+      const effectiveness = typeEffectiveness(act.move.type, currentTarget.types);
+      const damage = effectiveness === 0 ? 0 : combatDamage({
+        attackerStat: attackStat,
+        defenderStat: defenseStat,
+        power,
+        stab,
+        effectiveness
+      });
 
-  battle.playerHP = Math.max(0, battle.playerHP - incoming);
+      currentTarget.currentHP = Math.max(0, currentTarget.currentHP - damage);
+      battle.totalDamage += damage;
+      battle.lastAction =
+        act.move.name + (act.move.system ? "" : " " + act.move.stars + "성") +
+        " → " + currentTarget.name + " · " + formatNumber(damage) + " 피해";
 
-  if (battle.playerHP <= 0) {
-    finishBattle(false);
+      pushBattleLog("꼬렛의 " + act.move.name + "! " + currentTarget.name + "에게 " + formatNumber(damage) + " 피해.");
+      const effText = effectivenessText(effectiveness);
+      if (effText) pushBattleLog(effText + "!");
+
+      if (currentTarget.currentHP <= 0) {
+        pushBattleLog(currentTarget.name + "은(는) 쓰러졌다.");
+        addLog(act.move.name + "으로 " + currentTarget.name + "을(를) 쓰러뜨렸습니다.");
+      }
+    } else {
+      if (act.enemy.currentHP <= 0) continue;
+
+      if (Math.random() * 100 > act.move.accuracy) {
+        pushBattleLog(act.enemy.name + "의 " + act.move.name + "! 그러나 빗나갔다.");
+        continue;
+      }
+
+      const attackStat = act.move.category === "특수" ? act.enemy.spa : act.enemy.atk;
+      const defenseStat = act.move.category === "특수" ? finalStat("spd") : finalStat("def");
+      const stab = act.enemy.types.includes(act.move.type) ? 1.5 : 1;
+      const effectiveness = typeEffectiveness(act.move.type, PLAYER_TYPES);
+      const damage = effectiveness === 0 ? 0 : combatDamage({
+        attackerStat: attackStat,
+        defenderStat: defenseStat,
+        power: act.move.power,
+        stab,
+        effectiveness
+      });
+
+      battle.playerHP = Math.max(0, battle.playerHP - damage);
+      pushBattleLog(act.enemy.name + "의 " + act.move.name + "! 꼬렛에게 " + formatNumber(damage) + " 피해.");
+      const effText = effectivenessText(effectiveness);
+      if (effText) pushBattleLog(effText + "!");
+
+      if (battle.playerHP <= 0) {
+        pushBattleLog("꼬렛은 쓰러졌다.");
+        finishBattle(false);
+        break;
+      }
+    }
+
+    if (battle.enemies.every((enemy) => enemy.currentHP <= 0)) {
+      finishBattle(true);
+      break;
+    }
   }
 }
-
 function finishBattle(victory) {
   if (!battle) return;
 
@@ -440,8 +559,11 @@ function movesView() {
           </div>
           <div class="progress move"><i style="width:${move.progress}%"></i></div>
           <dl>
+            <div><dt>타입</dt><dd>${move.type}</dd></div>
             <div><dt>분류</dt><dd>${move.category}</dd></div>
             <div><dt>기본 위력</dt><dd>${move.power}</dd></div>
+            <div><dt>명중</dt><dd>${move.accuracy}</dd></div>
+            <div><dt>우선도</dt><dd>${move.priority > 0 ? "+" + move.priority : move.priority}</dd></div>
             <div><dt>현재 실전 위력</dt><dd>${move.stars ? moveCombatPower(move) : "-"}</dd></div>
             <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
             <div><dt>적합도 배율</dt><dd>×${affinityMultiplier(move.affinity).toFixed(2)}</dd></div>
@@ -521,7 +643,7 @@ function battleView() {
           return `
             <article class="enemy ${enemy.currentHP <= 0 ? "down" : ""}">
               <div class="enemy-top">
-                <strong>${enemy.name}</strong>
+                <strong>${enemy.name} <small class="type-line">${enemy.types.join(" / ")}</small></strong>
                 <span>${enemy.currentHP <= 0 ? "격파" : Math.ceil(enemy.currentHP) + " / " + enemy.hp}</span>
               </div>
               <div class="hpbar enemy-hp"><i style="width:${enemyRate}%"></i></div>
@@ -530,6 +652,16 @@ function battleView() {
         }).join("")}
       </section>
     </div>
+
+    <section class="combat-log-panel">
+      <div class="combat-log-title">
+        <strong>전투 로그</strong>
+        <span>우선도 → 스피드 → 명중 → 피해 판정</span>
+      </div>
+      <div class="combat-log-list">
+        ${battle.battleLog.map((line) => '<p>' + line + '</p>').join("")}
+      </div>
+    </section>
 
     <div class="battle-footer">
       <div>
