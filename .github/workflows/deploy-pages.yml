@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pokeloop-vite-pages
   cancel-in-progress: true
 
 jobs:
@@ -43,6 +43,9 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist
+
+      - name: Wait for legacy Pages deployment
+        run: sleep 60
 
       - name: Deploy to Pages
         id: deployment
