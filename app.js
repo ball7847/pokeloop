@@ -90,8 +90,9 @@ document.addEventListener("pointerdown", () => {
 }, true);
 
 document.addEventListener("pointerup", () => {
-  pointerActive = false;
-  render();
+  window.setTimeout(() => {
+    pointerActive = false;
+  }, 120);
 }, true);
 
 document.addEventListener("pointercancel", () => {
