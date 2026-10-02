@@ -104,18 +104,18 @@ let battle = null;
 let moves = [
   { id: "quick",       name: "전광석화",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", category: "물리" },
   { id: "bite",        name: "물기",       stars: 0, progress: 0, affinity: "보통", power: 60,  accuracy: 100, priority: 0, type: "악",     soul: 0, stat: "atk", category: "물리" },
-  { id: "tail",        name: "아이언테일", stars: 0, progress: 0, affinity: "보통", power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리" },
-  { id: "rocksmash",   name: "바위깨기",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "atk", category: "물리" },
+  { id: "tail",        name: "아이언테일", stars: 0, progress: 0, affinity: "보통", power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 30 } },
+  { id: "rocksmash",   name: "바위깨기",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 50 } },
   { id: "aerial",      name: "제비반환",   stars: 0, progress: 0, affinity: "보통", power: 60,  accuracy: 100, priority: 0, type: "비행",   soul: 0, stat: "atk", category: "물리" },
   { id: "watergun",    name: "물대포",     stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "물",     soul: 0, stat: "spa", category: "특수" },
-  { id: "ember",       name: "불꽃세례",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "불꽃",   soul: 0, stat: "spa", category: "특수" },
-  { id: "shock",       name: "전기쇼크",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수" },
+  { id: "ember",       name: "불꽃세례",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "불꽃",   soul: 0, stat: "spa", category: "특수", effect: { kind: "burn", chance: 10 } },
+  { id: "shock",       name: "전기쇼크",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
   { id: "confusion",   name: "염동력",     stars: 0, progress: 0, affinity: "보통", power: 50,  accuracy: 100, priority: 0, type: "에스퍼", soul: 0, stat: "spa", category: "특수" },
-  { id: "shadowball",  name: "섀도볼",     stars: 0, progress: 0, affinity: "보통", power: 80,  accuracy: 100, priority: 0, type: "고스트", soul: 0, stat: "spa", category: "특수" },
-  { id: "thunderbolt", name: "10만볼트",   stars: 0, progress: 0, affinity: "어려움", power: 90, accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수" },
+  { id: "shadowball",  name: "섀도볼",     stars: 0, progress: 0, affinity: "보통", power: 80,  accuracy: 100, priority: 0, type: "고스트", soul: 0, stat: "spa", category: "특수", effect: { kind: "spdDown", chance: 20 } },
+  { id: "thunderbolt", name: "10만볼트",   stars: 0, progress: 0, affinity: "어려움", power: 90, accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
   { id: "icebeam",     name: "냉동빔",     stars: 0, progress: 0, affinity: "어려움", power: 90, accuracy: 100, priority: 0, type: "얼음",   soul: 0, stat: "spa", category: "특수" },
   { id: "aura",        name: "파동탄",     stars: 0, progress: 0, affinity: "어려움", power: 80, accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "spa", category: "특수" },
-  { id: "meteor",      name: "용성군",     stars: 0, progress: 0, affinity: "극악", power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수" }
+  { id: "meteor",      name: "용성군",     stars: 0, progress: 0, affinity: "극악", power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수", effect: { kind: "selfSpaDown", chance: 100 } }
 ];
 
 const ITEMS = {
@@ -352,6 +352,10 @@ function loadGame() {
       if (compatibleEnemies) {
         battle = payload.battle;
         if (!Array.isArray(battle.battleLog)) battle.battleLog = ["전투를 이어서 시작합니다."];
+        if (!battle.playerStatus) battle.playerStatus = { burn: false, paralysis: false, spaMod: 1 };
+        battle.enemies.forEach((enemy) => {
+          if (!enemy.status) enemy.status = { burn: false, paralysis: false, defMod: 1, spdMod: 1 };
+        });
       } else {
         battle = null;
         action = { kind: "idle" };
@@ -655,6 +659,79 @@ function pushBattleLog(message) {
   battle.battleLog = battle.battleLog.slice(0, 24);
 }
 
+function applyMoveEffect(move, target, isPlayerTarget = false) {
+  if (!move.effect || Math.random() * 100 > move.effect.chance) return;
+
+  if (move.effect.kind === "burn") {
+    const status = isPlayerTarget ? battle.playerStatus : target.status;
+    if (!status.burn) {
+      status.burn = true;
+      pushBattleLog((isPlayerTarget ? currentSpecies().name : target.name) + "은(는) 화상을 입었다!");
+    }
+  } else if (move.effect.kind === "paralysis") {
+    const status = isPlayerTarget ? battle.playerStatus : target.status;
+    if (!status.paralysis) {
+      status.paralysis = true;
+      pushBattleLog((isPlayerTarget ? currentSpecies().name : target.name) + "은(는) 마비되었다!");
+    }
+  } else if (move.effect.kind === "defDown" && !isPlayerTarget) {
+    target.status.defMod = Math.max(0.5, target.status.defMod * 0.8);
+    pushBattleLog(target.name + "의 방어가 떨어졌다!");
+  } else if (move.effect.kind === "spdDown" && !isPlayerTarget) {
+    target.status.spdMod = Math.max(0.5, target.status.spdMod * 0.8);
+    pushBattleLog(target.name + "의 특방이 떨어졌다!");
+  } else if (move.effect.kind === "selfSpaDown") {
+    battle.playerStatus.spaMod = Math.max(0.4, battle.playerStatus.spaMod * 0.67);
+    pushBattleLog(currentSpecies().name + "의 특공이 크게 떨어졌다!");
+  }
+}
+
+function statusSpeed(baseSpeed, status) {
+  return status && status.paralysis ? Math.max(1, Math.floor(baseSpeed * 0.5)) : baseSpeed;
+}
+
+function statusPhysicalAttack(baseAttack, status) {
+  return status && status.burn ? Math.max(1, Math.floor(baseAttack * 0.5)) : baseAttack;
+}
+
+function processEndTurnStatus() {
+  if (!battle || battle.result) return;
+
+  if (battle.playerStatus && battle.playerStatus.burn && battle.playerHP > 0) {
+    const damage = Math.max(1, Math.floor(battle.playerMaxHP / 16));
+    battle.playerHP = Math.max(0, battle.playerHP - damage);
+    pushBattleLog(currentSpecies().name + "은(는) 화상으로 " + damage + " 피해를 입었다.");
+  }
+
+  battle.enemies.forEach((enemy) => {
+    if (enemy.currentHP > 0 && enemy.status && enemy.status.burn) {
+      const damage = Math.max(1, Math.floor(enemy.hp / 16));
+      enemy.currentHP = Math.max(0, enemy.currentHP - damage);
+      pushBattleLog(enemy.name + "은(는) 화상으로 " + damage + " 피해를 입었다.");
+      if (enemy.currentHP <= 0) {
+        pushBattleLog(enemy.name + "은(는) 화상 피해로 쓰러졌다.");
+      }
+    }
+  });
+
+  if (battle.playerHP <= 0) {
+    if (!battle.revived && inventory.revive > 0) {
+      inventory.revive -= 1;
+      battle.revived = true;
+      battle.playerHP = Math.max(1, Math.floor(battle.playerMaxHP * 0.5));
+      pushBattleLog("기력의조각이 빛났다! " + currentSpecies().name + "은(는) HP 50%로 다시 일어섰다.");
+      saveGame();
+    } else {
+      finishBattle(false);
+      return;
+    }
+  }
+
+  if (battle.enemies.every((enemy) => enemy.currentHP <= 0)) {
+    finishBattle(true);
+  }
+}
+
 function combatTick() {
   if (!battle || battle.result) return;
 
@@ -677,14 +754,14 @@ function combatTick() {
     {
       side: "player",
       priority: playerMove.priority || 0,
-      speed: finalStat("spe"),
+      speed: statusSpeed(finalStat("spe"), battle.playerStatus),
       move: playerMove
     },
     ...enemyMoveUsers.map(({ enemy, move }) => ({
       side: "enemy",
       enemy,
       priority: move.priority || 0,
-      speed: enemy.spe,
+      speed: statusSpeed(enemy.spe, enemy.status),
       move
     }))
   ].sort((a, b) => {
@@ -702,14 +779,23 @@ function combatTick() {
       const currentTarget = battle.enemies.find((enemy) => enemy.currentHP > 0);
       if (!currentTarget) break;
 
+      if (battle.playerStatus.paralysis && Math.random() < 0.25) {
+        pushBattleLog(currentSpecies().name + "은(는) 몸이 저려 움직일 수 없다!");
+        continue;
+      }
+
       if (Math.random() * 100 > act.move.accuracy) {
         battle.lastAction = act.move.name + " → 빗나감";
         pushBattleLog(currentSpecies().name + "의 " + act.move.name + "! 그러나 빗나갔다.");
         continue;
       }
 
-      const attackStat = act.move.category === "특수" ? finalStat("spa") : finalStat("atk");
-      const defenseStat = act.move.category === "특수" ? currentTarget.spd : currentTarget.def;
+      const attackStat = act.move.category === "특수"
+        ? Math.max(1, Math.floor(finalStat("spa") * battle.playerStatus.spaMod))
+        : statusPhysicalAttack(finalStat("atk"), battle.playerStatus);
+      const defenseStat = act.move.category === "특수"
+        ? currentTarget.spd * currentTarget.status.spdMod
+        : currentTarget.def * currentTarget.status.defMod;
       const power = act.move.system ? act.move.power : moveCombatPower(act.move);
       const stab = currentSpecies().types.includes(act.move.type) ? 1.5 : 1;
       const effectiveness = typeEffectiveness(act.move.type, currentTarget.types);
@@ -731,6 +817,12 @@ function combatTick() {
       const effText = effectivenessText(effectiveness);
       if (effText) pushBattleLog(effText + "!");
 
+      if (damage > 0 && currentTarget.currentHP > 0) {
+        applyMoveEffect(act.move, currentTarget, false);
+      } else if (act.move.effect && act.move.effect.kind === "selfSpaDown") {
+        applyMoveEffect(act.move, currentTarget, false);
+      }
+
       if (currentTarget.currentHP <= 0) {
         pushBattleLog(currentTarget.name + "은(는) 쓰러졌다.");
         addLog(act.move.name + "으로 " + currentTarget.name + "을(를) 쓰러뜨렸습니다.");
@@ -738,12 +830,19 @@ function combatTick() {
     } else {
       if (act.enemy.currentHP <= 0) continue;
 
+      if (act.enemy.status.paralysis && Math.random() < 0.25) {
+        pushBattleLog(act.enemy.name + "은(는) 몸이 저려 움직일 수 없다!");
+        continue;
+      }
+
       if (Math.random() * 100 > act.move.accuracy) {
         pushBattleLog(act.enemy.name + "의 " + act.move.name + "! 그러나 빗나갔다.");
         continue;
       }
 
-      const attackStat = act.move.category === "특수" ? act.enemy.spa : act.enemy.atk;
+      const attackStat = act.move.category === "특수"
+        ? act.enemy.spa
+        : statusPhysicalAttack(act.enemy.atk, act.enemy.status);
       const defenseStat = act.move.category === "특수" ? finalStat("spd") : finalStat("def");
       const stab = act.enemy.types.includes(act.move.type) ? 1.5 : 1;
       const effectiveness = typeEffectiveness(act.move.type, currentSpecies().types);
@@ -780,6 +879,10 @@ function combatTick() {
       finishBattle(true);
       break;
     }
+  }
+
+  if (battle && !battle.result) {
+    processEndTurnStatus();
   }
 }
 function finishBattle(victory) {
@@ -913,6 +1016,16 @@ function trainingView() {
   `;
 }
 
+function moveEffectText(move) {
+  if (!move.effect) return "없음";
+  if (move.effect.kind === "burn") return "화상 " + move.effect.chance + "%";
+  if (move.effect.kind === "paralysis") return "마비 " + move.effect.chance + "%";
+  if (move.effect.kind === "defDown") return "방어 하락 " + move.effect.chance + "%";
+  if (move.effect.kind === "spdDown") return "특방 하락 " + move.effect.chance + "%";
+  if (move.effect.kind === "selfSpaDown") return "사용 후 특공 크게 하락";
+  return "없음";
+}
+
 function movesView() {
   return `
     <div class="heading">
@@ -950,6 +1063,7 @@ function movesView() {
             <div><dt>기본 위력</dt><dd>${move.power}</dd></div>
             <div><dt>명중</dt><dd>${move.accuracy}</dd></div>
             <div><dt>우선도</dt><dd>${move.priority > 0 ? "+" + move.priority : move.priority}</dd></div>
+            <div><dt>부가 효과</dt><dd>${moveEffectText(move)}</dd></div>
             <div><dt>현재 실전 위력</dt><dd>${move.stars ? moveCombatPower(move) : "-"}</dd></div>
             <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
             <div><dt>적합도 배율</dt><dd>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</dd></div>
@@ -1026,6 +1140,11 @@ function battleView() {
           <span>방어 ${formatNumber(finalStat("def"))}</span>
           <span>기력의조각 ${inventory.revive}</span>
         </div>
+        <div class="status-line">
+          ${battle.playerStatus.burn ? '<span class="status-badge burn">화상</span>' : ""}
+          ${battle.playerStatus.paralysis ? '<span class="status-badge paralysis">마비</span>' : ""}
+          ${battle.playerStatus.spaMod < 1 ? '<span class="status-badge debuff">특공↓</span>' : ""}
+        </div>
         <div class="used-moves">
           <span>장착 전투 기술</span>
           <strong>${equippedMoves().length ? equippedMoves().map((move) => move.name + " " + move.stars + "성").join(" · ") : "몸통박치기(기본기)"}</strong>
@@ -1042,6 +1161,12 @@ function battleView() {
               <div class="enemy-top">
                 <strong>${enemy.name} <small class="type-line">${enemy.types.join(" / ")}</small></strong>
                 <span>${enemy.currentHP <= 0 ? "격파" : Math.ceil(enemy.currentHP) + " / " + enemy.hp}</span>
+              </div>
+              <div class="status-line enemy-status">
+                ${enemy.status.burn ? '<span class="status-badge burn">화상</span>' : ""}
+                ${enemy.status.paralysis ? '<span class="status-badge paralysis">마비</span>' : ""}
+                ${enemy.status.defMod < 1 ? '<span class="status-badge debuff">방어↓</span>' : ""}
+                ${enemy.status.spdMod < 1 ? '<span class="status-badge debuff">특방↓</span>' : ""}
               </div>
               <div class="hpbar enemy-hp"><i style="width:${enemyRate}%"></i></div>
             </article>
