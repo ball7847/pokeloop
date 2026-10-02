@@ -56,6 +56,9 @@ function rollNextSpecies() {
 
 const statKeys = Object.keys(stats);
 
+const LIFESPAN_YEARS = 80;
+const LIFESPAN_MONTHS = LIFESPAN_YEARS * 12;
+
 let life = 1;
 let ageMonths = 0;
 let money = 0;
@@ -270,6 +273,12 @@ const formatNumber = (n) => {
 
 const years = () => Math.floor(ageMonths / 12);
 const months = () => ageMonths % 12;
+const remainingLifeMonths = () => Math.max(0, LIFESPAN_MONTHS - ageMonths);
+const remainingLifeText = () => {
+  const remain = remainingLifeMonths();
+  return Math.floor(remain / 12) + "년 " + (remain % 12) + "개월";
+};
+const lifespanProgress = () => Math.min(100, ageMonths / LIFESPAN_MONTHS * 100);
 const trainingSpeed = (key) => 1 + stats[key].iv / 100;
 const trainingInterval = (key) => 10 / trainingSpeed(key);
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
@@ -558,9 +567,16 @@ function leaveBattle() {
   render();
 }
 
-function rebirth() {
+function rebirth(reason = "manual") {
+  const previousLife = life;
+  const previousSpecies = currentSpecies().name;
+  const previousAgeYears = years();
+  const previousAgeMonths = months();
+
   life += 1;
   ageMonths = 0;
+  ageTickProgress = 0;
+  combatTickProgress = 0;
   money = 0;
 
   applySpecies(rollNextSpecies());
@@ -580,7 +596,17 @@ function rebirth() {
   battle = null;
   action = { kind: "idle" };
   tab = "training";
-  logs = ["0세 0개월 · 제" + life + "생이 시작되었습니다. " + currentSpecies().name + "의 몸으로 태어났습니다. 전생의 기술 경험이 영혼에 남아 있습니다."];
+
+  const ending =
+    reason === "lifespan"
+      ? "제" + previousLife + "생의 " + previousSpecies + "은(는) " + previousAgeYears + "세 " + previousAgeMonths + "개월에 천수를 다했습니다."
+      : "제" + previousLife + "생을 스스로 마쳤습니다.";
+
+  logs = [
+    "0세 0개월 · " + ending,
+    "0세 0개월 · 제" + life + "생이 시작되었습니다. " + currentSpecies().name + "의 몸으로 태어났습니다. 전생의 기술 경험이 영혼에 남아 있습니다."
+  ];
+
   saveGame();
   render();
 }
@@ -765,11 +791,12 @@ function rebirthView() {
     <div class="rebirth">
       <p class="eyebrow">윤회</p>
       <h2>제${life}생의 기록</h2>
-      <p class="muted">현재 육신의 성장은 사라지지만, 기술을 익힌 경험은 영혼에 남습니다.</p>
+      <p class="muted">수명은 현재 ${LIFESPAN_YEARS}세입니다. 천수를 다하거나 조기 환생하면 육신의 EV와 IV는 사라지고 기술 경험은 영혼에 남습니다.</p>
 
       <div class="rebirthgrid">
         <div><span>현재 종족</span><strong>${currentSpecies().name}</strong></div>
         <div><span>현재 나이</span><strong>${years()}세 ${months()}개월</strong></div>
+        <div><span>남은 수명</span><strong>${remainingLifeText()}</strong></div>
         <div><span>총 EV</span><strong>${formatNumber(totalEV())}</strong></div>
         <div><span>최고 기술</span><strong>${Math.max(...moves.map((move) => move.stars))}성</strong></div>
       </div>
@@ -784,7 +811,7 @@ function rebirthView() {
         `).join("")}
       </div>
 
-      <button class="danger" onclick="rebirth()">현재 생을 끝내고 환생</button>
+      <button class="danger" onclick="rebirth('manual')">현재 생을 끝내고 조기 환생</button>
     </div>
   `;
 }
@@ -876,10 +903,11 @@ function render() {
             </div>
           </div>
 
-          <div class="agecard">
-            <span>나이</span>
-            <strong>${years()}세 ${months()}개월</strong>
-            <small>수련·기술 수련·탐험 중에만 시간이 흐릅니다. 전투 중에는 나이가 멈춥니다.</small>
+          <div class="agecard ${remainingLifeMonths() <= 120 ? "late-life" : ""}">
+            <span>나이 / 수명</span>
+            <strong>${years()}세 ${months()}개월 <em>/ ${LIFESPAN_YEARS}세</em></strong>
+            <div class="lifespan-bar"><i style="width:${lifespanProgress()}%"></i></div>
+            <small>남은 수명 ${remainingLifeText()} · 수련·기술 수련·탐험 중에만 나이가 흐릅니다. 전투 중에는 멈춥니다.</small>
           </div>
 
           ${statKeys.map((key) => `
@@ -936,7 +964,11 @@ function render() {
 }
 
 loadGame();
-render();
+if (ageMonths >= LIFESPAN_MONTHS) {
+  rebirth("lifespan");
+} else {
+  render();
+}
 
 window.addEventListener("beforeunload", saveGame);
 
@@ -949,6 +981,11 @@ setInterval(() => {
     }
   } else {
     ageTickProgress = 0;
+  }
+
+  if (ageMonths >= LIFESPAN_MONTHS) {
+    rebirth("lifespan");
+    return;
   }
 
   if (action.kind === "training") {
