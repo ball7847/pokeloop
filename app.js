@@ -75,6 +75,7 @@ let moves = [
 const areas = [
   {
     id: "luoyang",
+    faction: "alliance",
     name: "낙양 외곽",
     danger: "낮음",
     desc: "초심자가 야생 포켓몬과 실전을 익히는 평야 지대",
@@ -88,6 +89,7 @@ const areas = [
   },
   {
     id: "songshan",
+    faction: "shaolin",
     name: "숭산 산길",
     danger: "보통",
     desc: "격투계 야생 포켓몬이 자주 나타나는 소림 인근 산길",
@@ -101,6 +103,7 @@ const areas = [
   },
   {
     id: "wudang",
+    faction: "wudang",
     name: "무당산",
     danger: "높음",
     desc: "에스퍼와 격투의 기운이 뒤섞인 고지대",
@@ -116,6 +119,7 @@ const areas = [
   },
   {
     id: "huashan",
+    faction: "huashan",
     name: "화산",
     danger: "매우 높음",
     desc: "불꽃과 비행 포켓몬이 몰려드는 험준한 고산 지대",
@@ -133,6 +137,50 @@ const areas = [
   }
 ];
 
+const FACTIONS = {
+  alliance: {
+    id: "alliance", name: "무림맹", region: "낙양",
+    desc: "중원의 질서와 교류를 관장하는 정파 연합.",
+    stats: ["hp"],
+    specialty: "기초 체력 수련"
+  },
+  shaolin: {
+    id: "shaolin", name: "소림사", region: "숭산",
+    desc: "강건한 육체와 정면 승부를 중시하는 문파.",
+    stats: ["atk", "def"],
+    specialty: "공격·방어 수련"
+  },
+  wudang: {
+    id: "wudang", name: "무당파", region: "무당산",
+    desc: "내공과 균형, 기의 흐름을 중시하는 문파.",
+    stats: ["spa", "spd"],
+    specialty: "특공·특방 수련"
+  },
+  huashan: {
+    id: "huashan", name: "화산파", region: "화산",
+    desc: "날카로운 공세와 빠른 움직임을 중시하는 문파.",
+    stats: ["atk", "spe"],
+    specialty: "공격·스피드 수련"
+  }
+};
+
+const factionIds = Object.keys(FACTIONS);
+let reputation = Object.fromEntries(factionIds.map((id) => [id, 0]));
+
+function factionTier(rep) {
+  if (rep >= 300) return { name: "신뢰", bonus: 0.15 };
+  if (rep >= 100) return { name: "우호", bonus: 0.10 };
+  if (rep >= 25) return { name: "호감", bonus: 0.05 };
+  return { name: "중립", bonus: 0 };
+}
+
+function statFactionBonus(key) {
+  return factionIds.reduce((sum, id) => {
+    const faction = FACTIONS[id];
+    return faction.stats.includes(key) ? sum + factionTier(reputation[id]).bonus : sum;
+  }, 0);
+}
+
 let logs = ["0세 0개월 · 제1생이 시작되었습니다."];
 
 const SAVE_KEY = "pokeloop-save-v1";
@@ -147,6 +195,7 @@ function saveGame() {
       ageMonths,
       money,
       currentSpeciesId,
+      reputation,
       tab,
       action,
       battle,
@@ -178,6 +227,14 @@ function loadGame() {
       applySpecies(payload.currentSpeciesId);
     } else {
       applySpecies("rattata");
+    }
+
+    if (payload.reputation && typeof payload.reputation === "object") {
+      factionIds.forEach((id) => {
+        if (Number.isFinite(payload.reputation[id])) {
+          reputation[id] = Math.max(-1000, Math.min(1000, payload.reputation[id]));
+        }
+      });
     }
 
     if (payload.stats && typeof payload.stats === "object") {
@@ -279,7 +336,7 @@ const remainingLifeText = () => {
   return Math.floor(remain / 12) + "년 " + (remain % 12) + "개월";
 };
 const lifespanProgress = () => Math.min(100, ageMonths / LIFESPAN_MONTHS * 100);
-const trainingSpeed = (key) => 1 + stats[key].iv / 100;
+const trainingSpeed = (key) => (1 + stats[key].iv / 100) * (1 + statFactionBonus(key));
 const trainingInterval = (key) => 10 / trainingSpeed(key);
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
@@ -294,7 +351,8 @@ const affinityMultiplier = (affinity) => ({
 const moveTrainingSpeed = (move) =>
   (1 + stats[move.stat].iv / 100) *
   (1 + move.soul / 100) *
-  affinityMultiplier(moveAffinity(move));
+  affinityMultiplier(moveAffinity(move)) *
+  (1 + statFactionBonus(move.stat));
 const movePowerMultiplier = (move) => 1 + move.stars * 0.12;
 const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(move));
 const learnedMoves = () => moves.filter((move) => move.stars > 0);
@@ -398,6 +456,7 @@ function startBattle(area) {
   battle = {
     areaId: area.id,
     areaName: area.name,
+    factionId: area.faction,
     reward: area.reward,
     playerHP: playerMaxHP,
     playerMaxHP,
@@ -550,7 +609,13 @@ function finishBattle(victory) {
 
   if (victory) {
     money += battle.reward;
-    addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward);
+    const factionId = battle.factionId;
+    if (factionId && FACTIONS[factionId]) {
+      reputation[factionId] = Math.min(1000, reputation[factionId] + 5);
+      addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward + " · " + FACTIONS[factionId].name + " 평판 +5");
+    } else {
+      addLog(battle.areaName + " 전투 승리 · 은전 +" + battle.reward);
+    }
   } else {
     addLog(battle.areaName + "에서 패배했습니다. 보상 없이 귀환합니다.");
   }
@@ -686,7 +751,7 @@ function exploreView() {
             <span class="danger-tag">${area.danger}</span>
             <h3>${area.name}</h3>
             <p>${area.desc}</p>
-            <small>적 최대 ${area.enemies.length}마리 · 승리 보상 은전 ${area.reward}</small>
+            <small>${FACTIONS[area.faction].name} 영향권 · 적 최대 ${area.enemies.length}마리 · 승리 보상 은전 ${area.reward} · 평판 +5</small>
           </div>
           <button class="action" onclick="explore('${area.id}')">탐색 시작</button>
         </article>
@@ -816,11 +881,49 @@ function rebirthView() {
   `;
 }
 
+function factionsView() {
+  return `
+    <div class="heading">
+      <div><p class="eyebrow">강호 인연</p><h2>세력 평판</h2></div>
+      <p class="muted">해당 세력의 영향권에서 전투에 승리하면 평판이 오릅니다. 평판 단계가 오르면 관련 능력 수련이 빨라집니다.</p>
+    </div>
+    <div class="faction-grid">
+      ${factionIds.map((id) => {
+        const faction = FACTIONS[id];
+        const rep = reputation[id];
+        const tier = factionTier(rep);
+        const next = rep < 25 ? 25 : rep < 100 ? 100 : rep < 300 ? 300 : 1000;
+        const progress = Math.min(100, rep / next * 100);
+        return `
+          <article class="faction-card">
+            <div class="faction-head">
+              <div>
+                <span class="muted">${faction.region}</span>
+                <h3>${faction.name}</h3>
+              </div>
+              <strong>${tier.name}</strong>
+            </div>
+            <p>${faction.desc}</p>
+            <div class="rep-row"><span>평판</span><strong>${rep} / 1000</strong></div>
+            <div class="progress faction-progress"><i style="width:${progress}%"></i></div>
+            <div class="faction-bonus">
+              <span>${faction.specialty}</span>
+              <strong>+${(tier.bonus * 100).toFixed(0)}%</strong>
+            </div>
+            <small>25 호감 · 100 우호 · 300 신뢰</small>
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function centerView() {
   if (tab === "combat") return battleView();
   if (tab === "training") return trainingView();
   if (tab === "moves") return movesView();
   if (tab === "explore") return exploreView();
+  if (tab === "factions") return factionsView();
   return rebirthView();
 }
 
@@ -831,7 +934,9 @@ function actionPanel() {
       <div class="metric"><span>다음 EV +1</span><strong>${action.progress.toFixed(0)}%</strong></div>
       <div class="breakdown">
         <div><span>기본 주기</span><strong>10.00초</strong></div>
-        <div><span>IV ${stats[action.stat].iv}</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
+        <div><span>IV ${stats[action.stat].iv}</span><strong>×${(1 + stats[action.stat].iv / 100).toFixed(2)}</strong></div>
+        <div><span>세력 보너스</span><strong>+${(statFactionBonus(action.stat) * 100).toFixed(0)}%</strong></div>
+        <div><span>최종 속도</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
         <div><span>현재 획득 주기</span><strong>${trainingInterval(action.stat).toFixed(2)}초</strong></div>
         <div><span>반복</span><strong>무한 반복</strong></div>
       </div>
@@ -848,6 +953,7 @@ function actionPanel() {
         <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + stats[move.stat].iv / 100).toFixed(2)}</strong></div>
         <div><span>적합도</span><strong>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</strong></div>
         <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
+        <div><span>세력 보너스</span><strong>+${(statFactionBonus(move.stat) * 100).toFixed(0)}%</strong></div>
         <div><span>최종 수련 속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
         <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
       </div>
@@ -930,6 +1036,7 @@ function render() {
               ["training", "수련"],
               ["moves", "기술"],
               ["explore", "탐험"],
+              ["factions", "세력"],
               ["rebirth", "환생"]
             ].map(([key, label]) => `
               <button
