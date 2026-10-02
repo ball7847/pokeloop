@@ -80,6 +80,9 @@ const TICK_MS = 1000 / TICKS_PER_SECOND;
 const DT = 1 / TICKS_PER_SECOND;
 let ageTickProgress = 0;
 let combatTickProgress = 0;
+let renderAccumulator = 0;
+const RENDER_FPS = 10;
+const RENDER_INTERVAL = 1 / RENDER_FPS;
 
 const formatNumber = (n) => {
   if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
@@ -684,5 +687,9 @@ setInterval(() => {
     combatTickProgress = 0;
   }
 
-  render();
+  renderAccumulator += DT;
+  if (renderAccumulator >= RENDER_INTERVAL) {
+    renderAccumulator = 0;
+    render();
+  }
 }, TICK_MS);
