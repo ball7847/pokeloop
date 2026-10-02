@@ -28,3 +28,5 @@
 .faction-bonus strong{color:var(--jade2)}
 .faction-card small{color:#8a8378;font-size:9px}
 @media(max-width:1380px){.faction-grid{grid-template-columns:1fr}}
+.area-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.area-actions .ghost,.area-actions .action{min-width:88px}
