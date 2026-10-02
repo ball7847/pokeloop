@@ -19,9 +19,9 @@ let action = { kind: "idle" };
 let battle = null;
 
 let moves = [
-  { id: "quick",  name: "전광석화",   stars: 0, progress: 0, affinity: "매우 쉬움", power: 40,  soul: 0 },
-  { id: "tail",   name: "아이언테일", stars: 0, progress: 0, affinity: "쉬움",      power: 100, soul: 0 },
-  { id: "meteor", name: "용성군",     stars: 0, progress: 0, affinity: "극악",      power: 130, soul: 0 }
+  { id: "quick",  name: "전광석화",   stars: 0, progress: 0, affinity: "매우 쉬움", power: 40,  soul: 0, stat: "atk", category: "물리" },
+  { id: "tail",   name: "아이언테일", stars: 0, progress: 0, affinity: "쉬움",      power: 100, soul: 0, stat: "atk", category: "물리" },
+  { id: "meteor", name: "용성군",     stars: 0, progress: 0, affinity: "극악",      power: 130, soul: 0, stat: "spa", category: "특수" }
 ];
 
 const areas = [
@@ -88,6 +88,26 @@ const months = () => ageMonths % 12;
 const trainingSpeed = (key) => 1 + stats[key].iv / 100;
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
+const moveTrainingSpeed = (move) => (1 + stats[move.stat].iv / 100) * (1 + move.soul / 100);
+const movePowerMultiplier = (move) => 1 + move.stars * 0.12;
+const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(move));
+const learnedMoves = () => moves.filter((move) => move.stars > 0);
+
+function pickBattleMove() {
+  const learned = learnedMoves();
+  if (learned.length === 0) {
+    return {
+      id: "tackle",
+      name: "몸통박치기",
+      stars: 0,
+      power: 40,
+      stat: "atk",
+      category: "물리",
+      system: true
+    };
+  }
+  return learned[battle.turn % learned.length];
+}
 
 function addLog(message) {
   logs.unshift(years() + "세 " + months() + "개월 · " + message);
@@ -143,7 +163,9 @@ function startBattle(area) {
       currentHP: enemy.hp
     })),
     turn: 0,
-    result: null
+    result: null,
+    lastAction: "전투 준비",
+    totalDamage: 0
   };
   action = { kind: "combat" };
   tab = "combat";
@@ -161,15 +183,27 @@ function combatTick() {
 
   battle.turn += 1;
 
+  const usedMove = pickBattleMove();
+  const offensiveStat = finalStat(usedMove.stat);
+  const effectivePower = usedMove.system ? usedMove.power : moveCombatPower(usedMove);
   const playerDamage = Math.max(
     1,
-    Math.floor(finalStat("atk") * 0.72 - target.def * 0.3)
+    Math.floor(offensiveStat * (effectivePower / 100) - target.def * 0.3)
   );
 
   target.currentHP = Math.max(0, target.currentHP - playerDamage);
+  battle.totalDamage += playerDamage;
+  battle.lastAction =
+    usedMove.name +
+    (usedMove.system ? "" : " " + usedMove.stars + "성") +
+    " → " + target.name +
+    " · " + formatNumber(playerDamage) + " 피해";
 
   if (target.currentHP <= 0) {
-    addLog(target.name + "을(를) 쓰러뜨렸습니다. (" + formatNumber(playerDamage) + " 피해)");
+    addLog(
+      usedMove.name + "으로 " + target.name +
+      "을(를) 쓰러뜨렸습니다. (" + formatNumber(playerDamage) + " 피해)"
+    );
   }
 
   const survivors = battle.enemies.filter((enemy) => enemy.currentHP > 0);
@@ -282,7 +316,11 @@ function movesView() {
           </div>
           <div class="progress move"><i style="width:${move.progress}%"></i></div>
           <dl>
-            <div><dt>위력</dt><dd>${move.power}</dd></div>
+            <div><dt>분류</dt><dd>${move.category}</dd></div>
+            <div><dt>기본 위력</dt><dd>${move.power}</dd></div>
+            <div><dt>현재 실전 위력</dt><dd>${move.stars ? moveCombatPower(move) : "-"}</dd></div>
+            <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
+            <div><dt>수련 속도</dt><dd>×${moveTrainingSpeed(move).toFixed(2)}</dd></div>
             <div><dt>전생 숙련</dt><dd>+${move.soul.toFixed(1)}%</dd></div>
           </dl>
           <button class="action" onclick="trainMove('${move.id}')">${move.stars ? "수련" : "습득 수련"}</button>
@@ -341,7 +379,12 @@ function battleView() {
         <div class="hpbar"><i style="width:${hpRate}%"></i></div>
         <div class="battle-stats">
           <span>공격 ${formatNumber(finalStat("atk"))}</span>
+          <span>특공 ${formatNumber(finalStat("spa"))}</span>
           <span>방어 ${formatNumber(finalStat("def"))}</span>
+        </div>
+        <div class="used-moves">
+          <span>사용 가능 기술</span>
+          <strong>${learnedMoves().length ? learnedMoves().map((move) => move.name + " " + move.stars + "성").join(" · ") : "몸통박치기(기본기)"}</strong>
         </div>
       </section>
 
@@ -371,6 +414,14 @@ function battleView() {
       <div>
         <span class="muted">승리 보상</span>
         <strong>은전 ${battle.reward}</strong>
+      </div>
+      <div>
+        <span class="muted">누적 피해</span>
+        <strong>${formatNumber(battle.totalDamage)}</strong>
+      </div>
+      <div class="last-action">
+        <span class="muted">최근 행동</span>
+        <strong>${battle.lastAction}</strong>
       </div>
       ${battle.result ? `
         <div class="battle-result ${battle.result}">
@@ -436,7 +487,12 @@ function actionPanel() {
     return `
       <div class="progress move"><i style="width:${move.progress}%"></i></div>
       <div class="metric"><span>현재 숙련</span><strong>${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
-      <div class="breakdown"><div><span>전생 숙련</span><strong>+${move.soul.toFixed(1)}%</strong></div></div>
+      <div class="breakdown">
+        <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + stats[move.stat].iv / 100).toFixed(2)}</strong></div>
+        <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
+        <div><span>최종 수련 속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
+        <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
+      </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
   }
@@ -557,7 +613,7 @@ setInterval(() => {
     stats[action.stat].ev += trainingSpeed(action.stat);
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
-    move.progress += 4 + move.soul * 0.08;
+    move.progress += 4 * moveTrainingSpeed(move);
 
     if (move.progress >= 100) {
       move.progress -= 100;
