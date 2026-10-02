@@ -88,7 +88,17 @@ const months = () => ageMonths % 12;
 const trainingSpeed = (key) => 1 + stats[key].iv / 100;
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
-const moveTrainingSpeed = (move) => (1 + stats[move.stat].iv / 100) * (1 + move.soul / 100);
+const affinityMultiplier = (affinity) => ({
+  "매우 쉬움": 1.00,
+  "쉬움": 0.75,
+  "보통": 0.50,
+  "어려움": 0.32,
+  "극악": 0.18
+}[affinity] || 0.50);
+const moveTrainingSpeed = (move) =>
+  (1 + stats[move.stat].iv / 100) *
+  (1 + move.soul / 100) *
+  affinityMultiplier(move.affinity);
 const movePowerMultiplier = (move) => 1 + move.stars * 0.12;
 const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(move));
 const learnedMoves = () => moves.filter((move) => move.stars > 0);
@@ -106,7 +116,7 @@ function pickBattleMove() {
       system: true
     };
   }
-  return learned[battle.turn % learned.length];
+  return learned[(battle.turn - 1) % learned.length];
 }
 
 function addLog(message) {
@@ -320,6 +330,7 @@ function movesView() {
             <div><dt>기본 위력</dt><dd>${move.power}</dd></div>
             <div><dt>현재 실전 위력</dt><dd>${move.stars ? moveCombatPower(move) : "-"}</dd></div>
             <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
+            <div><dt>적합도 배율</dt><dd>×${affinityMultiplier(move.affinity).toFixed(2)}</dd></div>
             <div><dt>수련 속도</dt><dd>×${moveTrainingSpeed(move).toFixed(2)}</dd></div>
             <div><dt>전생 숙련</dt><dd>+${move.soul.toFixed(1)}%</dd></div>
           </dl>
@@ -489,6 +500,7 @@ function actionPanel() {
       <div class="metric"><span>현재 숙련</span><strong>${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
       <div class="breakdown">
         <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + stats[move.stat].iv / 100).toFixed(2)}</strong></div>
+        <div><span>적합도</span><strong>×${affinityMultiplier(move.affinity).toFixed(2)}</strong></div>
         <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
         <div><span>최종 수련 속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
         <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
@@ -613,12 +625,24 @@ setInterval(() => {
     stats[action.stat].ev += trainingSpeed(action.stat);
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
-    move.progress += 4 * moveTrainingSpeed(move);
+    if (move.stars >= 12) {
+      move.progress = 100;
+      action = { kind: "idle" };
+    } else {
+      move.progress += 4 * moveTrainingSpeed(move);
 
-    if (move.progress >= 100) {
-      move.progress -= 100;
-      move.stars = Math.min(12, move.stars + 1);
-      addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
+      if (move.progress >= 100) {
+        move.progress -= 100;
+        move.stars += 1;
+        addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
+
+        if (move.stars >= 12) {
+          move.stars = 12;
+          move.progress = 100;
+          action = { kind: "idle" };
+          addLog(move.name + "이(가) 12성 대성에 도달했습니다.");
+        }
+      }
     }
   } else if (action.kind === "explore") {
     action.progress += 10;
