@@ -217,7 +217,7 @@ export default function App() {
               const item = stats[key];
               const title = "BS " + item.bs + " + IV " + item.iv + " + EV " + Math.floor(item.ev);
               return (
-                <div className="stat-row" key={key} title={title}>
+                <div className={"stat-row stat-" + key} key={key} title={title}>
                   <span>{item.label}</span>
                   <strong>{fmt(finalStat(key))}</strong>
                 </div>
@@ -281,7 +281,7 @@ export default function App() {
                           <div><h3>{move.name}</h3><span className="affinity">{move.affinity}</span></div>
                           <strong>{move.stars === 0 ? "미습득" : move.stars + "성"}</strong>
                         </div>
-                        <div className="progress"><i style={{ width: move.progress + "%" }} /></div>
+                        <div className="progress progress-move"><i style={{ width: move.progress + "%" }} /></div>
                         <dl>
                           <div><dt>위력</dt><dd>{move.power}</dd></div>
                           <div><dt>전생 숙련</dt><dd>+{move.soul.toFixed(1)}%</dd></div>
@@ -348,7 +348,7 @@ export default function App() {
         <aside className="action-panel panel">
           <p className="eyebrow">현재 행동</p>
           <h2>{actionTitle()}</h2>
-          <div className="action-symbol">{action.kind === "idle" ? "靜" : "修"}</div>
+          <div className={"action-symbol action-" + action.kind}>{action.kind === "idle" ? "靜" : "修"}</div>
 
           {action.kind === "training" && (
             <>
@@ -365,7 +365,7 @@ export default function App() {
             if (!move) return null;
             return (
               <>
-                <div className="progress large"><i style={{ width: move.progress + "%" }} /></div>
+                <div className="progress large progress-move"><i style={{ width: move.progress + "%" }} /></div>
                 <div className="action-metric"><span>현재 숙련</span><strong>{move.stars}성 · {move.progress.toFixed(0)}%</strong></div>
                 <div className="breakdown">
                   <div><span>전생 숙련</span><strong>+{move.soul.toFixed(1)}%</strong></div>
@@ -377,7 +377,7 @@ export default function App() {
 
           {action.kind === "explore" && (
             <>
-              <div className="progress large"><i style={{ width: action.progress + "%" }} /></div>
+              <div className="progress large progress-explore"><i style={{ width: action.progress + "%" }} /></div>
               <div className="action-metric"><span>탐색 진행</span><strong>{action.progress}%</strong></div>
               <p className="muted">탐색 완료 시 은전과 사건 보상을 획득합니다.</p>
             </>
