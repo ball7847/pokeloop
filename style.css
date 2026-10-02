@@ -65,3 +65,9 @@
 .move-card-actions .equipped{border-color:var(--jade);color:var(--jade2);background:#edf5f1}
 .move-card-actions button:disabled{opacity:.35;cursor:not-allowed}
 @media(max-width:1380px){.move-slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.status-line{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;min-height:18px}
+.enemy-status{margin-top:6px}
+.status-badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:999px;font-size:9px;font-weight:700;border:1px solid var(--line)}
+.status-badge.burn{background:#fff0ec;border-color:#e0a59a;color:#a44d3f}
+.status-badge.paralysis{background:#fff9dd;border-color:#d8c878;color:#85711c}
+.status-badge.debuff{background:#f1edf8;border-color:#b9a9d2;color:#71589b}
