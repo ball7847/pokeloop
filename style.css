@@ -30,3 +30,21 @@
 @media(max-width:1380px){.faction-grid{grid-template-columns:1fr}}
 .area-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .area-actions .ghost,.area-actions .action{min-width:88px}
+.inventory-summary{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;margin-bottom:12px;border:1px solid var(--line);background:var(--soft);font-size:11px}
+.inventory-summary span{color:var(--muted)}
+.item-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.item-card{border:1px solid var(--line);background:#fbfaf6;padding:14px;opacity:.72}
+.item-card.owned{background:#fff;opacity:1}
+.item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.item-top h3{margin:3px 0 0;font-size:15px}
+.item-top>strong{font-size:15px;color:var(--jade2)}
+.item-kind{font-size:9px;color:var(--muted);letter-spacing:.04em}
+.item-card p{min-height:34px;color:var(--muted);font-size:11px;line-height:1.5}
+.item-card small{display:block;color:#7f776b;font-size:10px;line-height:1.45}
+.item-card button{width:100%;margin-top:6px}
+.item-card button:disabled{opacity:.35;cursor:not-allowed}
+.cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:1380px){
+  .item-grid{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+}
