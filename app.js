@@ -75,6 +75,11 @@ const areas = [
 ];
 
 let logs = ["0세 0개월 · 제1생이 시작되었습니다."];
+const TICKS_PER_SECOND = 20;
+const TICK_MS = 1000 / TICKS_PER_SECOND;
+const DT = 1 / TICKS_PER_SECOND;
+let ageTickProgress = 0;
+let combatTickProgress = 0;
 
 const formatNumber = (n) => {
   if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
@@ -612,7 +617,7 @@ function render() {
       <section class="log panel">
         <div class="loghead">
           <strong>생애 기록 · 로그</strong>
-          <span class="muted">1초 = 게임 내 1개월</span>
+          <span class="muted">20 tick/s · 1초 = 게임 내 1개월</span>
         </div>
         <div class="logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
       </section>
@@ -623,11 +628,19 @@ function render() {
 render();
 
 setInterval(() => {
-  if (action.kind !== "idle") ageMonths += 1;
+  if (action.kind !== "idle") {
+    ageTickProgress += DT;
+    while (ageTickProgress >= 1) {
+      ageTickProgress -= 1;
+      ageMonths += 1;
+    }
+  } else {
+    ageTickProgress = 0;
+  }
 
   if (action.kind === "training") {
     const key = action.stat;
-    action.progress += 100 / trainingInterval(key);
+    action.progress += (100 / trainingInterval(key)) * DT;
 
     while (action.progress >= 100) {
       action.progress -= 100;
@@ -639,9 +652,9 @@ setInterval(() => {
       move.progress = 100;
       action = { kind: "idle" };
     } else {
-      move.progress += 4 * moveTrainingSpeed(move);
+      move.progress += 4 * moveTrainingSpeed(move) * DT;
 
-      if (move.progress >= 100) {
+      while (move.progress >= 100 && move.stars < 12) {
         move.progress -= 100;
         move.stars += 1;
         addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
@@ -655,15 +668,21 @@ setInterval(() => {
       }
     }
   } else if (action.kind === "explore") {
-    action.progress += 10;
+    action.progress += 10 * DT;
 
     if (action.progress >= 100) {
       const area = areas.find((item) => item.id === action.id);
       startBattle(area);
     }
   } else if (action.kind === "combat") {
-    combatTick();
+    combatTickProgress += DT;
+    while (combatTickProgress >= 1 && action.kind === "combat") {
+      combatTickProgress -= 1;
+      combatTick();
+    }
+  } else {
+    combatTickProgress = 0;
   }
 
   render();
-}, 1000);
+}, TICK_MS);
