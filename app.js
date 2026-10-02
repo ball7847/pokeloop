@@ -992,6 +992,8 @@ function actionPanel() {
 
 function render() {
   const highestMastery = Math.max(...moves.map((move) => move.stars));
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
 
   document.getElementById("app").innerHTML = `
     <div class="shell">
@@ -1076,6 +1078,10 @@ function render() {
       </section>
     </div>
   `;
+
+  if (window.scrollX !== scrollX || window.scrollY !== scrollY) {
+    window.scrollTo(scrollX, scrollY);
+  }
 }
 
 loadGame();
