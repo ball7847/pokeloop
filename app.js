@@ -83,6 +83,20 @@ let combatTickProgress = 0;
 let renderAccumulator = 0;
 const RENDER_FPS = 10;
 const RENDER_INTERVAL = 1 / RENDER_FPS;
+let pointerActive = false;
+
+document.addEventListener("pointerdown", () => {
+  pointerActive = true;
+}, true);
+
+document.addEventListener("pointerup", () => {
+  pointerActive = false;
+  render();
+}, true);
+
+document.addEventListener("pointercancel", () => {
+  pointerActive = false;
+}, true);
 
 const formatNumber = (n) => {
   if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
@@ -690,6 +704,6 @@ setInterval(() => {
   renderAccumulator += DT;
   if (renderAccumulator >= RENDER_INTERVAL) {
     renderAccumulator = 0;
-    render();
+    if (!pointerActive) render();
   }
 }, TICK_MS);
