@@ -1398,7 +1398,7 @@ function actionPanel() {
         <div><span>실제 세션 소요</span><strong>${moveTrainingInterval(move).toFixed(2)}주</strong></div>
         <div><span>효율 배율</span><strong>×${moveTrainingTiming(move).efficiency.toFixed(2)}</strong></div>
         <div><span>세션 완료</span><strong>숙련 +${(25 * moveTrainingTiming(move).efficiency).toFixed(1)}%</strong></div>
-        <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
+        <div><span>현재 실전 위력</span><strong id="live-action-move-power">${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1537,7 +1537,7 @@ function refreshMoveMetaUI(move, loadoutChanged = false) {
     equipButton.textContent = moveLoadout.includes(move.id) ? "장착 해제" : "전투 장착";
   }
 
-  if (loadoutChanged) {
+  if (loadoutChanged || moveLoadout.includes(move.id)) {
     const count = document.getElementById("live-loadout-count");
     if (count) count.textContent = moveLoadout.length + " / " + MAX_MOVE_SLOTS;
 
@@ -1591,6 +1591,12 @@ function refreshLiveUI() {
   const totalEVEl = document.getElementById("live-total-ev");
   if (totalEVEl) totalEVEl.textContent = formatNumber(totalEV());
 
+  const masteredCount = document.getElementById("live-mastered-count");
+  if (masteredCount) masteredCount.textContent = moves.filter((move) => move.stars >= 12).length;
+
+  const highestMasteryEl = document.getElementById("live-highest-mastery");
+  if (highestMasteryEl) highestMasteryEl.textContent = Math.max(...moves.map((move) => move.stars)) + "성";
+
   moves.forEach((move) => {
     const progress = document.getElementById("live-move-progress-" + move.id);
     if (progress) progress.style.width = move.progress + "%";
@@ -1625,6 +1631,9 @@ function refreshLiveUI() {
       }
       const mastery = document.getElementById("live-move-mastery");
       if (mastery) mastery.textContent = move.stars + "성 · " + move.progress.toFixed(0) + "%";
+
+      const actionPower = document.getElementById("live-action-move-power");
+      if (actionPower) actionPower.textContent = move.stars ? moveCombatPower(move) : "미습득";
     }
   } else if (action.kind === "explore") {
     if (actionProgress) actionProgress.style.width = action.progress + "%";
@@ -1750,8 +1759,8 @@ function render() {
 
           <div class="summary">
             <div><span>총 EV</span><strong id="live-total-ev">${formatNumber(totalEV())}</strong></div>
-            <div><span>대성 기술</span><strong>${moves.filter((move) => move.stars >= 12).length}</strong></div>
-            <div><span>최고 숙련</span><strong>${highestMastery}성</strong></div>
+            <div><span>대성 기술</span><strong id="live-mastered-count">${moves.filter((move) => move.stars >= 12).length}</strong></div>
+            <div><span>최고 숙련</span><strong id="live-highest-mastery">${highestMastery}성</strong></div>
           </div>
         </aside>
 
