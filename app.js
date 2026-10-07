@@ -494,7 +494,7 @@ function toggleMoveEquip(id) {
   } else {
     if (moveLoadout.length >= MAX_MOVE_SLOTS) {
       addLog("전투 기술은 최대 " + MAX_MOVE_SLOTS + "개까지 장착할 수 있습니다.");
-      render();
+      refreshLiveUI();
       return;
     }
     moveLoadout.push(id);
@@ -1157,7 +1157,7 @@ function battleView() {
         <p class="eyebrow">실전</p>
         <h2>${battle.areaName}</h2>
       </div>
-      <p class="muted">${battle.result ? "전투 종료" : "자동전투 진행 중 · 1초마다 1턴"}</p>
+      <p class="muted" id="live-battle-state">${battle.result ? "전투 종료" : "자동전투 진행 중 · 1초마다 1턴"}</p>
     </div>
 
     <div class="battlefield">
@@ -1169,15 +1169,15 @@ function battleView() {
             <h3>${currentSpecies().name}</h3>
           </div>
         </div>
-        <div class="hp-label"><span>HP</span><strong>${Math.ceil(battle.playerHP)} / ${battle.playerMaxHP}</strong></div>
-        <div class="hpbar"><i style="width:${hpRate}%"></i></div>
+        <div class="hp-label"><span>HP</span><strong id="live-player-hp">${Math.ceil(battle.playerHP)} / ${battle.playerMaxHP}</strong></div>
+        <div class="hpbar"><i id="live-player-hpbar" style="width:${hpRate}%"></i></div>
         <div class="battle-stats">
           <span>공격 ${formatNumber(finalStat("atk"))}</span>
           <span>특공 ${formatNumber(finalStat("spa"))}</span>
           <span>방어 ${formatNumber(finalStat("def"))}</span>
-          <span>기력의조각 ${inventory.revive}</span>
+          <span id="live-revive-count">기력의조각 ${inventory.revive}</span>
         </div>
-        <div class="status-line">
+        <div class="status-line" id="live-player-status">
           ${battle.playerStatus.burn ? '<span class="status-badge burn">화상</span>' : ""}
           ${battle.playerStatus.paralysis ? '<span class="status-badge paralysis">마비</span>' : ""}
           ${battle.playerStatus.spaMod < 1 ? '<span class="status-badge debuff">특공↓</span>' : ""}
@@ -1194,18 +1194,18 @@ function battleView() {
         ${battle.enemies.map((enemy) => {
           const enemyRate = Math.max(0, enemy.currentHP / enemy.hp * 100);
           return `
-            <article class="enemy ${enemy.currentHP <= 0 ? "down" : ""}">
+            <article id="live-enemy-${enemy.id}" class="enemy ${enemy.currentHP <= 0 ? "down" : ""}">
               <div class="enemy-top">
                 <strong>${enemy.name} <small class="type-line">${enemy.types.join(" / ")}</small></strong>
-                <span>${enemy.currentHP <= 0 ? "격파" : Math.ceil(enemy.currentHP) + " / " + enemy.hp}</span>
+                <span id="live-enemy-hp-${enemy.id}">${enemy.currentHP <= 0 ? "격파" : Math.ceil(enemy.currentHP) + " / " + enemy.hp}</span>
               </div>
-              <div class="status-line enemy-status">
+              <div class="status-line enemy-status" id="live-enemy-status-${enemy.id}">
                 ${enemy.status.burn ? '<span class="status-badge burn">화상</span>' : ""}
                 ${enemy.status.paralysis ? '<span class="status-badge paralysis">마비</span>' : ""}
                 ${enemy.status.defMod < 1 ? '<span class="status-badge debuff">방어↓</span>' : ""}
                 ${enemy.status.spdMod < 1 ? '<span class="status-badge debuff">특방↓</span>' : ""}
               </div>
-              <div class="hpbar enemy-hp"><i style="width:${enemyRate}%"></i></div>
+              <div class="hpbar enemy-hp"><i id="live-enemy-hpbar-${enemy.id}" style="width:${enemyRate}%"></i></div>
             </article>
           `;
         }).join("")}
@@ -1217,7 +1217,7 @@ function battleView() {
         <strong>전투 로그</strong>
         <span>우선도 → 스피드 → 명중 → 피해 판정</span>
       </div>
-      <div class="combat-log-list">
+      <div class="combat-log-list" id="live-combat-log">
         ${battle.battleLog.map((line) => '<p>' + line + '</p>').join("")}
       </div>
     </section>
@@ -1225,7 +1225,7 @@ function battleView() {
     <div class="battle-footer">
       <div>
         <span class="muted">전투 턴</span>
-        <strong>${battle.turn}</strong>
+        <strong id="live-battle-turn">${battle.turn}</strong>
       </div>
       <div>
         <span class="muted">승리 보상</span>
@@ -1233,11 +1233,11 @@ function battleView() {
       </div>
       <div>
         <span class="muted">누적 피해</span>
-        <strong>${formatNumber(battle.totalDamage)}</strong>
+        <strong id="live-battle-damage">${formatNumber(battle.totalDamage)}</strong>
       </div>
       <div class="last-action">
         <span class="muted">최근 행동</span>
-        <strong>${battle.lastAction}</strong>
+        <strong id="live-battle-last-action">${battle.lastAction}</strong>
       </div>
       ${battle.result ? `
         <div class="battle-result ${battle.result}">
@@ -1413,8 +1413,8 @@ function actionPanel() {
   if (action.kind === "combat" && battle) {
     const alive = battle.enemies.filter((enemy) => enemy.currentHP > 0).length;
     return `
-      <div class="metric"><span>남은 적</span><strong>${alive} / ${battle.enemies.length}</strong></div>
-      <div class="metric"><span>전투 턴</span><strong>${battle.turn}</strong></div>
+      <div class="metric"><span>남은 적</span><strong id="live-combat-alive">${alive} / ${battle.enemies.length}</strong></div>
+      <div class="metric"><span>전투 턴</span><strong id="live-combat-side-turn">${battle.turn}</strong></div>
       <div class="metric"><span>탐험 방식</span><strong>${battle.repeat ? "반복" : "1회"}</strong></div>
       <p class="muted">전투 중에는 다른 행동으로 전환할 수 없습니다.</p>
       ${battle.repeat ? '<button class="ghost full" onclick="stopRepeat()">반복 중지</button>' : ""}
@@ -1579,15 +1579,67 @@ function refreshLiveUI() {
 }
 
 function refreshCombatUI() {
-  if (tab !== "combat" || !battle || pointerActive) return;
-  const content = document.querySelector(".main.panel .content");
-  if (content) content.innerHTML = battleView();
+  if (tab !== "combat" || !battle) return;
 
-  const actionPanelEl = document.getElementById("live-action-panel");
-  if (actionPanelEl) actionPanelEl.innerHTML = actionPanel();
+  const playerHP = document.getElementById("live-player-hp");
+  if (playerHP) playerHP.textContent = Math.ceil(battle.playerHP) + " / " + battle.playerMaxHP;
 
-  const actionTitle = document.getElementById("live-action-title");
-  if (actionTitle) actionTitle.textContent = currentActionTitle();
+  const playerHPBar = document.getElementById("live-player-hpbar");
+  if (playerHPBar) playerHPBar.style.width = Math.max(0, battle.playerHP / battle.playerMaxHP * 100) + "%";
+
+  const reviveCount = document.getElementById("live-revive-count");
+  if (reviveCount) reviveCount.textContent = "기력의조각 " + inventory.revive;
+
+  const playerStatus = document.getElementById("live-player-status");
+  if (playerStatus) {
+    playerStatus.innerHTML =
+      (battle.playerStatus.burn ? '<span class="status-badge burn">화상</span>' : "") +
+      (battle.playerStatus.paralysis ? '<span class="status-badge paralysis">마비</span>' : "") +
+      (battle.playerStatus.spaMod < 1 ? '<span class="status-badge debuff">특공↓</span>' : "");
+  }
+
+  battle.enemies.forEach((enemy) => {
+    const card = document.getElementById("live-enemy-" + enemy.id);
+    if (card) card.classList.toggle("down", enemy.currentHP <= 0);
+
+    const hp = document.getElementById("live-enemy-hp-" + enemy.id);
+    if (hp) hp.textContent = enemy.currentHP <= 0 ? "격파" : Math.ceil(enemy.currentHP) + " / " + enemy.hp;
+
+    const hpBar = document.getElementById("live-enemy-hpbar-" + enemy.id);
+    if (hpBar) hpBar.style.width = Math.max(0, enemy.currentHP / enemy.hp * 100) + "%";
+
+    const status = document.getElementById("live-enemy-status-" + enemy.id);
+    if (status) {
+      status.innerHTML =
+        (enemy.status.burn ? '<span class="status-badge burn">화상</span>' : "") +
+        (enemy.status.paralysis ? '<span class="status-badge paralysis">마비</span>' : "") +
+        (enemy.status.defMod < 1 ? '<span class="status-badge debuff">방어↓</span>' : "") +
+        (enemy.status.spdMod < 1 ? '<span class="status-badge debuff">특방↓</span>' : "");
+    }
+  });
+
+  const combatLog = document.getElementById("live-combat-log");
+  if (combatLog) combatLog.innerHTML = battle.battleLog.map((line) => "<p>" + line + "</p>").join("");
+
+  const turn = document.getElementById("live-battle-turn");
+  if (turn) turn.textContent = battle.turn;
+
+  const sideTurn = document.getElementById("live-combat-side-turn");
+  if (sideTurn) sideTurn.textContent = battle.turn;
+
+  const alive = document.getElementById("live-combat-alive");
+  if (alive) {
+    alive.textContent = battle.enemies.filter((enemy) => enemy.currentHP > 0).length + " / " + battle.enemies.length;
+  }
+
+  const damage = document.getElementById("live-battle-damage");
+  if (damage) damage.textContent = formatNumber(battle.totalDamage);
+
+  const lastAction = document.getElementById("live-battle-last-action");
+  if (lastAction) lastAction.textContent = battle.lastAction;
+
+  const state = document.getElementById("live-battle-state");
+  if (state) state.textContent = battle.result ? "전투 종료" : "자동전투 진행 중 · 1초마다 1턴";
 }
 
 function render() {
