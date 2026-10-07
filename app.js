@@ -95,6 +95,9 @@ const WEEKS_PER_MONTH = 4;
 const MONTHS_PER_YEAR = 12;
 const WEEKS_PER_YEAR = WEEKS_PER_MONTH * MONTHS_PER_YEAR;
 const REAL_SECONDS_PER_WEEK = 15;
+const TRAINING_WEEKS = 4;
+const MOVE_TRAINING_WEEKS = 4;
+const EXPLORE_TRAVEL_WEEKS = 2;
 const LIFESPAN_YEARS = 80;
 const LIFESPAN_WEEKS = LIFESPAN_YEARS * WEEKS_PER_YEAR;
 
@@ -345,6 +348,10 @@ function loadGame() {
 
     if (payload.action && typeof payload.action.kind === "string") {
       action = payload.action;
+      if (["training", "move", "explore"].includes(action.kind) && !Number.isFinite(action.weeks)) {
+        action.weeks = 0;
+        action.progress = 0;
+      }
     }
 
     if (payload.battle && typeof payload.battle === "object") {
@@ -434,7 +441,7 @@ const remainingLifeText = () => {
 };
 const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
 const trainingSpeed = (key) => (1 + stats[key].iv / 100) * (1 + statFactionBonus(key));
-const trainingInterval = (key) => 10 / trainingSpeed(key);
+const trainingInterval = () => TRAINING_WEEKS;
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
 const moveAffinity = (move) => currentSpecies().affinity[move.id] || move.affinity;
@@ -586,7 +593,7 @@ function setTab(nextTab) {
 
 function train(key) {
   if (action.kind === "combat") return;
-  action = { kind: "training", stat: key, progress: 0 };
+  action = { kind: "training", stat: key, weeks: 0, progress: 0 };
   addLog(stats[key].label + " 수련을 시작했습니다.");
   saveGame();
   render();
@@ -595,7 +602,7 @@ function train(key) {
 function trainMove(id) {
   if (action.kind === "combat") return;
   const move = moves.find((item) => item.id === id);
-  action = { kind: "move", id };
+  action = { kind: "move", id, weeks: 0 };
   addLog(move.name + " 수련을 시작했습니다.");
   saveGame();
   render();
@@ -604,7 +611,7 @@ function trainMove(id) {
 function explore(id, repeat = false) {
   if (action.kind === "combat") return;
   const area = areas.find((item) => item.id === id);
-  action = { kind: "explore", id, progress: 0, repeat };
+  action = { kind: "explore", id, weeks: 0, progress: 0, repeat };
   addLog(area.name + (repeat ? " 반복 탐험을 시작했습니다." : " 탐색을 시작했습니다."));
   saveGame();
   render();
@@ -1011,7 +1018,7 @@ function trainingView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">육체 수련</p><h2>노력치 수련</h2></div>
-      <p class="muted">EV에는 상한이 없습니다. 일정 시간이 지나면 EV +1을 획득하고 같은 수련을 자동 반복합니다.</p>
+      <p class="muted">EV에는 상한이 없습니다. 수련 1회는 4주이며, IV와 세력 보너스는 4주 수련의 EV 획득량을 높입니다.</p>
     </div>
     <div class="table">
       <div class="tr th"><span>능력</span><span>EV</span><span>IV</span><span>획득 주기</span><span></span></div>
@@ -1020,7 +1027,7 @@ function trainingView() {
           <strong>${stats[key].label}</strong>
           <span>${formatNumber(stats[key].ev)}</span>
           <span>${stats[key].iv}</span>
-          <span>${trainingInterval(key).toFixed(2)}초마다 +1</span>
+          <span>4주마다 +${trainingSpeed(key).toFixed(2)} EV</span>
           <button class="action" onclick="train('${key}')">수련</button>
         </div>
       `).join("")}
@@ -1100,7 +1107,7 @@ function exploreView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">중원</p><h2>탐험</h2></div>
-      <p class="muted">1회 탐험은 전투 1회 후 종료됩니다. 반복 탐험은 탐색 → 전투 → 승리 → 재탐색을 자동 반복합니다.</p>
+      <p class="muted">각 지역으로 이동하는 데 2주가 걸립니다. 1회 탐험은 전투 1회 후 종료되고, 반복 탐험은 이동 → 전투 → 승리 → 재이동을 반복합니다.</p>
     </div>
     <div class="areas">
       ${areas.map((area) => `
@@ -1109,7 +1116,7 @@ function exploreView() {
             <span class="danger-tag">${area.danger}</span>
             <h3>${area.name}</h3>
             <p>${area.desc}</p>
-            <small>${FACTIONS[area.faction].name} 영향권 · 적 최대 ${area.enemies.length}마리 · 승리 보상 은전 ${area.reward} · 평판 +5</small>
+            <small>${FACTIONS[area.faction].name} 영향권 · 이동 2주 · 적 최대 ${area.enemies.length}마리 · 승리 보상 은전 ${area.reward} · 평판 +5</small>
           </div>
           <div class="area-actions">
             <button class="ghost" onclick="explore('${area.id}', false)">1회 탐험</button>
@@ -1341,14 +1348,13 @@ function actionPanel() {
   if (action.kind === "training") {
     return `
       <div class="progress"><i style="width:${action.progress}%"></i></div>
-      <div class="metric"><span>다음 EV +1</span><strong>${action.progress.toFixed(0)}%</strong></div>
+      <div class="metric"><span>수련 진행</span><strong>${action.weeks || 0} / ${TRAINING_WEEKS}주</strong></div>
       <div class="breakdown">
-        <div><span>기본 주기</span><strong>10.00초</strong></div>
+        <div><span>수련 1회</span><strong>${TRAINING_WEEKS}주</strong></div>
         <div><span>IV ${stats[action.stat].iv}</span><strong>×${(1 + stats[action.stat].iv / 100).toFixed(2)}</strong></div>
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(action.stat) * 100).toFixed(0)}%</strong></div>
-        <div><span>최종 속도</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
-        <div><span>현재 획득 주기</span><strong>${trainingInterval(action.stat).toFixed(2)}초</strong></div>
-        <div><span>반복</span><strong>무한 반복</strong></div>
+        <div><span>1회 EV 획득</span><strong>+${trainingSpeed(action.stat).toFixed(2)}</strong></div>
+        <div><span>반복</span><strong>4주 단위 자동 반복</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1359,12 +1365,13 @@ function actionPanel() {
     return `
       <div class="progress move"><i style="width:${move.progress}%"></i></div>
       <div class="metric"><span>현재 숙련</span><strong>${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
+      <div class="metric"><span>수련 세션</span><strong>${action.weeks || 0} / ${MOVE_TRAINING_WEEKS}주</strong></div>
       <div class="breakdown">
         <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + stats[move.stat].iv / 100).toFixed(2)}</strong></div>
         <div><span>적합도</span><strong>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</strong></div>
         <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(move.stat) * 100).toFixed(0)}%</strong></div>
-        <div><span>최종 수련 속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
+        <div><span>4주 수련 진척</span><strong>+${(25 * moveTrainingSpeed(move)).toFixed(1)}%</strong></div>
         <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
@@ -1374,8 +1381,8 @@ function actionPanel() {
   if (action.kind === "explore") {
     return `
       <div class="progress explore"><i style="width:${action.progress}%"></i></div>
-      <div class="metric"><span>탐색 진행</span><strong>${action.progress}%</strong></div>
-      <p class="muted">탐색이 끝나면 지역의 적과 자동전투가 시작됩니다.</p>
+      <div class="metric"><span>이동 진행</span><strong>${action.weeks || 0} / ${EXPLORE_TRAVEL_WEEKS}주</strong></div>
+      <p class="muted">목적지까지 2주 이동한 뒤 자동전투가 시작됩니다.</p>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
   }
@@ -1400,6 +1407,66 @@ function actionPanel() {
   }
 
   return '<p class="muted">수련, 기술, 탐험 중 하나를 선택하세요.</p>';
+}
+
+function processActionWeek() {
+  if (action.kind === "training") {
+    action.weeks = (action.weeks || 0) + 1;
+    action.progress = Math.min(100, action.weeks / TRAINING_WEEKS * 100);
+
+    if (action.weeks >= TRAINING_WEEKS) {
+      const key = action.stat;
+      const gain = trainingSpeed(key);
+      stats[key].ev += gain;
+      addLog(stats[key].label + " 4주 수련 완료 · EV +" + gain.toFixed(2));
+      action.weeks = 0;
+      action.progress = 0;
+    }
+  } else if (action.kind === "move") {
+    const move = moves.find((item) => item.id === action.id);
+    if (!move) return;
+
+    action.weeks = (action.weeks || 0) + 1;
+    if (action.weeks >= MOVE_TRAINING_WEEKS) {
+      action.weeks = 0;
+
+      if (move.stars >= 12) {
+        move.progress = 100;
+        action = { kind: "idle" };
+        return;
+      }
+
+      move.progress += 25 * moveTrainingSpeed(move);
+
+      while (move.progress >= 100 && move.stars < 12) {
+        move.progress -= 100;
+        move.stars += 1;
+
+        if (move.stars === 1 && moveLoadout.length < MAX_MOVE_SLOTS && !moveLoadout.includes(move.id)) {
+          moveLoadout.push(move.id);
+          addLog(move.name + "을(를) 습득해 전투 기술에 자동 장착했습니다.");
+        }
+
+        addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
+
+        if (move.stars >= 12) {
+          move.stars = 12;
+          move.progress = 100;
+          action = { kind: "idle" };
+          addLog(move.name + "이(가) 12성 대성에 도달했습니다.");
+        }
+      }
+    }
+  } else if (action.kind === "explore") {
+    action.weeks = (action.weeks || 0) + 1;
+    action.progress = Math.min(100, action.weeks / EXPLORE_TRAVEL_WEEKS * 100);
+
+    if (action.weeks >= EXPLORE_TRAVEL_WEEKS) {
+      const area = areas.find((item) => item.id === action.id);
+      addLog(area.name + "에 도착했습니다. 이동에 " + EXPLORE_TRAVEL_WEEKS + "주가 소요되었습니다.");
+      startBattle(area);
+    }
+  }
 }
 
 function render() {
@@ -1485,7 +1552,7 @@ function render() {
       <section class="log panel">
         <div class="loghead">
           <strong>생애 기록 · 로그</strong>
-          <span class="muted">20 tick/s · 실제 15초 = 게임 내 1주 · 4주 = 1개월 · 12개월 = 1년</span>
+          <span class="muted">실제 15초 = 게임 1주 · 모든 비전투 행동은 주 단위 · 4주 = 1개월 · 12개월 = 1년</span>
         </div>
         <div class="logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
       </section>
@@ -1512,6 +1579,7 @@ setInterval(() => {
     while (ageTickProgress >= REAL_SECONDS_PER_WEEK) {
       ageTickProgress -= REAL_SECONDS_PER_WEEK;
       ageWeeks += 1;
+      processActionWeek();
     }
   } else {
     ageTickProgress = 0;
@@ -1522,47 +1590,7 @@ setInterval(() => {
     return;
   }
 
-  if (action.kind === "training") {
-    const key = action.stat;
-    action.progress += (100 / trainingInterval(key)) * DT;
-
-    while (action.progress >= 100) {
-      action.progress -= 100;
-      stats[key].ev += 1;
-    }
-  } else if (action.kind === "move") {
-    const move = moves.find((item) => item.id === action.id);
-    if (move.stars >= 12) {
-      move.progress = 100;
-      action = { kind: "idle" };
-    } else {
-      move.progress += 4 * moveTrainingSpeed(move) * DT;
-
-      while (move.progress >= 100 && move.stars < 12) {
-        move.progress -= 100;
-        move.stars += 1;
-        if (move.stars === 1 && moveLoadout.length < MAX_MOVE_SLOTS && !moveLoadout.includes(move.id)) {
-          moveLoadout.push(move.id);
-          addLog(move.name + "을(를) 습득해 전투 기술에 자동 장착했습니다.");
-        }
-        addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
-
-        if (move.stars >= 12) {
-          move.stars = 12;
-          move.progress = 100;
-          action = { kind: "idle" };
-          addLog(move.name + "이(가) 12성 대성에 도달했습니다.");
-        }
-      }
-    }
-  } else if (action.kind === "explore") {
-    action.progress += 10 * DT;
-
-    if (action.progress >= 100) {
-      const area = areas.find((item) => item.id === action.id);
-      startBattle(area);
-    }
-  } else if (action.kind === "combat") {
+  if (action.kind === "combat") {
     combatTickProgress += DT;
     while (combatTickProgress >= 1 && action.kind === "combat") {
       combatTickProgress -= 1;
@@ -1574,7 +1602,7 @@ setInterval(() => {
       const area = areas.find((item) => item.id === action.areaId);
       battle = null;
       tab = "explore";
-      action = { kind: "explore", id: area.id, progress: 0, repeat: true };
+      action = { kind: "explore", id: area.id, weeks: 0, progress: 0, repeat: true };
       addLog(area.name + " 재탐색을 시작했습니다.");
       saveGame();
     }
