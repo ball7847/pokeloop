@@ -604,6 +604,7 @@ function rollBattleDrop() {
 
 function setTab(nextTab) {
   if (action.kind === "combat") return;
+  if (tab === nextTab) return;
   tab = nextTab;
   saveGame();
   render();
@@ -1474,15 +1475,17 @@ function processActionTime(deltaWeeks) {
         }
 
         addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
-        render();
 
         if (move.stars >= 12) {
           move.stars = 12;
           move.progress = 100;
           action = { kind: "idle" };
           addLog(move.name + "이(가) 12성 대성에 도달했습니다.");
+          render();
           return;
         }
+
+        render();
       }
     }
   } else if (action.kind === "explore") {
