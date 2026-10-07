@@ -435,7 +435,7 @@ const remainingLifeText = () => {
   const remain = remainingLifeWeeks();
   const y = Math.floor(remain / WEEKS_PER_YEAR);
   const m = Math.floor((remain % WEEKS_PER_YEAR) / WEEKS_PER_MONTH);
-  const w = remain % WEEKS_PER_MONTH;
+  const w = Math.floor(remain % WEEKS_PER_MONTH);
   return y + "년 " + m + "개월 " + w + "주";
 };
 const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
