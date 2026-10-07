@@ -440,8 +440,18 @@ const remainingLifeText = () => {
 };
 const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
 const trainingSpeed = (key) => (1 + stats[key].iv / 100) * (1 + statFactionBonus(key));
-const trainingInterval = (key) => TRAINING_WEEKS / trainingSpeed(key);
-const moveTrainingInterval = (move) => MOVE_TRAINING_WEEKS / moveTrainingSpeed(move);
+const roundWeeks = (value) => Math.round(value * 100) / 100;
+const actionTiming = (baseWeeks, speed) => {
+  const rawWeeks = baseWeeks / Math.max(0.0001, speed);
+  if (rawWeeks >= 1) {
+    return { weeks: Math.max(1, roundWeeks(rawWeeks)), efficiency: 1 };
+  }
+  return { weeks: 1, efficiency: speed / baseWeeks };
+};
+const trainingTiming = (key) => actionTiming(TRAINING_WEEKS, trainingSpeed(key));
+const moveTrainingTiming = (move) => actionTiming(MOVE_TRAINING_WEEKS, moveTrainingSpeed(move));
+const trainingInterval = (key) => trainingTiming(key).weeks;
+const moveTrainingInterval = (move) => moveTrainingTiming(move).weeks;
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
 const moveAffinity = (move) => currentSpecies().affinity[move.id] || move.affinity;
@@ -1026,7 +1036,7 @@ function trainingView() {
           <strong>${stats[key].label}</strong>
           <span>${formatNumber(stats[key].ev)}</span>
           <span>${stats[key].iv}</span>
-          <span>${trainingInterval(key).toFixed(2)}주마다 EV +1</span>
+          <span>${trainingInterval(key).toFixed(2)}주마다 EV +${trainingTiming(key).efficiency.toFixed(2)}</span>
           <button class="action" onclick="train('${key}')">수련</button>
         </div>
       `).join("")}
@@ -1354,7 +1364,8 @@ function actionPanel() {
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(action.stat) * 100).toFixed(0)}%</strong></div>
         <div><span>최종 수련속도</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
         <div><span>실제 소요</span><strong>${trainingInterval(action.stat).toFixed(2)}주</strong></div>
-        <div><span>완료 보상</span><strong>EV +1</strong></div>
+        <div><span>효율 배율</span><strong>×${trainingTiming(action.stat).efficiency.toFixed(2)}</strong></div>
+        <div><span>완료 보상</span><strong>EV +${trainingTiming(action.stat).efficiency.toFixed(2)}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1373,7 +1384,8 @@ function actionPanel() {
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(move.stat) * 100).toFixed(0)}%</strong></div>
         <div><span>최종 습득속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
         <div><span>실제 세션 소요</span><strong>${moveTrainingInterval(move).toFixed(2)}주</strong></div>
-        <div><span>세션 완료</span><strong>숙련 +25%</strong></div>
+        <div><span>효율 배율</span><strong>×${moveTrainingTiming(move).efficiency.toFixed(2)}</strong></div>
+        <div><span>세션 완료</span><strong>숙련 +${(25 * moveTrainingTiming(move).efficiency).toFixed(1)}%</strong></div>
         <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
@@ -1420,8 +1432,9 @@ function processActionTime(deltaWeeks) {
 
     while (action.kind === "training" && action.weeks >= duration) {
       action.weeks -= duration;
-      stats[key].ev += 1;
-      addLog(stats[key].label + " 수련 완료 · " + duration.toFixed(2) + "주 소요 · EV +1");
+      const efficiency = trainingTiming(key).efficiency;
+      stats[key].ev += efficiency;
+      addLog(stats[key].label + " 수련 완료 · " + duration.toFixed(2) + "주 소요 · EV +" + efficiency.toFixed(2));
       action.progress = Math.min(100, action.weeks / duration * 100);
     }
   } else if (action.kind === "move") {
@@ -1440,7 +1453,7 @@ function processActionTime(deltaWeeks) {
         return;
       }
 
-      move.progress += 25;
+      move.progress += 25 * moveTrainingTiming(move).efficiency;
 
       while (move.progress >= 100 && move.stars < 12) {
         move.progress -= 100;
@@ -1557,7 +1570,7 @@ function render() {
       <section class="log panel">
         <div class="loghead">
           <strong>생애 기록 · 로그</strong>
-          <span class="muted">실제 22.5초 = 게임 1주 · 4주 = 90초 = 1개월 · 12개월 = 1년 · 80년 = 24시간</span>
+          <span class="muted">실제 22.5초 = 게임 1주 · 행동시간 최소 1주 · 1주 미만 속도는 효율로 전환 · 80년 = 24시간</span>
         </div>
         <div class="logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
       </section>
