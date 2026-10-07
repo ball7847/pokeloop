@@ -688,6 +688,7 @@ function startBattle(area) {
   tab = "combat";
   addLog(area.name + "에서 적 무리와 조우했습니다.");
   saveGame();
+  render();
 }
 
 function pushBattleLog(message) {
@@ -1041,7 +1042,7 @@ function trainingView() {
       ${statKeys.map((key) => `
         <div class="tr ${action.kind === "training" && action.stat === key ? "selected" : ""}">
           <strong>${stats[key].label}</strong>
-          <span>${formatNumber(effectiveEV(key))}</span>
+          <span id="live-training-ev-${key}">${formatNumber(effectiveEV(key))}</span>
           <span>${stats[key].iv}</span>
           <span>${trainingInterval(key).toFixed(2)}주마다 EV +${trainingTiming(key).efficiency.toFixed(2)}</span>
           <button class="action" onclick="train('${key}')">수련</button>
@@ -1258,7 +1259,7 @@ function rebirthView() {
         <div><span>현재 종족</span><strong>${currentSpecies().name}</strong></div>
         <div><span>현재 나이</span><strong>${ageText()}</strong></div>
         <div><span>남은 수명</span><strong>${remainingLifeText()}</strong></div>
-        <div><span>총 EV</span><strong>${formatNumber(totalEV())}</strong></div>
+        <div><span>총 EV</span><strong id="live-total-ev">${formatNumber(totalEV())}</strong></div>
         <div><span>최고 기술</span><strong>${Math.max(...moves.map((move) => move.stars))}성</strong></div>
       </div>
 
@@ -1494,6 +1495,64 @@ function processActionTime(deltaWeeks) {
   }
 }
 
+function refreshLiveUI() {
+  const topAge = document.getElementById("live-top-age");
+  if (!topAge) return;
+
+  topAge.textContent = ageText();
+
+  const topMoney = document.getElementById("live-top-money");
+  if (topMoney) topMoney.textContent = "은전 " + formatNumber(money);
+
+  const ageMain = document.getElementById("live-age-main");
+  if (ageMain) ageMain.innerHTML = ageText() + " <em>/ " + LIFESPAN_YEARS + "년</em>";
+
+  const lifeBar = document.getElementById("live-life-bar");
+  if (lifeBar) lifeBar.style.width = lifespanProgress() + "%";
+
+  const remaining = document.getElementById("live-life-remaining");
+  if (remaining) {
+    remaining.textContent = "남은 수명 " + remainingLifeText() + " · 수련·기술 수련·탐험 중에만 나이가 흐릅니다. 전투 중에는 멈춥니다.";
+  }
+
+  statKeys.forEach((key) => {
+    const value = document.getElementById("live-stat-" + key);
+    if (value) value.textContent = formatNumber(finalStat(key));
+
+    const trainingEV = document.getElementById("live-training-ev-" + key);
+    if (trainingEV) trainingEV.textContent = formatNumber(effectiveEV(key));
+  });
+
+  const totalEVEl = document.getElementById("live-total-ev");
+  if (totalEVEl) totalEVEl.textContent = formatNumber(totalEV());
+
+  const actionTitle = document.getElementById("live-action-title");
+  if (actionTitle) actionTitle.textContent = currentActionTitle();
+
+  const actionSymbol = document.getElementById("live-action-symbol");
+  if (actionSymbol) {
+    actionSymbol.textContent = action.kind === "combat" ? "戰" : action.kind === "idle" ? "靜" : "修";
+    actionSymbol.classList.toggle("combat-symbol", action.kind === "combat");
+  }
+
+  const actionPanelEl = document.getElementById("live-action-panel");
+  if (actionPanelEl && !pointerActive) {
+    actionPanelEl.innerHTML = actionPanel();
+  }
+}
+
+function refreshCombatUI() {
+  if (tab !== "combat" || !battle || pointerActive) return;
+  const content = document.querySelector(".main.panel .content");
+  if (content) content.innerHTML = battleView();
+
+  const actionPanelEl = document.getElementById("live-action-panel");
+  if (actionPanelEl) actionPanelEl.innerHTML = actionPanel();
+
+  const actionTitle = document.getElementById("live-action-title");
+  if (actionTitle) actionTitle.textContent = currentActionTitle();
+}
+
 function render() {
   const highestMastery = Math.max(...moves.map((move) => move.stars));
   const scrollX = window.scrollX;
@@ -1505,8 +1564,8 @@ function render() {
         <div class="brand"><strong>PokeLoop</strong><span class="badge">PROTOTYPE</span></div>
         <div class="topstats">
           <span>제${life}생</span>
-          <span>${ageText()}</span>
-          <span>은전 ${formatNumber(money)}</span>
+          <span id="live-top-age">${ageText()}</span>
+          <span id="live-top-money">은전 ${formatNumber(money)}</span>
           <span>${battle && tab === "combat" ? battle.areaName : "낙양"}</span>
         </div>
         <span class="save-status">자동저장</span>
@@ -1525,15 +1584,15 @@ function render() {
 
           <div class="agecard ${remainingLifeWeeks() <= 10 * WEEKS_PER_YEAR ? "late-life" : ""}">
             <span>나이 / 수명</span>
-            <strong>${ageText()} <em>/ ${LIFESPAN_YEARS}년</em></strong>
-            <div class="lifespan-bar"><i style="width:${lifespanProgress()}%"></i></div>
-            <small>남은 수명 ${remainingLifeText()} · 수련·기술 수련·탐험 중에만 나이가 흐릅니다. 전투 중에는 멈춥니다.</small>
+            <strong id="live-age-main">${ageText()} <em>/ ${LIFESPAN_YEARS}년</em></strong>
+            <div class="lifespan-bar"><i id="live-life-bar" style="width:${lifespanProgress()}%"></i></div>
+            <small id="live-life-remaining">남은 수명 ${remainingLifeText()} · 수련·기술 수련·탐험 중에만 나이가 흐릅니다. 전투 중에는 멈춥니다.</small>
           </div>
 
           ${statKeys.map((key) => `
             <div class="statrow" style="--c:${stats[key].color}" title="BS ${stats[key].bs} + IV ${stats[key].iv} + EV ${effectiveEV(key)}">
               <span>${stats[key].label}</span>
-              <strong>${formatNumber(finalStat(key))}</strong>
+              <strong id="live-stat-${key}">${formatNumber(finalStat(key))}</strong>
             </div>
           `).join("")}
 
@@ -1568,9 +1627,9 @@ function render() {
 
         <aside class="side panel">
           <p class="eyebrow">현재 행동</p>
-          <h2 class="actiontitle">${currentActionTitle()}</h2>
-          <div class="symbol ${action.kind === "combat" ? "combat-symbol" : ""}">${action.kind === "combat" ? "戰" : action.kind === "idle" ? "靜" : "修"}</div>
-          ${actionPanel()}
+          <h2 class="actiontitle" id="live-action-title">${currentActionTitle()}</h2>
+          <div id="live-action-symbol" class="symbol ${action.kind === "combat" ? "combat-symbol" : ""}">${action.kind === "combat" ? "戰" : action.kind === "idle" ? "靜" : "修"}</div>
+          <div id="live-action-panel">${actionPanel()}</div>
         </aside>
       </main>
 
@@ -1615,6 +1674,7 @@ setInterval(() => {
     while (combatTickProgress >= 1 && action.kind === "combat") {
       combatTickProgress -= 1;
       combatTick();
+      if (action.kind === "combat") refreshCombatUI();
     }
   } else if (action.kind === "repeatWait") {
     combatTickProgress = 0;
@@ -1625,6 +1685,7 @@ setInterval(() => {
       action = { kind: "explore", id: area.id, weeks: 0, progress: 0, repeat: true };
       addLog(area.name + " 재탐색을 시작했습니다.");
       saveGame();
+      render();
     }
   } else {
     combatTickProgress = 0;
@@ -1637,6 +1698,6 @@ setInterval(() => {
   renderAccumulator += DT;
   if (renderAccumulator >= RENDER_INTERVAL) {
     renderAccumulator = 0;
-    if (!pointerActive) render();
+    refreshLiveUI();
   }
 }, TICK_MS);
