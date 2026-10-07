@@ -1583,9 +1583,7 @@ setInterval(() => {
     const deltaWeeks = DT / REAL_SECONDS_PER_WEEK;
     ageWeeks += deltaWeeks;
     processActionTime(deltaWeeks);
-  } else {
-    ageTickProgress = 0;
-  }
+  } 
 
   if (ageWeeks >= LIFESPAN_WEEKS) {
     rebirth("lifespan");
