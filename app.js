@@ -502,7 +502,8 @@ function toggleMoveEquip(id) {
   }
 
   saveGame();
-  render();
+  refreshMoveMetaUI(move, true);
+  refreshLiveUI();
 }
 const TYPE_CHART = {
   "노말":   { "바위": 0.5, "강철": 0.5, "고스트": 0 },
@@ -1076,9 +1077,9 @@ function movesView() {
           <strong>전투 기술</strong>
           <span>최대 ${MAX_MOVE_SLOTS}개 · 자동전투에서 왼쪽부터 순환 사용</span>
         </div>
-        <b>${moveLoadout.length} / ${MAX_MOVE_SLOTS}</b>
+        <b id="live-loadout-count">${moveLoadout.length} / ${MAX_MOVE_SLOTS}</b>
       </div>
-      <div class="move-slots">
+      <div class="move-slots" id="live-move-slots">
         ${Array.from({ length: MAX_MOVE_SLOTS }, (_, index) => {
           const move = moves.find((item) => item.id === moveLoadout[index]);
           return move
@@ -1102,15 +1103,16 @@ function movesView() {
             <div><dt>명중</dt><dd>${move.accuracy}</dd></div>
             <div><dt>우선도</dt><dd>${move.priority > 0 ? "+" + move.priority : move.priority}</dd></div>
             <div><dt>부가 효과</dt><dd>${moveEffectText(move)}</dd></div>
-            <div><dt>현재 실전 위력</dt><dd>${move.stars ? moveCombatPower(move) : "-"}</dd></div>
+            <div><dt>현재 실전 위력</dt><dd id="live-move-power-${move.id}">${move.stars ? moveCombatPower(move) : "-"}</dd></div>
             <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
             <div><dt>적합도 배율</dt><dd>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</dd></div>
             <div><dt>수련 속도</dt><dd>×${moveTrainingSpeed(move).toFixed(2)}</dd></div>
             <div><dt>전생 숙련</dt><dd>+${move.soul.toFixed(1)}%</dd></div>
           </dl>
           <div class="move-card-actions">
-            <button class="action" onclick="trainMove('${move.id}')">${move.stars ? "수련" : "습득 수련"}</button>
+            <button id="live-move-train-${move.id}" class="action" onclick="trainMove('${move.id}')">${move.stars ? "수련" : "습득 수련"}</button>
             <button
+              id="live-move-equip-${move.id}"
               class="ghost ${moveLoadout.includes(move.id) ? "equipped" : ""}"
               ${move.stars <= 0 ? "disabled" : ""}
               onclick="toggleMoveEquip('${move.id}')"
@@ -1460,6 +1462,8 @@ function processActionTime(deltaWeeks) {
       if (move.stars >= 12) {
         move.progress = 100;
         action = { kind: "idle" };
+        refreshMoveMetaUI(move);
+        refreshActionPanelStructure();
         return;
       }
 
@@ -1469,23 +1473,25 @@ function processActionTime(deltaWeeks) {
         move.progress -= 100;
         move.stars += 1;
 
+        let loadoutChanged = false;
         if (move.stars === 1 && moveLoadout.length < MAX_MOVE_SLOTS && !moveLoadout.includes(move.id)) {
           moveLoadout.push(move.id);
+          loadoutChanged = true;
           addLog(move.name + "을(를) 습득해 전투 기술에 자동 장착했습니다.");
         }
 
         addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
+        refreshMoveMetaUI(move, loadoutChanged);
 
         if (move.stars >= 12) {
           move.stars = 12;
           move.progress = 100;
           action = { kind: "idle" };
           addLog(move.name + "이(가) 12성 대성에 도달했습니다.");
-          render();
+          refreshMoveMetaUI(move, loadoutChanged);
+          refreshActionPanelStructure();
           return;
         }
-
-        render();
       }
     }
   } else if (action.kind === "explore") {
@@ -1497,6 +1503,60 @@ function processActionTime(deltaWeeks) {
       addLog(area.name + "에 도착했습니다. 이동에 " + EXPLORE_TRAVEL_WEEKS.toFixed(2) + "주가 소요되었습니다.");
       startBattle(area);
     }
+  }
+}
+
+function moveSlotsHTML() {
+  return Array.from({ length: MAX_MOVE_SLOTS }, (_, index) => {
+    const move = moves.find((item) => item.id === moveLoadout[index]);
+    return move
+      ? '<div class="move-slot filled"><span>' + (index + 1) + '</span><strong>' + move.name + '</strong><small>' + move.stars + '성 · ' + move.type + '</small></div>'
+      : '<div class="move-slot"><span>' + (index + 1) + '</span><strong>비어 있음</strong><small>습득한 기술을 장착하세요</small></div>';
+  }).join("");
+}
+
+function refreshMoveMetaUI(move, loadoutChanged = false) {
+  if (!move) return;
+
+  const stars = document.getElementById("live-move-stars-" + move.id);
+  if (stars) stars.textContent = move.stars ? move.stars + "성" : "미습득";
+
+  const progress = document.getElementById("live-move-progress-" + move.id);
+  if (progress) progress.style.width = move.progress + "%";
+
+  const power = document.getElementById("live-move-power-" + move.id);
+  if (power) power.textContent = move.stars ? moveCombatPower(move) : "-";
+
+  const trainButton = document.getElementById("live-move-train-" + move.id);
+  if (trainButton) trainButton.textContent = move.stars ? "수련" : "습득 수련";
+
+  const equipButton = document.getElementById("live-move-equip-" + move.id);
+  if (equipButton) {
+    equipButton.disabled = move.stars <= 0;
+    equipButton.classList.toggle("equipped", moveLoadout.includes(move.id));
+    equipButton.textContent = moveLoadout.includes(move.id) ? "장착 해제" : "전투 장착";
+  }
+
+  if (loadoutChanged) {
+    const count = document.getElementById("live-loadout-count");
+    if (count) count.textContent = moveLoadout.length + " / " + MAX_MOVE_SLOTS;
+
+    const slots = document.getElementById("live-move-slots");
+    if (slots) slots.innerHTML = moveSlotsHTML();
+  }
+}
+
+function refreshActionPanelStructure() {
+  const panel = document.getElementById("live-action-panel");
+  if (panel) panel.innerHTML = actionPanel();
+
+  const title = document.getElementById("live-action-title");
+  if (title) title.textContent = currentActionTitle();
+
+  const symbol = document.getElementById("live-action-symbol");
+  if (symbol) {
+    symbol.textContent = action.kind === "combat" ? "戰" : action.kind === "idle" ? "靜" : "修";
+    symbol.classList.toggle("combat-symbol", action.kind === "combat");
   }
 }
 
