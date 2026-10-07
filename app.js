@@ -91,11 +91,15 @@ function rollNextSpecies() {
 
 const statKeys = Object.keys(stats);
 
+const WEEKS_PER_MONTH = 4;
+const MONTHS_PER_YEAR = 12;
+const WEEKS_PER_YEAR = WEEKS_PER_MONTH * MONTHS_PER_YEAR;
+const REAL_SECONDS_PER_WEEK = 15;
 const LIFESPAN_YEARS = 80;
-const LIFESPAN_MONTHS = LIFESPAN_YEARS * 12;
+const LIFESPAN_WEEKS = LIFESPAN_YEARS * WEEKS_PER_YEAR;
 
 let life = 1;
-let ageMonths = 0;
+let ageWeeks = 0;
 let money = 0;
 let tab = "training";
 let action = { kind: "idle" };
@@ -240,7 +244,7 @@ function statFactionBonus(key) {
   }, 0);
 }
 
-let logs = ["0세 0개월 · 제1생이 시작되었습니다."];
+let logs = ["0년 0개월 0주 · 제1생이 시작되었습니다."];
 
 const SAVE_KEY = "pokeloop-save-v1";
 let lastSaveAt = 0;
@@ -251,7 +255,7 @@ function saveGame() {
       version: 1,
       savedAt: Date.now(),
       life,
-      ageMonths,
+      ageWeeks,
       money,
       currentSpeciesId,
       reputation,
@@ -282,7 +286,11 @@ function loadGame() {
     if (!payload || payload.version !== 1) return false;
 
     if (Number.isFinite(payload.life) && payload.life >= 1) life = payload.life;
-    if (Number.isFinite(payload.ageMonths) && payload.ageMonths >= 0) ageMonths = payload.ageMonths;
+    if (Number.isFinite(payload.ageWeeks) && payload.ageWeeks >= 0) {
+      ageWeeks = Math.floor(payload.ageWeeks);
+    } else if (Number.isFinite(payload.ageMonths) && payload.ageMonths >= 0) {
+      ageWeeks = Math.floor(payload.ageMonths * WEEKS_PER_MONTH);
+    }
     if (Number.isFinite(payload.money) && payload.money >= 0) money = payload.money;
     if (typeof payload.currentSpeciesId === "string" && SPECIES[payload.currentSpeciesId]) {
       applySpecies(payload.currentSpeciesId);
@@ -412,14 +420,19 @@ const formatNumber = (n) => {
   return Math.floor(n).toLocaleString("ko-KR");
 };
 
-const years = () => Math.floor(ageMonths / 12);
-const months = () => ageMonths % 12;
-const remainingLifeMonths = () => Math.max(0, LIFESPAN_MONTHS - ageMonths);
+const years = () => Math.floor(ageWeeks / WEEKS_PER_YEAR);
+const months = () => Math.floor((ageWeeks % WEEKS_PER_YEAR) / WEEKS_PER_MONTH);
+const weeks = () => ageWeeks % WEEKS_PER_MONTH;
+const ageText = () => years() + "년 " + months() + "개월 " + weeks() + "주";
+const remainingLifeWeeks = () => Math.max(0, LIFESPAN_WEEKS - ageWeeks);
 const remainingLifeText = () => {
-  const remain = remainingLifeMonths();
-  return Math.floor(remain / 12) + "년 " + (remain % 12) + "개월";
+  const remain = remainingLifeWeeks();
+  const y = Math.floor(remain / WEEKS_PER_YEAR);
+  const m = Math.floor((remain % WEEKS_PER_YEAR) / WEEKS_PER_MONTH);
+  const w = remain % WEEKS_PER_MONTH;
+  return y + "년 " + m + "개월 " + w + "주";
 };
-const lifespanProgress = () => Math.min(100, ageMonths / LIFESPAN_MONTHS * 100);
+const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
 const trainingSpeed = (key) => (1 + stats[key].iv / 100) * (1 + statFactionBonus(key));
 const trainingInterval = (key) => 10 / trainingSpeed(key);
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
@@ -528,7 +541,7 @@ function pickBattleMove() {
 }
 
 function addLog(message) {
-  logs.unshift(years() + "세 " + months() + "개월 · " + message);
+  logs.unshift(ageText() + " · " + message);
   logs = logs.slice(0, 40);
 }
 
@@ -937,11 +950,10 @@ function leaveBattle() {
 function rebirth(reason = "manual") {
   const previousLife = life;
   const previousSpecies = currentSpecies().name;
-  const previousAgeYears = years();
-  const previousAgeMonths = months();
+  const previousAgeText = ageText();
 
   life += 1;
-  ageMonths = 0;
+  ageWeeks = 0;
   ageTickProgress = 0;
   combatTickProgress = 0;
   money = 0;
@@ -970,7 +982,7 @@ function rebirth(reason = "manual") {
 
   let ending;
   if (reason === "lifespan") {
-    ending = "제" + previousLife + "생의 " + previousSpecies + "은(는) " + previousAgeYears + "세 " + previousAgeMonths + "개월에 천수를 다했습니다. 세력 평판은 새 생에 계승되지 않습니다.";
+    ending = "제" + previousLife + "생의 " + previousSpecies + "은(는) " + previousAgeText + "에 천수를 다했습니다. 세력 평판은 새 생에 계승되지 않습니다.";
   } else if (reason === "combatDeath") {
     ending = "제" + previousLife + "생의 " + previousSpecies + "은(는) 전투에서 생을 마쳤습니다. 세력 평판은 새 생에 계승되지 않습니다.";
   } else {
@@ -978,7 +990,7 @@ function rebirth(reason = "manual") {
   }
 
   logs = [
-    "0세 0개월 · " + ending,
+    "0년 0개월 0주 · " + ending,
     "0세 0개월 · 제" + life + "생이 시작되었습니다. " + currentSpecies().name + "의 몸으로 태어났습니다. 전생의 기술 경험이 영혼에 남아 있습니다."
   ];
 
@@ -1217,11 +1229,11 @@ function rebirthView() {
     <div class="rebirth">
       <p class="eyebrow">윤회</p>
       <h2>제${life}생의 기록</h2>
-      <p class="muted">수명은 현재 ${LIFESPAN_YEARS}세입니다. 천수를 다하거나 조기 환생하면 육신의 EV와 IV는 사라지고 기술 경험은 영혼에 남습니다.</p>
+      <p class="muted">수명은 현재 ${LIFESPAN_YEARS}년입니다. 천수를 다하거나 조기 환생하면 육신의 EV와 IV는 사라지고 기술 경험은 영혼에 남습니다.</p>
 
       <div class="rebirthgrid">
         <div><span>현재 종족</span><strong>${currentSpecies().name}</strong></div>
-        <div><span>현재 나이</span><strong>${years()}세 ${months()}개월</strong></div>
+        <div><span>현재 나이</span><strong>${ageText()}</strong></div>
         <div><span>남은 수명</span><strong>${remainingLifeText()}</strong></div>
         <div><span>총 EV</span><strong>${formatNumber(totalEV())}</strong></div>
         <div><span>최고 기술</span><strong>${Math.max(...moves.map((move) => move.stars))}성</strong></div>
@@ -1401,7 +1413,7 @@ function render() {
         <div class="brand"><strong>PokeLoop</strong><span class="badge">PROTOTYPE</span></div>
         <div class="topstats">
           <span>제${life}생</span>
-          <span>${years()}세 ${months()}개월</span>
+          <span>${ageText()}</span>
           <span>은전 ${formatNumber(money)}</span>
           <span>${battle && tab === "combat" ? battle.areaName : "낙양"}</span>
         </div>
@@ -1419,9 +1431,9 @@ function render() {
             </div>
           </div>
 
-          <div class="agecard ${remainingLifeMonths() <= 120 ? "late-life" : ""}">
+          <div class="agecard ${remainingLifeWeeks() <= 10 * WEEKS_PER_YEAR ? "late-life" : ""}">
             <span>나이 / 수명</span>
-            <strong>${years()}세 ${months()}개월 <em>/ ${LIFESPAN_YEARS}세</em></strong>
+            <strong>${ageText()} <em>/ ${LIFESPAN_YEARS}년</em></strong>
             <div class="lifespan-bar"><i style="width:${lifespanProgress()}%"></i></div>
             <small>남은 수명 ${remainingLifeText()} · 수련·기술 수련·탐험 중에만 나이가 흐릅니다. 전투 중에는 멈춥니다.</small>
           </div>
@@ -1473,7 +1485,7 @@ function render() {
       <section class="log panel">
         <div class="loghead">
           <strong>생애 기록 · 로그</strong>
-          <span class="muted">20 tick/s · 1초 = 게임 내 1개월</span>
+          <span class="muted">20 tick/s · 실제 15초 = 게임 내 1주 · 4주 = 1개월 · 12개월 = 1년</span>
         </div>
         <div class="logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
       </section>
@@ -1486,7 +1498,7 @@ function render() {
 }
 
 loadGame();
-if (ageMonths >= LIFESPAN_MONTHS) {
+if (ageWeeks >= LIFESPAN_WEEKS) {
   rebirth("lifespan");
 } else {
   render();
@@ -1497,15 +1509,15 @@ window.addEventListener("beforeunload", saveGame);
 setInterval(() => {
   if (action.kind === "training" || action.kind === "move" || action.kind === "explore") {
     ageTickProgress += DT;
-    while (ageTickProgress >= 1) {
-      ageTickProgress -= 1;
-      ageMonths += 1;
+    while (ageTickProgress >= REAL_SECONDS_PER_WEEK) {
+      ageTickProgress -= REAL_SECONDS_PER_WEEK;
+      ageWeeks += 1;
     }
   } else {
     ageTickProgress = 0;
   }
 
-  if (ageMonths >= LIFESPAN_MONTHS) {
+  if (ageWeeks >= LIFESPAN_WEEKS) {
     rebirth("lifespan");
     return;
   }
