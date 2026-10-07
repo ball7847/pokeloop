@@ -94,7 +94,7 @@ const statKeys = Object.keys(stats);
 const WEEKS_PER_MONTH = 4;
 const MONTHS_PER_YEAR = 12;
 const WEEKS_PER_YEAR = WEEKS_PER_MONTH * MONTHS_PER_YEAR;
-const REAL_SECONDS_PER_WEEK = 22.5;
+const REAL_SECONDS_PER_WEEK = 20;
 const TRAINING_WEEKS = 4;
 const MOVE_TRAINING_WEEKS = 4;
 const EXPLORE_TRAVEL_WEEKS = 2;
@@ -1570,7 +1570,7 @@ function render() {
       <section class="log panel">
         <div class="loghead">
           <strong>생애 기록 · 로그</strong>
-          <span class="muted">실제 22.5초 = 게임 1주 · 행동시간 최소 1주 · 1주 미만 속도는 효율로 전환 · 80년 = 24시간</span>
+          <span class="muted">실제 20초 = 게임 1주 · 행동시간 최소 1주 · 1주 미만 속도는 효율로 전환 · 80년 활동시간 = 21시간 20분</span>
         </div>
         <div class="logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
       </section>
