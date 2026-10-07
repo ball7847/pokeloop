@@ -4,62 +4,62 @@ const SPECIES = {
   rattata: {
     id: "rattata", name: "꼬렛", mark: "꼬", types: ["노말"],
     bs: { hp: 30, atk: 56, def: 35, spa: 25, spd: 35, spe: 72 },
-    affinity: { quick: "매우 쉬움", bite: "쉬움", tail: "쉬움", thunderbolt: "보통", meteor: "극악" }
+    specialMoves: ["quick", "bite", "tail"]
   },
   pidgey: {
     id: "pidgey", name: "구구", mark: "구", types: ["노말", "비행"],
     bs: { hp: 40, atk: 45, def: 40, spa: 35, spd: 35, spe: 56 },
-    affinity: { quick: "매우 쉬움", aerial: "쉬움", bite: "보통", tail: "어려움", meteor: "극악" }
+    specialMoves: ["quick", "aerial"]
   },
   mankey: {
     id: "mankey", name: "망키", mark: "망", types: ["격투"],
     bs: { hp: 40, atk: 80, def: 35, spa: 35, spd: 45, spe: 70 },
-    affinity: { rocksmash: "매우 쉬움", quick: "쉬움", tail: "보통", aura: "어려움", meteor: "극악" }
+    specialMoves: ["rocksmash", "quick"]
   },
   abra: {
     id: "abra", name: "캐이시", mark: "캐", types: ["에스퍼"],
     bs: { hp: 25, atk: 20, def: 15, spa: 105, spd: 55, spe: 90 },
-    affinity: { confusion: "매우 쉬움", shadowball: "쉬움", aura: "보통", quick: "어려움", tail: "극악" }
+    specialMoves: ["confusion", "shadowball"]
   },
   chimchar: {
     id: "chimchar", name: "파이숭이", mark: "파", types: ["불꽃"],
     bs: { hp: 44, atk: 58, def: 44, spa: 58, spd: 44, spe: 61 },
-    affinity: { ember: "매우 쉬움", rocksmash: "쉬움", quick: "쉬움", tail: "보통", meteor: "극악" }
+    specialMoves: ["ember", "rocksmash", "quick"]
   },
   pikachu: {
     id: "pikachu", name: "피카츄", mark: "피", types: ["전기"],
     bs: { hp: 35, atk: 55, def: 40, spa: 50, spd: 50, spe: 90 },
-    affinity: { shock: "매우 쉬움", thunderbolt: "매우 쉬움", quick: "쉬움", tail: "보통", meteor: "극악" }
+    specialMoves: ["shock", "thunderbolt", "quick"]
   },
   eevee: {
     id: "eevee", name: "이브이", mark: "이", types: ["노말"],
     bs: { hp: 55, atk: 55, def: 50, spa: 45, spd: 65, spe: 55 },
-    affinity: { quick: "쉬움", bite: "쉬움", tail: "보통", shadowball: "보통", meteor: "극악" }
+    specialMoves: ["quick", "bite"]
   },
   gastly: {
     id: "gastly", name: "고오스", mark: "고", types: ["고스트", "독"],
     bs: { hp: 30, atk: 35, def: 30, spa: 100, spd: 35, spe: 80 },
-    affinity: { shadowball: "매우 쉬움", confusion: "쉬움", thunderbolt: "보통", quick: "극악", tail: "극악" }
+    specialMoves: ["shadowball", "confusion"]
   },
   zubat: {
     id: "zubat", name: "주뱃", mark: "주", types: ["독", "비행"],
     bs: { hp: 40, atk: 45, def: 35, spa: 30, spd: 40, spe: 55 },
-    affinity: { aerial: "쉬움", bite: "쉬움", quick: "보통", shadowball: "어려움", meteor: "극악" }
+    specialMoves: ["aerial", "bite"]
   },
   dratini: {
     id: "dratini", name: "미뇽", mark: "미", types: ["드래곤"],
     bs: { hp: 41, atk: 64, def: 45, spa: 50, spd: 50, spe: 50 },
-    affinity: { meteor: "쉬움", icebeam: "보통", watergun: "보통", tail: "보통", quick: "쉬움" }
+    specialMoves: ["meteor", "quick"]
   },
   riolu: {
     id: "riolu", name: "리오르", mark: "리", types: ["격투"],
     bs: { hp: 40, atk: 70, def: 40, spa: 35, spd: 40, spe: 60 },
-    affinity: { rocksmash: "매우 쉬움", aura: "쉬움", quick: "쉬움", tail: "보통", meteor: "극악" }
+    specialMoves: ["rocksmash", "aura", "quick"]
   },
   magikarp: {
     id: "magikarp", name: "잉어킹", mark: "잉", types: ["물"],
     bs: { hp: 20, atk: 10, def: 55, spa: 15, spd: 20, spe: 80 },
-    affinity: { watergun: "쉬움", quick: "어려움", bite: "극악", tail: "극악", meteor: "극악" }
+    specialMoves: ["watergun"]
   }
 }
 
@@ -109,20 +109,20 @@ let action = { kind: "idle" };
 let battle = null;
 
 let moves = [
-  { id: "quick",       name: "전광석화",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", category: "물리" },
-  { id: "bite",        name: "물기",       stars: 0, progress: 0, affinity: "보통", power: 60,  accuracy: 100, priority: 0, type: "악",     soul: 0, stat: "atk", category: "물리" },
-  { id: "tail",        name: "아이언테일", stars: 0, progress: 0, affinity: "보통", power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 30 } },
-  { id: "rocksmash",   name: "바위깨기",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 50 } },
-  { id: "aerial",      name: "제비반환",   stars: 0, progress: 0, affinity: "보통", power: 60,  accuracy: 100, priority: 0, type: "비행",   soul: 0, stat: "atk", category: "물리" },
-  { id: "watergun",    name: "물대포",     stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "물",     soul: 0, stat: "spa", category: "특수" },
-  { id: "ember",       name: "불꽃세례",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "불꽃",   soul: 0, stat: "spa", category: "특수", effect: { kind: "burn", chance: 10 } },
-  { id: "shock",       name: "전기쇼크",   stars: 0, progress: 0, affinity: "보통", power: 40,  accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
-  { id: "confusion",   name: "염동력",     stars: 0, progress: 0, affinity: "보통", power: 50,  accuracy: 100, priority: 0, type: "에스퍼", soul: 0, stat: "spa", category: "특수" },
-  { id: "shadowball",  name: "섀도볼",     stars: 0, progress: 0, affinity: "보통", power: 80,  accuracy: 100, priority: 0, type: "고스트", soul: 0, stat: "spa", category: "특수", effect: { kind: "spdDown", chance: 20 } },
-  { id: "thunderbolt", name: "10만볼트",   stars: 0, progress: 0, affinity: "어려움", power: 90, accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
-  { id: "icebeam",     name: "냉동빔",     stars: 0, progress: 0, affinity: "어려움", power: 90, accuracy: 100, priority: 0, type: "얼음",   soul: 0, stat: "spa", category: "특수" },
-  { id: "aura",        name: "파동탄",     stars: 0, progress: 0, affinity: "어려움", power: 80, accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "spa", category: "특수" },
-  { id: "meteor",      name: "용성군",     stars: 0, progress: 0, affinity: "극악", power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수", effect: { kind: "selfSpaDown", chance: 100 } }
+  { id: "quick",       name: "전광석화",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", category: "물리" },
+  { id: "bite",        name: "물기",       stars: 0, progress: 0, difficulty: 3, power: 60,  accuracy: 100, priority: 0, type: "악",     soul: 0, stat: "atk", category: "물리" },
+  { id: "tail",        name: "아이언테일", stars: 0, progress: 0, difficulty: 5, power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 30 } },
+  { id: "rocksmash",   name: "바위깨기",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 50 } },
+  { id: "aerial",      name: "제비반환",   stars: 0, progress: 0, difficulty: 3, power: 60,  accuracy: 100, priority: 0, type: "비행",   soul: 0, stat: "atk", category: "물리" },
+  { id: "watergun",    name: "물대포",     stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "물",     soul: 0, stat: "spa", category: "특수" },
+  { id: "ember",       name: "불꽃세례",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "불꽃",   soul: 0, stat: "spa", category: "특수", effect: { kind: "burn", chance: 10 } },
+  { id: "shock",       name: "전기쇼크",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
+  { id: "confusion",   name: "염동력",     stars: 0, progress: 0, difficulty: 3, power: 50,  accuracy: 100, priority: 0, type: "에스퍼", soul: 0, stat: "spa", category: "특수" },
+  { id: "shadowball",  name: "섀도볼",     stars: 0, progress: 0, difficulty: 5, power: 80,  accuracy: 100, priority: 0, type: "고스트", soul: 0, stat: "spa", category: "특수", effect: { kind: "spdDown", chance: 20 } },
+  { id: "thunderbolt", name: "10만볼트",   stars: 0, progress: 0, difficulty: 6, power: 90, accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
+  { id: "icebeam",     name: "냉동빔",     stars: 0, progress: 0, difficulty: 6, power: 90, accuracy: 100, priority: 0, type: "얼음",   soul: 0, stat: "spa", category: "특수" },
+  { id: "aura",        name: "파동탄",     stars: 0, progress: 0, difficulty: 6, power: 80, accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "spa", category: "특수" },
+  { id: "meteor",      name: "용성군",     stars: 0, progress: 0, difficulty: 8, power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수", effect: { kind: "selfSpaDown", chance: 100 } }
 ];
 
 const ITEMS = {
@@ -462,18 +462,33 @@ const moveTrainingInterval = (move) => moveTrainingTiming(move).weeks;
 const totalEV = () => statKeys.reduce((sum, key) => sum + effectiveEV(key), 0);
 const effectiveEV = (key) => Math.floor(stats[key].ev);
 const finalStat = (key) => stats[key].bs + stats[key].iv + effectiveEV(key);
-const moveAffinity = (move) => currentSpecies().affinity[move.id] || move.affinity;
-const affinityMultiplier = (affinity) => ({
-  "매우 쉬움": 1.00,
-  "쉬움": 0.75,
-  "보통": 0.50,
-  "어려움": 0.32,
-  "극악": 0.18
-}[affinity] || 0.50);
+const DIFFICULTY_MULTIPLIER = {
+  1: 1.00,
+  2: 0.85,
+  3: 0.70,
+  4: 0.55,
+  5: 0.42,
+  6: 0.32,
+  7: 0.24,
+  8: 0.18
+};
+const moveDifficultyBreakdown = (move) => {
+  const typeBonus = currentSpecies().types.includes(move.type) ? 1 : 0;
+  const specialBonus = (currentSpecies().specialMoves || []).includes(move.id) ? 1 : 0;
+  const finalDifficulty = Math.max(1, move.difficulty - typeBonus - specialBonus);
+  return {
+    base: move.difficulty,
+    typeBonus,
+    specialBonus,
+    final: finalDifficulty
+  };
+};
+const moveDifficulty = (move) => moveDifficultyBreakdown(move).final;
+const difficultyMultiplier = (difficulty) => DIFFICULTY_MULTIPLIER[difficulty] || DIFFICULTY_MULTIPLIER[8];
 const moveTrainingSpeed = (move) =>
   (1 + ivTrainingBonus(stats[move.stat].iv)) *
   (1 + move.soul / 100) *
-  affinityMultiplier(moveAffinity(move)) *
+  difficultyMultiplier(moveDifficulty(move)) *
   (1 + statFactionBonus(move.stat));
 const movePowerMultiplier = (move) => 1 + move.stars * 0.12;
 const moveCombatPower = (move) => Math.floor(move.power * movePowerMultiplier(move));
@@ -1069,7 +1084,7 @@ function movesView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">무공 수련</p><h2>기술</h2></div>
-      <p class="muted">10성은 완성, 12성은 대성. 기본 기술 수련 세션은 4주이며 재능·적합도·전생 숙련·세력 보너스가 실제 소요 시간을 단축합니다.</p>
+      <p class="muted">10성은 완성, 12성은 대성. 기술마다 기본 난이도 1~8이 있으며, 자신의 타입이면 -1, 종족 특기 기술이면 -1이 적용됩니다. 최종 난이도는 최소 1입니다.</p>
     </div>
     <section class="move-loadout">
       <div class="move-loadout-head">
@@ -1092,7 +1107,7 @@ function movesView() {
       ${moves.map((move) => `
         <article class="card">
           <div class="cardtop">
-            <div><h3>${move.name}</h3><span class="muted">${moveAffinity(move)}</span></div>
+            <div><h3>${move.name}</h3><span class="muted">난이도 ${moveDifficulty(move)}</span></div>
             <strong id="live-move-stars-${move.id}">${move.stars ? move.stars + "성" : "미습득"}</strong>
           </div>
           <div class="progress move"><i id="live-move-progress-${move.id}" style="width:${move.progress}%"></i></div>
@@ -1105,7 +1120,7 @@ function movesView() {
             <div><dt>부가 효과</dt><dd>${moveEffectText(move)}</dd></div>
             <div><dt>현재 실전 위력</dt><dd id="live-move-power-${move.id}">${move.stars ? moveCombatPower(move) : "-"}</dd></div>
             <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
-            <div><dt>적합도 배율</dt><dd>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</dd></div>
+            <div><dt>기본 난이도</dt><dd>${move.difficulty}</dd></div>\n            <div><dt>최종 난이도</dt><dd>${moveDifficulty(move)}${moveDifficultyBreakdown(move).typeBonus ? " · 타입 -1" : ""}${moveDifficultyBreakdown(move).specialBonus ? " · 특기 -1" : ""}</dd></div>\n            <div><dt>난이도 배율</dt><dd>×${difficultyMultiplier(moveDifficulty(move)).toFixed(2)}</dd></div>
             <div><dt>수련 속도</dt><dd>×${moveTrainingSpeed(move).toFixed(2)}</dd></div>
             <div><dt>전생 숙련</dt><dd>+${move.soul.toFixed(1)}%</dd></div>
           </dl>
@@ -1391,7 +1406,7 @@ function actionPanel() {
       <div class="metric"><span>수련 세션</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${moveTrainingInterval(move).toFixed(2)}주</strong></div>
       <div class="breakdown">
         <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + ivTrainingBonus(stats[move.stat].iv)).toFixed(2)}</strong></div>
-        <div><span>적합도</span><strong>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</strong></div>
+        <div><span>기술 난이도</span><strong>${moveDifficulty(move)} · ×${difficultyMultiplier(moveDifficulty(move)).toFixed(2)}</strong></div>
         <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(move.stat) * 100).toFixed(0)}%</strong></div>
         <div><span>최종 습득속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
