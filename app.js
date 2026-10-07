@@ -439,7 +439,8 @@ const remainingLifeText = () => {
   return y + "년 " + m + "개월 " + w + "주";
 };
 const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
-const trainingSpeed = (key) => (1 + stats[key].iv / 100) * (1 + statFactionBonus(key));
+const ivTrainingBonus = (iv) => Math.floor(iv / 3) / 100;
+const trainingSpeed = (key) => (1 + ivTrainingBonus(stats[key].iv)) * (1 + statFactionBonus(key));
 const roundWeeks = (value) => Math.round(value * 100) / 100;
 const actionTiming = (baseWeeks, speed) => {
   const rawWeeks = baseWeeks / Math.max(0.0001, speed);
@@ -464,7 +465,7 @@ const affinityMultiplier = (affinity) => ({
   "극악": 0.18
 }[affinity] || 0.50);
 const moveTrainingSpeed = (move) =>
-  (1 + stats[move.stat].iv / 100) *
+  (1 + ivTrainingBonus(stats[move.stat].iv)) *
   (1 + move.soul / 100) *
   affinityMultiplier(moveAffinity(move)) *
   (1 + statFactionBonus(move.stat));
