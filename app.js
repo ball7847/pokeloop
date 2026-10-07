@@ -452,8 +452,9 @@ const trainingTiming = (key) => actionTiming(TRAINING_WEEKS, trainingSpeed(key))
 const moveTrainingTiming = (move) => actionTiming(MOVE_TRAINING_WEEKS, moveTrainingSpeed(move));
 const trainingInterval = (key) => trainingTiming(key).weeks;
 const moveTrainingInterval = (move) => moveTrainingTiming(move).weeks;
-const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
-const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
+const totalEV = () => statKeys.reduce((sum, key) => sum + effectiveEV(key), 0);
+const effectiveEV = (key) => Math.floor(stats[key].ev);
+const finalStat = (key) => stats[key].bs + stats[key].iv + effectiveEV(key);
 const moveAffinity = (move) => currentSpecies().affinity[move.id] || move.affinity;
 const affinityMultiplier = (affinity) => ({
   "매우 쉬움": 1.00,
@@ -1524,7 +1525,7 @@ function render() {
           </div>
 
           ${statKeys.map((key) => `
-            <div class="statrow" style="--c:${stats[key].color}" title="BS ${stats[key].bs} + IV ${stats[key].iv} + EV ${Math.floor(stats[key].ev)}">
+            <div class="statrow" style="--c:${stats[key].color}" title="BS ${stats[key].bs} + IV ${stats[key].iv} + EV ${effectiveEV(key)}">
               <span>${stats[key].label}</span>
               <strong>${formatNumber(finalStat(key))}</strong>
             </div>
