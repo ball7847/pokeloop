@@ -379,12 +379,17 @@ function loadGame() {
       }
     }
 
+    const migrationLogs = logs.filter((line) => line.includes("이전 버전의 전투는 종료되었습니다."));
     if (typeof payload.tab === "string") {
       tab = payload.tab;
     }
 
     if (Array.isArray(payload.logs)) {
-      logs = payload.logs.slice(0, 40);
+      logs = [...migrationLogs, ...payload.logs].slice(0, 40);
+    }
+
+    if (!battle && tab === "combat") {
+      tab = "explore";
     }
 
     lastSaveAt = Number.isFinite(payload.savedAt) ? payload.savedAt : Date.now();
@@ -1009,7 +1014,7 @@ function rebirth(reason = "manual") {
 
   logs = [
     "0년 0개월 0주 · " + ending,
-    "0세 0개월 · 제" + life + "생이 시작되었습니다. " + currentSpecies().name + "의 몸으로 태어났습니다. 전생의 기술 경험이 영혼에 남아 있습니다."
+    "0년 0개월 0주 · 제" + life + "생이 시작되었습니다. " + currentSpecies().name + "의 몸으로 태어났습니다. 전생의 기술 경험이 영혼에 남아 있습니다."
   ];
 
   saveGame();
@@ -1036,7 +1041,7 @@ function trainingView() {
       ${statKeys.map((key) => `
         <div class="tr ${action.kind === "training" && action.stat === key ? "selected" : ""}">
           <strong>${stats[key].label}</strong>
-          <span>${formatNumber(stats[key].ev)}</span>
+          <span>${formatNumber(effectiveEV(key))}</span>
           <span>${stats[key].iv}</span>
           <span>${trainingInterval(key).toFixed(2)}주마다 EV +${trainingTiming(key).efficiency.toFixed(2)}</span>
           <button class="action" onclick="train('${key}')">수련</button>
@@ -1362,7 +1367,7 @@ function actionPanel() {
       <div class="metric"><span>수련 진행</span><strong>${(action.weeks || 0).toFixed(2)} / ${trainingInterval(action.stat).toFixed(2)}주</strong></div>
       <div class="breakdown">
         <div><span>기본 소요</span><strong>${TRAINING_WEEKS}주</strong></div>
-        <div><span>IV ${stats[action.stat].iv}</span><strong>×${(1 + stats[action.stat].iv / 100).toFixed(2)}</strong></div>
+        <div><span>IV ${stats[action.stat].iv}</span><strong>×${(1 + ivTrainingBonus(stats[action.stat].iv)).toFixed(2)}</strong></div>
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(action.stat) * 100).toFixed(0)}%</strong></div>
         <div><span>최종 수련속도</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
         <div><span>실제 소요</span><strong>${trainingInterval(action.stat).toFixed(2)}주</strong></div>
@@ -1380,7 +1385,7 @@ function actionPanel() {
       <div class="metric"><span>현재 숙련</span><strong>${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
       <div class="metric"><span>수련 세션</span><strong>${(action.weeks || 0).toFixed(2)} / ${moveTrainingInterval(move).toFixed(2)}주</strong></div>
       <div class="breakdown">
-        <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + stats[move.stat].iv / 100).toFixed(2)}</strong></div>
+        <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + ivTrainingBonus(stats[move.stat].iv)).toFixed(2)}</strong></div>
         <div><span>적합도</span><strong>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</strong></div>
         <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(move.stat) * 100).toFixed(0)}%</strong></div>
