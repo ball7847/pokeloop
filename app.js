@@ -290,7 +290,7 @@ function loadGame() {
 
     if (Number.isFinite(payload.life) && payload.life >= 1) life = payload.life;
     if (Number.isFinite(payload.ageWeeks) && payload.ageWeeks >= 0) {
-      ageWeeks = Math.floor(payload.ageWeeks);
+      ageWeeks = payload.ageWeeks;
     } else if (Number.isFinite(payload.ageMonths) && payload.ageMonths >= 0) {
       ageWeeks = Math.floor(payload.ageMonths * WEEKS_PER_MONTH);
     }
@@ -399,8 +399,7 @@ function loadGame() {
 const TICKS_PER_SECOND = 20;
 const TICK_MS = 1000 / TICKS_PER_SECOND;
 const DT = 1 / TICKS_PER_SECOND;
-let ageTickProgress = 0;
-let combatTickProgress = 0;
+ let combatTickProgress = 0;
 let renderAccumulator = 0;
 const RENDER_FPS = 10;
 const RENDER_INTERVAL = 1 / RENDER_FPS;
@@ -429,7 +428,7 @@ const formatNumber = (n) => {
 
 const years = () => Math.floor(ageWeeks / WEEKS_PER_YEAR);
 const months = () => Math.floor((ageWeeks % WEEKS_PER_YEAR) / WEEKS_PER_MONTH);
-const weeks = () => ageWeeks % WEEKS_PER_MONTH;
+const weeks = () => Math.floor(ageWeeks % WEEKS_PER_MONTH);
 const ageText = () => years() + "년 " + months() + "개월 " + weeks() + "주";
 const remainingLifeWeeks = () => Math.max(0, LIFESPAN_WEEKS - ageWeeks);
 const remainingLifeText = () => {
@@ -441,7 +440,8 @@ const remainingLifeText = () => {
 };
 const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
 const trainingSpeed = (key) => (1 + stats[key].iv / 100) * (1 + statFactionBonus(key));
-const trainingInterval = () => TRAINING_WEEKS;
+const trainingInterval = (key) => TRAINING_WEEKS / trainingSpeed(key);
+const moveTrainingInterval = (move) => MOVE_TRAINING_WEEKS / moveTrainingSpeed(move);
 const totalEV = () => statKeys.reduce((sum, key) => sum + stats[key].ev, 0);
 const finalStat = (key) => stats[key].bs + stats[key].iv + stats[key].ev;
 const moveAffinity = (move) => currentSpecies().affinity[move.id] || move.affinity;
@@ -961,8 +961,7 @@ function rebirth(reason = "manual") {
 
   life += 1;
   ageWeeks = 0;
-  ageTickProgress = 0;
-  combatTickProgress = 0;
+   combatTickProgress = 0;
   money = 0;
 
   applySpecies(rollNextSpecies());
@@ -1018,7 +1017,7 @@ function trainingView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">육체 수련</p><h2>노력치 수련</h2></div>
-      <p class="muted">EV에는 상한이 없습니다. 수련 1회는 4주이며, IV와 세력 보너스는 4주 수련의 EV 획득량을 높입니다.</p>
+      <p class="muted">EV에는 상한이 없습니다. 기본 수련 1회는 4주이며, 수련속도가 높을수록 실제 소요 주가 소수점 단위로 짧아집니다.</p>
     </div>
     <div class="table">
       <div class="tr th"><span>능력</span><span>EV</span><span>IV</span><span>획득 주기</span><span></span></div>
@@ -1027,7 +1026,7 @@ function trainingView() {
           <strong>${stats[key].label}</strong>
           <span>${formatNumber(stats[key].ev)}</span>
           <span>${stats[key].iv}</span>
-          <span>4주마다 +${trainingSpeed(key).toFixed(2)} EV</span>
+          <span>${trainingInterval(key).toFixed(2)}주마다 EV +1</span>
           <button class="action" onclick="train('${key}')">수련</button>
         </div>
       `).join("")}
@@ -1049,7 +1048,7 @@ function movesView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">무공 수련</p><h2>기술</h2></div>
-      <p class="muted">10성은 완성, 12성은 대성. 전생 숙련은 다음 생의 수련을 가속합니다.</p>
+      <p class="muted">10성은 완성, 12성은 대성. 기본 기술 수련 세션은 4주이며 재능·적합도·전생 숙련·세력 보너스가 실제 소요 시간을 단축합니다.</p>
     </div>
     <section class="move-loadout">
       <div class="move-loadout-head">
@@ -1348,13 +1347,14 @@ function actionPanel() {
   if (action.kind === "training") {
     return `
       <div class="progress"><i style="width:${action.progress}%"></i></div>
-      <div class="metric"><span>수련 진행</span><strong>${action.weeks || 0} / ${TRAINING_WEEKS}주</strong></div>
+      <div class="metric"><span>수련 진행</span><strong>${(action.weeks || 0).toFixed(2)} / ${trainingInterval(action.stat).toFixed(2)}주</strong></div>
       <div class="breakdown">
-        <div><span>수련 1회</span><strong>${TRAINING_WEEKS}주</strong></div>
+        <div><span>기본 소요</span><strong>${TRAINING_WEEKS}주</strong></div>
         <div><span>IV ${stats[action.stat].iv}</span><strong>×${(1 + stats[action.stat].iv / 100).toFixed(2)}</strong></div>
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(action.stat) * 100).toFixed(0)}%</strong></div>
-        <div><span>1회 EV 획득</span><strong>+${trainingSpeed(action.stat).toFixed(2)}</strong></div>
-        <div><span>반복</span><strong>4주 단위 자동 반복</strong></div>
+        <div><span>최종 수련속도</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
+        <div><span>실제 소요</span><strong>${trainingInterval(action.stat).toFixed(2)}주</strong></div>
+        <div><span>완료 보상</span><strong>EV +1</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1365,13 +1365,15 @@ function actionPanel() {
     return `
       <div class="progress move"><i style="width:${move.progress}%"></i></div>
       <div class="metric"><span>현재 숙련</span><strong>${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
-      <div class="metric"><span>수련 세션</span><strong>${action.weeks || 0} / ${MOVE_TRAINING_WEEKS}주</strong></div>
+      <div class="metric"><span>수련 세션</span><strong>${(action.weeks || 0).toFixed(2)} / ${moveTrainingInterval(move).toFixed(2)}주</strong></div>
       <div class="breakdown">
         <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + stats[move.stat].iv / 100).toFixed(2)}</strong></div>
         <div><span>적합도</span><strong>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</strong></div>
         <div><span>전생 숙련</span><strong>×${(1 + move.soul / 100).toFixed(2)}</strong></div>
         <div><span>세력 보너스</span><strong>+${(statFactionBonus(move.stat) * 100).toFixed(0)}%</strong></div>
-        <div><span>4주 수련 진척</span><strong>+${(25 * moveTrainingSpeed(move)).toFixed(1)}%</strong></div>
+        <div><span>최종 습득속도</span><strong>×${moveTrainingSpeed(move).toFixed(2)}</strong></div>
+        <div><span>실제 세션 소요</span><strong>${moveTrainingInterval(move).toFixed(2)}주</strong></div>
+        <div><span>세션 완료</span><strong>숙련 +25%</strong></div>
         <div><span>현재 실전 위력</span><strong>${move.stars ? moveCombatPower(move) : "미습득"}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
@@ -1381,7 +1383,7 @@ function actionPanel() {
   if (action.kind === "explore") {
     return `
       <div class="progress explore"><i style="width:${action.progress}%"></i></div>
-      <div class="metric"><span>이동 진행</span><strong>${action.weeks || 0} / ${EXPLORE_TRAVEL_WEEKS}주</strong></div>
+      <div class="metric"><span>이동 진행</span><strong>${(action.weeks || 0).toFixed(2)} / ${EXPLORE_TRAVEL_WEEKS.toFixed(2)}주</strong></div>
       <p class="muted">목적지까지 2주 이동한 뒤 자동전투가 시작됩니다.</p>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1409,26 +1411,28 @@ function actionPanel() {
   return '<p class="muted">수련, 기술, 탐험 중 하나를 선택하세요.</p>';
 }
 
-function processActionWeek() {
+function processActionTime(deltaWeeks) {
   if (action.kind === "training") {
-    action.weeks = (action.weeks || 0) + 1;
-    action.progress = Math.min(100, action.weeks / TRAINING_WEEKS * 100);
+    const key = action.stat;
+    action.weeks = (action.weeks || 0) + deltaWeeks;
+    const duration = trainingInterval(key);
+    action.progress = Math.min(100, action.weeks / duration * 100);
 
-    if (action.weeks >= TRAINING_WEEKS) {
-      const key = action.stat;
-      const gain = trainingSpeed(key);
-      stats[key].ev += gain;
-      addLog(stats[key].label + " 4주 수련 완료 · EV +" + gain.toFixed(2));
-      action.weeks = 0;
-      action.progress = 0;
+    while (action.kind === "training" && action.weeks >= duration) {
+      action.weeks -= duration;
+      stats[key].ev += 1;
+      addLog(stats[key].label + " 수련 완료 · " + duration.toFixed(2) + "주 소요 · EV +1");
+      action.progress = Math.min(100, action.weeks / duration * 100);
     }
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
     if (!move) return;
 
-    action.weeks = (action.weeks || 0) + 1;
-    if (action.weeks >= MOVE_TRAINING_WEEKS) {
-      action.weeks = 0;
+    action.weeks = (action.weeks || 0) + deltaWeeks;
+    const duration = moveTrainingInterval(move);
+
+    while (action.kind === "move" && action.weeks >= duration) {
+      action.weeks -= duration;
 
       if (move.stars >= 12) {
         move.progress = 100;
@@ -1436,7 +1440,7 @@ function processActionWeek() {
         return;
       }
 
-      move.progress += 25 * moveTrainingSpeed(move);
+      move.progress += 25;
 
       while (move.progress >= 100 && move.stars < 12) {
         move.progress -= 100;
@@ -1454,16 +1458,17 @@ function processActionWeek() {
           move.progress = 100;
           action = { kind: "idle" };
           addLog(move.name + "이(가) 12성 대성에 도달했습니다.");
+          return;
         }
       }
     }
   } else if (action.kind === "explore") {
-    action.weeks = (action.weeks || 0) + 1;
+    action.weeks = (action.weeks || 0) + deltaWeeks;
     action.progress = Math.min(100, action.weeks / EXPLORE_TRAVEL_WEEKS * 100);
 
     if (action.weeks >= EXPLORE_TRAVEL_WEEKS) {
       const area = areas.find((item) => item.id === action.id);
-      addLog(area.name + "에 도착했습니다. 이동에 " + EXPLORE_TRAVEL_WEEKS + "주가 소요되었습니다.");
+      addLog(area.name + "에 도착했습니다. 이동에 " + EXPLORE_TRAVEL_WEEKS.toFixed(2) + "주가 소요되었습니다.");
       startBattle(area);
     }
   }
@@ -1552,7 +1557,7 @@ function render() {
       <section class="log panel">
         <div class="loghead">
           <strong>생애 기록 · 로그</strong>
-          <span class="muted">실제 15초 = 게임 1주 · 모든 비전투 행동은 주 단위 · 4주 = 1개월 · 12개월 = 1년</span>
+          <span class="muted">실제 15초 = 게임 1주 · 행동 시간은 소수점 주 허용 · 4주 = 1개월 · 12개월 = 1년</span>
         </div>
         <div class="logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
       </section>
@@ -1575,12 +1580,9 @@ window.addEventListener("beforeunload", saveGame);
 
 setInterval(() => {
   if (action.kind === "training" || action.kind === "move" || action.kind === "explore") {
-    ageTickProgress += DT;
-    while (ageTickProgress >= REAL_SECONDS_PER_WEEK) {
-      ageTickProgress -= REAL_SECONDS_PER_WEEK;
-      ageWeeks += 1;
-      processActionWeek();
-    }
+    const deltaWeeks = DT / REAL_SECONDS_PER_WEEK;
+    ageWeeks += deltaWeeks;
+    processActionTime(deltaWeeks);
   } else {
     ageTickProgress = 0;
   }
