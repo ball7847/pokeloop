@@ -406,6 +406,7 @@ const TICK_MS = 1000 / TICKS_PER_SECOND;
 const DT = 1 / TICKS_PER_SECOND;
  let combatTickProgress = 0;
 let renderAccumulator = 0;
+let lastRenderedLogs = "";
 const RENDER_FPS = 10;
 const RENDER_INTERVAL = 1 / RENDER_FPS;
 let pointerActive = false;
@@ -1090,9 +1091,9 @@ function movesView() {
         <article class="card">
           <div class="cardtop">
             <div><h3>${move.name}</h3><span class="muted">${moveAffinity(move)}</span></div>
-            <strong>${move.stars ? move.stars + "성" : "미습득"}</strong>
+            <strong id="live-move-stars-${move.id}">${move.stars ? move.stars + "성" : "미습득"}</strong>
           </div>
-          <div class="progress move"><i style="width:${move.progress}%"></i></div>
+          <div class="progress move"><i id="live-move-progress-${move.id}" style="width:${move.progress}%"></i></div>
           <dl>
             <div><dt>타입</dt><dd>${move.type}</dd></div>
             <div><dt>분류</dt><dd>${move.category}</dd></div>
@@ -1364,8 +1365,8 @@ function centerView() {
 function actionPanel() {
   if (action.kind === "training") {
     return `
-      <div class="progress"><i style="width:${action.progress}%"></i></div>
-      <div class="metric"><span>수련 진행</span><strong>${(action.weeks || 0).toFixed(2)} / ${trainingInterval(action.stat).toFixed(2)}주</strong></div>
+      <div class="progress"><i id="live-action-progress" style="width:${action.progress}%"></i></div>
+      <div class="metric"><span>수련 진행</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${trainingInterval(action.stat).toFixed(2)}주</strong></div>
       <div class="breakdown">
         <div><span>기본 소요</span><strong>${TRAINING_WEEKS}주</strong></div>
         <div><span>IV ${stats[action.stat].iv}</span><strong>×${(1 + ivTrainingBonus(stats[action.stat].iv)).toFixed(2)}</strong></div>
@@ -1382,9 +1383,9 @@ function actionPanel() {
   if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
     return `
-      <div class="progress move"><i style="width:${move.progress}%"></i></div>
-      <div class="metric"><span>현재 숙련</span><strong>${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
-      <div class="metric"><span>수련 세션</span><strong>${(action.weeks || 0).toFixed(2)} / ${moveTrainingInterval(move).toFixed(2)}주</strong></div>
+      <div class="progress move"><i id="live-action-progress" style="width:${move.progress}%"></i></div>
+      <div class="metric"><span>현재 숙련</span><strong id="live-move-mastery">${move.stars}성 · ${move.progress.toFixed(0)}%</strong></div>
+      <div class="metric"><span>수련 세션</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${moveTrainingInterval(move).toFixed(2)}주</strong></div>
       <div class="breakdown">
         <div><span>${stats[move.stat].label} IV</span><strong>×${(1 + ivTrainingBonus(stats[move.stat].iv)).toFixed(2)}</strong></div>
         <div><span>적합도</span><strong>×${affinityMultiplier(moveAffinity(move)).toFixed(2)}</strong></div>
@@ -1402,8 +1403,8 @@ function actionPanel() {
 
   if (action.kind === "explore") {
     return `
-      <div class="progress explore"><i style="width:${action.progress}%"></i></div>
-      <div class="metric"><span>이동 진행</span><strong>${(action.weeks || 0).toFixed(2)} / ${EXPLORE_TRAVEL_WEEKS.toFixed(2)}주</strong></div>
+      <div class="progress explore"><i id="live-action-progress" style="width:${action.progress}%"></i></div>
+      <div class="metric"><span>이동 진행</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${EXPLORE_TRAVEL_WEEKS.toFixed(2)}주</strong></div>
       <p class="muted">목적지까지 2주 이동한 뒤 자동전투가 시작됩니다.</p>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1473,6 +1474,7 @@ function processActionTime(deltaWeeks) {
         }
 
         addLog(move.name + " 숙련이 " + move.stars + "성에 도달했습니다.");
+        render();
 
         if (move.stars >= 12) {
           move.stars = 12;
@@ -1526,6 +1528,14 @@ function refreshLiveUI() {
   const totalEVEl = document.getElementById("live-total-ev");
   if (totalEVEl) totalEVEl.textContent = formatNumber(totalEV());
 
+  moves.forEach((move) => {
+    const progress = document.getElementById("live-move-progress-" + move.id);
+    if (progress) progress.style.width = move.progress + "%";
+
+    const stars = document.getElementById("live-move-stars-" + move.id);
+    if (stars) stars.textContent = move.stars ? move.stars + "성" : "미습득";
+  });
+
   const actionTitle = document.getElementById("live-action-title");
   if (actionTitle) actionTitle.textContent = currentActionTitle();
 
@@ -1535,9 +1545,36 @@ function refreshLiveUI() {
     actionSymbol.classList.toggle("combat-symbol", action.kind === "combat");
   }
 
-  const actionPanelEl = document.getElementById("live-action-panel");
-  if (actionPanelEl && !pointerActive) {
-    actionPanelEl.innerHTML = actionPanel();
+  const actionProgress = document.getElementById("live-action-progress");
+  const actionProgressText = document.getElementById("live-action-progress-text");
+
+  if (action.kind === "training") {
+    if (actionProgress) actionProgress.style.width = action.progress + "%";
+    if (actionProgressText) {
+      actionProgressText.textContent = (action.weeks || 0).toFixed(2) + " / " + trainingInterval(action.stat).toFixed(2) + "주";
+    }
+  } else if (action.kind === "move") {
+    const move = moves.find((item) => item.id === action.id);
+    if (move) {
+      if (actionProgress) actionProgress.style.width = move.progress + "%";
+      if (actionProgressText) {
+        actionProgressText.textContent = (action.weeks || 0).toFixed(2) + " / " + moveTrainingInterval(move).toFixed(2) + "주";
+      }
+      const mastery = document.getElementById("live-move-mastery");
+      if (mastery) mastery.textContent = move.stars + "성 · " + move.progress.toFixed(0) + "%";
+    }
+  } else if (action.kind === "explore") {
+    if (actionProgress) actionProgress.style.width = action.progress + "%";
+    if (actionProgressText) {
+      actionProgressText.textContent = (action.weeks || 0).toFixed(2) + " / " + EXPLORE_TRAVEL_WEEKS.toFixed(2) + "주";
+    }
+  }
+
+  const logSignature = logs.join("\n");
+  if (logSignature !== lastRenderedLogs) {
+    const logsEl = document.getElementById("live-logs");
+    if (logsEl) logsEl.innerHTML = logs.map((line) => "<p>" + line + "</p>").join("");
+    lastRenderedLogs = logSignature;
   }
 }
 
@@ -1597,7 +1634,7 @@ function render() {
           `).join("")}
 
           <div class="summary">
-            <div><span>총 EV</span><strong>${formatNumber(totalEV())}</strong></div>
+            <div><span>총 EV</span><strong id="live-total-ev">${formatNumber(totalEV())}</strong></div>
             <div><span>대성 기술</span><strong>${moves.filter((move) => move.stars >= 12).length}</strong></div>
             <div><span>최고 숙련</span><strong>${highestMastery}성</strong></div>
           </div>
@@ -1638,10 +1675,12 @@ function render() {
           <strong>생애 기록 · 로그</strong>
           <span class="muted">실제 20초 = 게임 1주 · 행동시간 최소 1주 · 1주 미만 속도는 효율로 전환 · 80년 활동시간 = 21시간 20분</span>
         </div>
-        <div class="logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
+        <div class="logs" id="live-logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
       </section>
     </div>
   `;
+
+  lastRenderedLogs = logs.join("\n");
 
   if (window.scrollX !== scrollX || window.scrollY !== scrollY) {
     window.scrollTo(scrollX, scrollY);
