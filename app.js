@@ -747,7 +747,7 @@ function pushBattleLog(message) {
 const enemyResistance = (enemy) =>
   Number.isFinite(enemy && enemy.res)
     ? Math.max(0, enemy.res)
-    : Math.max(0, Math.floor(((enemy && enemy.def) || 0) + ((enemy && enemy.spd) || 0)) / 2);
+    : Math.max(0, Math.floor((((enemy && enemy.def) || 0) + ((enemy && enemy.spd) || 0)) / 2));
 
 const resistanceChance = (attackerResistance, defenderResistance) => {
   const attack = Math.max(0, attackerResistance || 0);
@@ -973,6 +973,10 @@ function combatTick() {
       pushBattleLog(act.enemy.name + "의 " + act.move.name + "! " + currentSpecies().name + "에게 " + formatNumber(damage) + " 피해.");
       const effText = effectivenessText(effectiveness);
       if (effText) pushBattleLog(effText + "!");
+
+      if (damage > 0 && battle.playerHP > 0 && act.move.effect) {
+        applyMoveEffect(act.move, null, true, enemyResistance(act.enemy));
+      }
 
       if (battle.playerHP <= 0) {
         if (!battle.revived && inventory.revive > 0) {
@@ -1845,7 +1849,7 @@ function render() {
           </div>
 
           ${statKeys.map((key) => `
-            <div class="statrow" style="--c:${stats[key].color}" title="${stats[key].auxiliary ? "EV " + effectiveEV(key) + " · 해로운 효과 저항 판정은 추후 적용" : "BS " + stats[key].bs + " + IV " + stats[key].iv + " + EV " + effectiveEV(key)}">
+            <div class="statrow" style="--c:${stats[key].color}" title="${stats[key].auxiliary ? "EV " + effectiveEV(key) + " · 상태이상·능력저하 저항에 사용" : "BS " + stats[key].bs + " + IV " + stats[key].iv + " + EV " + effectiveEV(key)}">
               <span>${stats[key].label}</span>
               <strong id="live-stat-${key}">${formatNumber(finalStat(key))}</strong>
             </div>
@@ -1897,34 +1901,3 @@ function render() {
       </section>
     </div>
   `;
-
-  lastRenderedLogs = logs.join("\n");
-
-  if (window.scrollX !== scrollX || window.scrollY !== scrollY) {
-    window.scrollTo(scrollX, scrollY);
-  }
-}
-
-loadGame();
-if (ageWeeks >= LIFESPAN_WEEKS) {
-  rebirth("lifespan");
-} else {
-  render();
-}
-
-window.addEventListener("beforeunload", saveGame);
-
-setInterval(() => {
-  if (action.kind === "training" || action.kind === "move" || action.kind === "explore") {
-    const deltaWeeks = DT / REAL_SECONDS_PER_WEEK;
-    ageWeeks += deltaWeeks;
-    processActionTime(deltaWeeks);
-  } 
-
-  if (ageWeeks >= LIFESPAN_WEEKS) {
-    rebirth("lifespan");
-    return;
-  }
-
-  if (action.kind === "combat") {
-    combatTickProgress += DT;
