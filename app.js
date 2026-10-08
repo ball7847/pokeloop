@@ -100,6 +100,34 @@ const TRAINING_PRACTICES = {
   mind:       { id: "mind",       name: "심법 수련", stats: ["spa", "res"], desc: "특공과 저항력을 함께 단련합니다." }
 };
 const trainingPracticeIds = Object.keys(TRAINING_PRACTICES);
+const TRAINING_REALM_REQUIREMENTS = [12, 36, 120, 500, 2000, 10000, 100000];
+const MAX_TRAINING_REALM = 8;
+let trainingRealms = Object.fromEntries(
+  trainingPracticeIds.map((id) => [id, { level: 1, mastery: 0 }])
+);
+
+const trainingRealm = (practiceId) =>
+  trainingRealms[practiceId] || { level: 1, mastery: 0 };
+
+const trainingRealmRequirement = (practiceId) => {
+  const realm = trainingRealm(practiceId);
+  return realm.level >= MAX_TRAINING_REALM
+    ? null
+    : TRAINING_REALM_REQUIREMENTS[realm.level - 1];
+};
+
+const trainingRealmBonuses = (practiceId) => {
+  const level = Math.max(1, Math.min(MAX_TRAINING_REALM, trainingRealm(practiceId).level));
+  const completedSteps = level - 1;
+  const normalSteps = Math.min(4, completedSteps);
+  const highSteps = Math.max(0, completedSteps - 4);
+  return {
+    speed: normalSteps * 0.05 + highSteps * 0.10,
+    ev: normalSteps * 0.25 + highSteps * 0.50
+  };
+};
+
+const trainingMasteryGain = () => 1;
 
 const WEEKS_PER_MONTH = 4;
 const MONTHS_PER_YEAR = 12;
@@ -277,6 +305,7 @@ function saveGame() {
       tab,
       action,
       battle,
+      trainingRealms,
       stats: Object.fromEntries(
         statKeys.map((key) => [key, { iv: stats[key].iv, ev: stats[key].ev }])
       ),
@@ -324,6 +353,23 @@ function loadGame() {
         if (Number.isFinite(payload.inventory[id])) {
           inventory[id] = Math.max(0, Math.floor(payload.inventory[id]));
         }
+      });
+    }
+
+    if (payload.trainingRealms && typeof payload.trainingRealms === "object") {
+      trainingPracticeIds.forEach((id) => {
+        const saved = payload.trainingRealms[id];
+        if (!saved || typeof saved !== "object") return;
+        const level = Number.isFinite(saved.level)
+          ? Math.max(1, Math.min(MAX_TRAINING_REALM, Math.floor(saved.level)))
+          : 1;
+        const requirement = level >= MAX_TRAINING_REALM
+          ? null
+          : TRAINING_REALM_REQUIREMENTS[level - 1];
+        const mastery = Number.isFinite(saved.mastery)
+          ? Math.max(0, requirement === null ? 0 : Math.min(saved.mastery, Math.max(0, requirement - 0.000001)))
+          : 0;
+        trainingRealms[id] = { level, mastery };
       });
     }
 
@@ -470,9 +516,10 @@ const practiceStatSpeed = (key) =>
   (1 + ivTrainingBonus(stats[key].iv || 0)) * (1 + statFactionBonus(key));
 const trainingPracticeSpeed = (practice) => {
   const targets = practice.stats || [];
-  return targets.length
+  const baseSpeed = targets.length
     ? targets.reduce((sum, key) => sum + practiceStatSpeed(key), 0) / targets.length
     : 1;
+  return baseSpeed * (1 + trainingRealmBonuses(practice.id).speed);
 };
 const roundWeeks = (value) => Math.round(value * 100) / 100;
 const actionTiming = (baseWeeks, speed) => {
@@ -1073,6 +1120,10 @@ function rebirth(reason = "manual") {
     stats[key].ev = 0;
   });
 
+  trainingRealms = Object.fromEntries(
+    trainingPracticeIds.map((id) => [id, { level: 1, mastery: 0 }])
+  );
+
   moves = moves.map((move) => ({
     ...move,
     stars: 0,
@@ -1119,20 +1170,26 @@ function trainingView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">무림 수련</p><h2>노력치 수련</h2></div>
-      <p class="muted">수련법 하나가 두 능력을 함께 단련합니다. 기본 1회는 4주이며, 완료 시 두 능력치가 각각 EV +1씩 증가합니다.</p>
+      <p class="muted">수련 완료마다 해당 수련 숙련도 +1. 수련 경지는 1~8단계이며, 경지가 높을수록 수련속도와 노력치 획득량이 증가합니다. 환생하면 수련 경지는 초기화됩니다.</p>
     </div>
     <div class="table">
-      <div class="tr th"><span>수련법</span><span>상승 능력</span><span>현재 EV</span><span>획득 주기</span><span></span></div>
+      <div class="tr th"><span>수련법</span><span>수련 경지</span><span>숙련도</span><span>상승 능력 / 보너스</span><span></span></div>
       ${trainingPracticeIds.map((id) => {
         const practice = TRAINING_PRACTICES[id];
+        const realm = trainingRealm(id);
+        const requirement = trainingRealmRequirement(id);
+        const bonuses = trainingRealmBonuses(id);
         const timing = trainingTiming(practice);
-        const gain = timing.efficiency;
+        const gain = timing.efficiency * (1 + bonuses.ev);
         return `
           <div class="tr ${action.kind === "training" && action.practiceId === id ? "selected" : ""}" title="${practice.desc}">
             <strong>${practice.name}</strong>
-            <span>${practice.stats.map((key) => stats[key].label).join(" · ")}</span>
-            <span>${practice.stats.map((key) => stats[key].label + " " + formatNumber(effectiveEV(key))).join(" / ")}</span>
-            <span>${trainingInterval(practice).toFixed(2)}주마다 각 EV +${gain.toFixed(2)}</span>
+            <span id="live-training-realm-${id}">${realm.level}단계</span>
+            <span id="live-training-mastery-${id}">${requirement === null ? "최고 경지" : formatNumber(realm.mastery) + " / " + formatNumber(requirement)}</span>
+            <span id="live-training-reward-${id}">
+              ${practice.stats.map((key) => stats[key].label).join(" · ")}<br>
+              속도 +${Math.round(bonuses.speed * 100)}% · 각 EV +${gain.toFixed(2)}
+            </span>
             <button class="action" onclick="train('${id}')">수련</button>
           </div>
         `;
@@ -1454,19 +1511,25 @@ function centerView() {
 function actionPanel() {
   if (action.kind === "training") {
     const practice = TRAINING_PRACTICES[action.practiceId] || TRAINING_PRACTICES.foundation;
+    const realm = trainingRealm(practice.id);
+    const requirement = trainingRealmRequirement(practice.id);
+    const bonuses = trainingRealmBonuses(practice.id);
     const timing = trainingTiming(practice);
-    const gain = timing.efficiency;
+    const gain = timing.efficiency * (1 + bonuses.ev);
     return `
       <div class="progress"><i id="live-action-progress" style="width:${action.progress}%"></i></div>
       <div class="metric"><span>수련 진행</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${trainingInterval(practice).toFixed(2)}주</strong></div>
       <div class="breakdown">
         <div><span>수련법</span><strong>${practice.name}</strong></div>
+        <div><span>수련 경지</span><strong id="live-action-training-realm">${realm.level}단계</strong></div>
+        <div><span>수련 숙련도</span><strong id="live-action-training-mastery">${requirement === null ? "최고 경지" : formatNumber(realm.mastery) + " / " + formatNumber(requirement)}</strong></div>
+        <div><span>경지 수련속도</span><strong id="live-action-training-speed-bonus">+${Math.round(bonuses.speed * 100)}%</strong></div>
+        <div><span>경지 EV 획득량</span><strong id="live-action-training-ev-bonus">+${Math.round(bonuses.ev * 100)}%</strong></div>
         <div><span>상승 능력</span><strong>${practice.stats.map((key) => stats[key].label).join(" · ")}</strong></div>
-        <div><span>기본 소요</span><strong>${TRAINING_WEEKS}주</strong></div>
-        <div><span>최종 수련속도</span><strong>×${trainingPracticeSpeed(practice).toFixed(2)}</strong></div>
-        <div><span>실제 소요</span><strong>${trainingInterval(practice).toFixed(2)}주</strong></div>
-        <div><span>효율 배율</span><strong>×${timing.efficiency.toFixed(2)}</strong></div>
-        <div><span>완료 보상</span><strong>${practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ")}</strong></div>
+        <div><span>최종 수련속도</span><strong id="live-action-training-speed">×${trainingPracticeSpeed(practice).toFixed(2)}</strong></div>
+        <div><span>실제 소요</span><strong id="live-action-training-duration">${trainingInterval(practice).toFixed(2)}주</strong></div>
+        <div><span>완료 보상</span><strong id="live-action-training-reward">${practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ")}</strong></div>
+        <div><span>완료 숙련</span><strong>수련 숙련도 +${trainingMasteryGain().toFixed(0)}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1533,22 +1596,50 @@ function processActionTime(deltaWeeks) {
     }
 
     action.weeks = (action.weeks || 0) + deltaWeeks;
-    const duration = trainingInterval(practice);
-    action.progress = Math.min(100, action.weeks / duration * 100);
 
+    let duration = trainingInterval(practice);
     while (action.kind === "training" && action.weeks >= duration) {
       action.weeks -= duration;
-      const efficiency = trainingTiming(practice).efficiency;
-      const gain = 0.5 * efficiency;
+
+      const bonuses = trainingRealmBonuses(practice.id);
+      const timing = trainingTiming(practice);
+      const gain = timing.efficiency * (1 + bonuses.ev);
       practice.stats.forEach((key) => {
         stats[key].ev += gain;
       });
+
+      const realm = trainingRealm(practice.id);
+      if (realm.level < MAX_TRAINING_REALM) {
+        realm.mastery += trainingMasteryGain();
+
+        let requirement = trainingRealmRequirement(practice.id);
+        while (
+          realm.level < MAX_TRAINING_REALM &&
+          requirement !== null &&
+          realm.mastery >= requirement
+        ) {
+          realm.mastery -= requirement;
+          realm.level += 1;
+          addLog(practice.name + " 수련 경지가 " + realm.level + "단계에 도달했습니다.");
+
+          if (realm.level >= MAX_TRAINING_REALM) {
+            realm.mastery = 0;
+            break;
+          }
+          requirement = trainingRealmRequirement(practice.id);
+        }
+      }
+
       addLog(
         practice.name + " 완료 · " + duration.toFixed(2) + "주 소요 · " +
-        practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ")
+        practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ") +
+        " · 수련 숙련도 +" + trainingMasteryGain().toFixed(0)
       );
-      action.progress = Math.min(100, action.weeks / duration * 100);
+
+      duration = trainingInterval(practice);
     }
+
+    action.progress = Math.min(100, action.weeks / duration * 100);
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
     if (!move) return;
@@ -1688,6 +1779,32 @@ function refreshLiveUI() {
     if (trainingEV) trainingEV.textContent = formatNumber(effectiveEV(key));
   });
 
+  trainingPracticeIds.forEach((id) => {
+    const practice = TRAINING_PRACTICES[id];
+    const realm = trainingRealm(id);
+    const requirement = trainingRealmRequirement(id);
+    const bonuses = trainingRealmBonuses(id);
+    const timing = trainingTiming(practice);
+    const gain = timing.efficiency * (1 + bonuses.ev);
+
+    const realmEl = document.getElementById("live-training-realm-" + id);
+    if (realmEl) realmEl.textContent = realm.level + "단계";
+
+    const masteryEl = document.getElementById("live-training-mastery-" + id);
+    if (masteryEl) {
+      masteryEl.textContent = requirement === null
+        ? "최고 경지"
+        : formatNumber(realm.mastery) + " / " + formatNumber(requirement);
+    }
+
+    const rewardEl = document.getElementById("live-training-reward-" + id);
+    if (rewardEl) {
+      rewardEl.innerHTML =
+        practice.stats.map((key) => stats[key].label).join(" · ") +
+        "<br>속도 +" + Math.round(bonuses.speed * 100) + "% · 각 EV +" + gain.toFixed(2);
+    }
+  });
+
   const totalEVEl = document.getElementById("live-total-ev");
   if (totalEVEl) totalEVEl.textContent = formatNumber(totalEV());
 
@@ -1722,6 +1839,38 @@ function refreshLiveUI() {
     if (actionProgress) actionProgress.style.width = action.progress + "%";
     if (actionProgressText && practice) {
       actionProgressText.textContent = (action.weeks || 0).toFixed(2) + " / " + trainingInterval(practice).toFixed(2) + "주";
+    }
+
+    if (practice) {
+      const realm = trainingRealm(practice.id);
+      const requirement = trainingRealmRequirement(practice.id);
+      const bonuses = trainingRealmBonuses(practice.id);
+      const timing = trainingTiming(practice);
+      const gain = timing.efficiency * (1 + bonuses.ev);
+
+      const realmEl = document.getElementById("live-action-training-realm");
+      if (realmEl) realmEl.textContent = realm.level + "단계";
+
+      const masteryEl = document.getElementById("live-action-training-mastery");
+      if (masteryEl) masteryEl.textContent = requirement === null
+        ? "최고 경지"
+        : formatNumber(realm.mastery) + " / " + formatNumber(requirement);
+
+      const speedBonusEl = document.getElementById("live-action-training-speed-bonus");
+      if (speedBonusEl) speedBonusEl.textContent = "+" + Math.round(bonuses.speed * 100) + "%";
+
+      const evBonusEl = document.getElementById("live-action-training-ev-bonus");
+      if (evBonusEl) evBonusEl.textContent = "+" + Math.round(bonuses.ev * 100) + "%";
+
+      const speedEl = document.getElementById("live-action-training-speed");
+      if (speedEl) speedEl.textContent = "×" + trainingPracticeSpeed(practice).toFixed(2);
+
+      const durationEl = document.getElementById("live-action-training-duration");
+      if (durationEl) durationEl.textContent = trainingInterval(practice).toFixed(2) + "주";
+
+      const rewardEl = document.getElementById("live-action-training-reward");
+      if (rewardEl) rewardEl.textContent =
+        practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ");
     }
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
