@@ -73,7 +73,8 @@ const stats = {
   def: { label: "방어",   bs: currentSpecies().bs.def, iv: randomIV(), ev: 0, color: "#c5a34f" },
   spa: { label: "특공",   bs: currentSpecies().bs.spa, iv: randomIV(), ev: 0, color: "#8a73b5" },
   spd: { label: "특방",   bs: currentSpecies().bs.spd, iv: randomIV(), ev: 0, color: "#58999a" },
-  spe: { label: "스피드", bs: currentSpecies().bs.spe, iv: randomIV(), ev: 0, color: "#5b8fbd" }
+  spe: { label: "스피드", bs: currentSpecies().bs.spe, iv: randomIV(), ev: 0, color: "#5b8fbd" },
+  res: { label: "저항력", bs: 0, iv: 0, ev: 0, color: "#7a8474", auxiliary: true }
 };
 
 function applySpecies(id) {
@@ -90,6 +91,15 @@ function rollNextSpecies() {
 }
 
 const statKeys = Object.keys(stats);
+
+const TRAINING_PRACTICES = {
+  external:   { id: "external",   name: "외공 수련", stats: ["atk", "def"], desc: "공격과 방어를 함께 단련합니다." },
+  foundation: { id: "foundation", name: "근골 수련", stats: ["hp", "atk"],  desc: "체력과 공격을 함께 단련합니다." },
+  internal:   { id: "internal",   name: "내공 수련", stats: ["spa", "spd"], desc: "특공과 특방을 함께 단련합니다." },
+  lightness:  { id: "lightness",  name: "경공 수련", stats: ["hp", "spe"],  desc: "체력과 스피드를 함께 단련합니다." },
+  mind:       { id: "mind",       name: "심법 수련", stats: ["spa", "res"], desc: "특공과 저항력을 함께 단련합니다." }
+};
+const trainingPracticeIds = Object.keys(TRAINING_PRACTICES);
 
 const WEEKS_PER_MONTH = 4;
 const MONTHS_PER_YEAR = 12;
@@ -348,6 +358,16 @@ function loadGame() {
 
     if (payload.action && typeof payload.action.kind === "string") {
       action = payload.action;
+      if (action.kind === "training") {
+        const legacyPracticeByStat = {
+          hp: "foundation", atk: "external", def: "external",
+          spa: "internal", spd: "internal", spe: "lightness"
+        };
+        if (!TRAINING_PRACTICES[action.practiceId]) {
+          action.practiceId = legacyPracticeByStat[action.stat] || "foundation";
+        }
+        delete action.stat;
+      }
       if (["training", "move", "explore"].includes(action.kind) && !Number.isFinite(action.weeks)) {
         action.weeks = 0;
         action.progress = 0;
@@ -446,7 +466,14 @@ const remainingLifeText = () => {
 };
 const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
 const ivTrainingBonus = (iv) => Math.floor(iv / 3) / 100;
-const trainingSpeed = (key) => (1 + ivTrainingBonus(stats[key].iv)) * (1 + statFactionBonus(key));
+const practiceStatSpeed = (key) =>
+  (1 + ivTrainingBonus(stats[key].iv || 0)) * (1 + statFactionBonus(key));
+const trainingPracticeSpeed = (practice) => {
+  const targets = practice.stats || [];
+  return targets.length
+    ? targets.reduce((sum, key) => sum + practiceStatSpeed(key), 0) / targets.length
+    : 1;
+};
 const roundWeeks = (value) => Math.round(value * 100) / 100;
 const actionTiming = (baseWeeks, speed) => {
   const rawWeeks = baseWeeks / Math.max(0.0001, speed);
@@ -455,9 +482,9 @@ const actionTiming = (baseWeeks, speed) => {
   }
   return { weeks: 1, efficiency: speed / baseWeeks };
 };
-const trainingTiming = (key) => actionTiming(TRAINING_WEEKS, trainingSpeed(key));
+const trainingTiming = (practice) => actionTiming(TRAINING_WEEKS, trainingPracticeSpeed(practice));
 const moveTrainingTiming = (move) => actionTiming(MOVE_TRAINING_WEEKS, moveTrainingSpeed(move));
-const trainingInterval = (key) => trainingTiming(key).weeks;
+const trainingInterval = (practice) => trainingTiming(practice).weeks;
 const moveTrainingInterval = (move) => moveTrainingTiming(move).weeks;
 const totalEV = () => statKeys.reduce((sum, key) => sum + effectiveEV(key), 0);
 const effectiveEV = (key) => Math.floor(stats[key].ev);
@@ -626,10 +653,12 @@ function setTab(nextTab) {
   render();
 }
 
-function train(key) {
+function train(practiceId) {
   if (action.kind === "combat") return;
-  action = { kind: "training", stat: key, weeks: 0, progress: 0 };
-  addLog(stats[key].label + " 수련을 시작했습니다.");
+  const practice = TRAINING_PRACTICES[practiceId];
+  if (!practice) return;
+  action = { kind: "training", practiceId, weeks: 0, progress: 0 };
+  addLog(practice.name + "을 시작했습니다.");
   saveGame();
   render();
 }
@@ -1003,7 +1032,7 @@ function rebirth(reason = "manual") {
   applySpecies(rollNextSpecies());
 
   statKeys.forEach((key) => {
-    stats[key].iv = randomIV();
+    stats[key].iv = stats[key].auxiliary ? 0 : randomIV();
     stats[key].ev = 0;
   });
 
@@ -1041,7 +1070,7 @@ function rebirth(reason = "manual") {
 }
 
 function currentActionTitle() {
-  if (action.kind === "training") return stats[action.stat].label + " 수련";
+  if (action.kind === "training") return (TRAINING_PRACTICES[action.practiceId] || TRAINING_PRACTICES.foundation).name;
   if (action.kind === "move") return moves.find((item) => item.id === action.id).name;
   if (action.kind === "explore") return areas.find((item) => item.id === action.id).name + " 탐색";
   if (action.kind === "combat") return "전투 중";
@@ -1052,20 +1081,25 @@ function currentActionTitle() {
 function trainingView() {
   return `
     <div class="heading">
-      <div><p class="eyebrow">육체 수련</p><h2>노력치 수련</h2></div>
-      <p class="muted">EV에는 상한이 없습니다. 기본 수련 1회는 4주이며, 수련속도가 높을수록 실제 소요 주가 소수점 단위로 짧아집니다.</p>
+      <div><p class="eyebrow">무림 수련</p><h2>노력치 수련</h2></div>
+      <p class="muted">수련법 하나가 두 능력을 함께 단련합니다. 기본 1회는 4주이며, 완료 시 총 EV 1을 두 능력에 절반씩 나눠 획득합니다.</p>
     </div>
     <div class="table">
-      <div class="tr th"><span>능력</span><span>EV</span><span>IV</span><span>획득 주기</span><span></span></div>
-      ${statKeys.map((key) => `
-        <div class="tr ${action.kind === "training" && action.stat === key ? "selected" : ""}">
-          <strong>${stats[key].label}</strong>
-          <span id="live-training-ev-${key}">${formatNumber(effectiveEV(key))}</span>
-          <span>${stats[key].iv}</span>
-          <span>${trainingInterval(key).toFixed(2)}주마다 EV +${trainingTiming(key).efficiency.toFixed(2)}</span>
-          <button class="action" onclick="train('${key}')">수련</button>
-        </div>
-      `).join("")}
+      <div class="tr th"><span>수련법</span><span>상승 능력</span><span>현재 EV</span><span>획득 주기</span><span></span></div>
+      ${trainingPracticeIds.map((id) => {
+        const practice = TRAINING_PRACTICES[id];
+        const timing = trainingTiming(practice);
+        const gain = 0.5 * timing.efficiency;
+        return `
+          <div class="tr ${action.kind === "training" && action.practiceId === id ? "selected" : ""}" title="${practice.desc}">
+            <strong>${practice.name}</strong>
+            <span>${practice.stats.map((key) => stats[key].label).join(" · ")}</span>
+            <span>${practice.stats.map((key) => stats[key].label + " " + formatNumber(effectiveEV(key))).join(" / ")}</span>
+            <span>${trainingInterval(practice).toFixed(2)}주마다 각 EV +${gain.toFixed(2)}</span>
+            <button class="action" onclick="train('${id}')">수련</button>
+          </div>
+        `;
+      }).join("")}
     </div>
   `;
 }
@@ -1382,17 +1416,20 @@ function centerView() {
 
 function actionPanel() {
   if (action.kind === "training") {
+    const practice = TRAINING_PRACTICES[action.practiceId] || TRAINING_PRACTICES.foundation;
+    const timing = trainingTiming(practice);
+    const gain = 0.5 * timing.efficiency;
     return `
       <div class="progress"><i id="live-action-progress" style="width:${action.progress}%"></i></div>
-      <div class="metric"><span>수련 진행</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${trainingInterval(action.stat).toFixed(2)}주</strong></div>
+      <div class="metric"><span>수련 진행</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${trainingInterval(practice).toFixed(2)}주</strong></div>
       <div class="breakdown">
+        <div><span>수련법</span><strong>${practice.name}</strong></div>
+        <div><span>상승 능력</span><strong>${practice.stats.map((key) => stats[key].label).join(" · ")}</strong></div>
         <div><span>기본 소요</span><strong>${TRAINING_WEEKS}주</strong></div>
-        <div><span>IV ${stats[action.stat].iv}</span><strong>×${(1 + ivTrainingBonus(stats[action.stat].iv)).toFixed(2)}</strong></div>
-        <div><span>세력 보너스</span><strong>+${(statFactionBonus(action.stat) * 100).toFixed(0)}%</strong></div>
-        <div><span>최종 수련속도</span><strong>×${trainingSpeed(action.stat).toFixed(2)}</strong></div>
-        <div><span>실제 소요</span><strong>${trainingInterval(action.stat).toFixed(2)}주</strong></div>
-        <div><span>효율 배율</span><strong>×${trainingTiming(action.stat).efficiency.toFixed(2)}</strong></div>
-        <div><span>완료 보상</span><strong>EV +${trainingTiming(action.stat).efficiency.toFixed(2)}</strong></div>
+        <div><span>최종 수련속도</span><strong>×${trainingPracticeSpeed(practice).toFixed(2)}</strong></div>
+        <div><span>실제 소요</span><strong>${trainingInterval(practice).toFixed(2)}주</strong></div>
+        <div><span>효율 배율</span><strong>×${timing.efficiency.toFixed(2)}</strong></div>
+        <div><span>완료 보상</span><strong>${practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ")}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1452,16 +1489,27 @@ function actionPanel() {
 
 function processActionTime(deltaWeeks) {
   if (action.kind === "training") {
-    const key = action.stat;
+    const practice = TRAINING_PRACTICES[action.practiceId];
+    if (!practice) {
+      action = { kind: "idle" };
+      return;
+    }
+
     action.weeks = (action.weeks || 0) + deltaWeeks;
-    const duration = trainingInterval(key);
+    const duration = trainingInterval(practice);
     action.progress = Math.min(100, action.weeks / duration * 100);
 
     while (action.kind === "training" && action.weeks >= duration) {
       action.weeks -= duration;
-      const efficiency = trainingTiming(key).efficiency;
-      stats[key].ev += efficiency;
-      addLog(stats[key].label + " 수련 완료 · " + duration.toFixed(2) + "주 소요 · EV +" + efficiency.toFixed(2));
+      const efficiency = trainingTiming(practice).efficiency;
+      const gain = 0.5 * efficiency;
+      practice.stats.forEach((key) => {
+        stats[key].ev += gain;
+      });
+      addLog(
+        practice.name + " 완료 · " + duration.toFixed(2) + "주 소요 · " +
+        practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ")
+      );
       action.progress = Math.min(100, action.weeks / duration * 100);
     }
   } else if (action.kind === "move") {
@@ -1633,9 +1681,10 @@ function refreshLiveUI() {
   const actionProgressText = document.getElementById("live-action-progress-text");
 
   if (action.kind === "training") {
+    const practice = TRAINING_PRACTICES[action.practiceId];
     if (actionProgress) actionProgress.style.width = action.progress + "%";
-    if (actionProgressText) {
-      actionProgressText.textContent = (action.weeks || 0).toFixed(2) + " / " + trainingInterval(action.stat).toFixed(2) + "주";
+    if (actionProgressText && practice) {
+      actionProgressText.textContent = (action.weeks || 0).toFixed(2) + " / " + trainingInterval(practice).toFixed(2) + "주";
     }
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
@@ -1766,7 +1815,7 @@ function render() {
           </div>
 
           ${statKeys.map((key) => `
-            <div class="statrow" style="--c:${stats[key].color}" title="BS ${stats[key].bs} + IV ${stats[key].iv} + EV ${effectiveEV(key)}">
+            <div class="statrow" style="--c:${stats[key].color}" title="${stats[key].auxiliary ? "EV " + effectiveEV(key) + " · 해로운 효과 저항 판정은 추후 적용" : "BS " + stats[key].bs + " + IV " + stats[key].iv + " + EV " + effectiveEV(key)}">
               <span>${stats[key].label}</span>
               <strong id="live-stat-${key}">${formatNumber(finalStat(key))}</strong>
             </div>
