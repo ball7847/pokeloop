@@ -749,18 +749,18 @@ const enemyResistance = (enemy) =>
     ? Math.max(0, enemy.res)
     : Math.max(0, Math.floor((((enemy && enemy.def) || 0) + ((enemy && enemy.spd) || 0)) / 2));
 
-const resistanceChance = (attackerResistance, defenderResistance) => {
-  const attack = Math.max(0, attackerResistance || 0);
-  const defense = Math.max(0, defenderResistance || 0);
-  if (defense <= 0) return 0;
-  return Math.min(0.80, defense / (attack + defense + 100));
+const resistanceChance = (attackerOffense, defenderResistance) => {
+  const offense = Math.max(0, attackerOffense || 0);
+  const resistance = Math.max(0, defenderResistance || 0);
+  if (resistance <= 0) return 0;
+  return Math.min(0.80, resistance / Math.max(1, offense + resistance));
 };
 
-function resistedHarmfulEffect(attackerResistance, defenderResistance) {
-  return Math.random() < resistanceChance(attackerResistance, defenderResistance);
+function resistedHarmfulEffect(attackerOffense, defenderResistance) {
+  return Math.random() < resistanceChance(attackerOffense, defenderResistance);
 }
 
-function applyMoveEffect(move, target, isPlayerTarget = false, attackerResistance = 0) {
+function applyMoveEffect(move, target, isPlayerTarget = false, attackerOffense = 0) {
   if (!move.effect || Math.random() * 100 > move.effect.chance) return;
 
   // Self-inflicted drawbacks are part of the technique itself and cannot be resisted.
@@ -774,7 +774,7 @@ function applyMoveEffect(move, target, isPlayerTarget = false, attackerResistanc
     ? finalStat("res")
     : enemyResistance(target);
 
-  if (resistedHarmfulEffect(attackerResistance, defenderResistance)) {
+  if (resistedHarmfulEffect(attackerOffense, defenderResistance)) {
     const defenderName = isPlayerTarget ? currentSpecies().name : target.name;
     pushBattleLog(defenderName + "은(는) 해로운 효과를 저항했다!");
     return;
@@ -933,9 +933,9 @@ function combatTick() {
       if (effText) pushBattleLog(effText + "!");
 
       if (damage > 0 && currentTarget.currentHP > 0) {
-        applyMoveEffect(act.move, currentTarget, false, finalStat("res"));
+        applyMoveEffect(act.move, currentTarget, false, attackStat);
       } else if (act.move.effect && act.move.effect.kind === "selfSpaDown") {
-        applyMoveEffect(act.move, currentTarget, false, finalStat("res"));
+        applyMoveEffect(act.move, currentTarget, false, attackStat);
       }
 
       if (currentTarget.currentHP <= 0) {
@@ -975,7 +975,7 @@ function combatTick() {
       if (effText) pushBattleLog(effText + "!");
 
       if (damage > 0 && battle.playerHP > 0 && act.move.effect) {
-        applyMoveEffect(act.move, null, true, enemyResistance(act.enemy));
+        applyMoveEffect(act.move, null, true, attackStat);
       }
 
       if (battle.playerHP <= 0) {
@@ -1849,7 +1849,7 @@ function render() {
           </div>
 
           ${statKeys.map((key) => `
-            <div class="statrow" style="--c:${stats[key].color}" title="${stats[key].auxiliary ? "EV " + effectiveEV(key) + " · 상태이상·능력저하 저항에 사용" : "BS " + stats[key].bs + " + IV " + stats[key].iv + " + EV " + effectiveEV(key)}">
+            <div class="statrow" style="--c:${stats[key].color}" title="${stats[key].auxiliary ? "EV " + effectiveEV(key) + " · 상대 공격/특공과 비교해 상태이상·능력저하 저항" : "BS " + stats[key].bs + " + IV " + stats[key].iv + " + EV " + effectiveEV(key)}">
               <span>${stats[key].label}</span>
               <strong id="live-stat-${key}">${formatNumber(finalStat(key))}</strong>
             </div>
@@ -1898,6 +1898,3 @@ function render() {
           <span class="muted">실제 20초 = 게임 1주 · 행동시간 최소 1주 · 1주 미만 속도는 효율로 전환 · 80년 활동시간 = 21시간 20분</span>
         </div>
         <div class="logs" id="live-logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
-      </section>
-    </div>
-  `;
