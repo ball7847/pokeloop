@@ -147,20 +147,20 @@ let action = { kind: "idle" };
 let battle = null;
 
 let moves = [
-  { id: "quick",       name: "전광석화",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", category: "물리" },
-  { id: "bite",        name: "물기",       stars: 0, progress: 0, difficulty: 3, power: 60,  accuracy: 100, priority: 0, type: "악",     soul: 0, stat: "atk", category: "물리" },
-  { id: "tail",        name: "아이언테일", stars: 0, progress: 0, difficulty: 5, power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 30 } },
-  { id: "rocksmash",   name: "바위깨기",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "atk", category: "물리", effect: { kind: "defDown", chance: 50 } },
-  { id: "aerial",      name: "제비반환",   stars: 0, progress: 0, difficulty: 3, power: 60,  accuracy: 100, priority: 0, type: "비행",   soul: 0, stat: "atk", category: "물리" },
-  { id: "watergun",    name: "물대포",     stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "물",     soul: 0, stat: "spa", category: "특수" },
-  { id: "ember",       name: "불꽃세례",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "불꽃",   soul: 0, stat: "spa", category: "특수", effect: { kind: "burn", chance: 10 } },
-  { id: "shock",       name: "전기쇼크",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
-  { id: "confusion",   name: "염동력",     stars: 0, progress: 0, difficulty: 3, power: 50,  accuracy: 100, priority: 0, type: "에스퍼", soul: 0, stat: "spa", category: "특수" },
-  { id: "shadowball",  name: "섀도볼",     stars: 0, progress: 0, difficulty: 5, power: 80,  accuracy: 100, priority: 0, type: "고스트", soul: 0, stat: "spa", category: "특수", effect: { kind: "spdDown", chance: 20 } },
-  { id: "thunderbolt", name: "10만볼트",   stars: 0, progress: 0, difficulty: 6, power: 90, accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", category: "특수", effect: { kind: "paralysis", chance: 10 } },
-  { id: "icebeam",     name: "냉동빔",     stars: 0, progress: 0, difficulty: 6, power: 90, accuracy: 100, priority: 0, type: "얼음",   soul: 0, stat: "spa", category: "특수" },
-  { id: "aura",        name: "파동탄",     stars: 0, progress: 0, difficulty: 6, power: 80, accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "spa", category: "특수" },
-  { id: "meteor",      name: "용성군",     stars: 0, progress: 0, difficulty: 8, power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", category: "특수", effect: { kind: "selfSpaDown", chance: 100 } }
+  { id: "quick",       name: "전광석화",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 1, type: "노말",   soul: 0, stat: "atk", trainingPractice: "external", category: "물리" },
+  { id: "bite",        name: "물기",       stars: 0, progress: 0, difficulty: 3, power: 60,  accuracy: 100, priority: 0, type: "악",     soul: 0, stat: "atk", trainingPractice: "external", category: "물리" },
+  { id: "tail",        name: "아이언테일", stars: 0, progress: 0, difficulty: 5, power: 100, accuracy: 75,  priority: 0, type: "강철",   soul: 0, stat: "atk", trainingPractice: "external", category: "물리", effect: { kind: "defDown", chance: 30 } },
+  { id: "rocksmash",   name: "바위깨기",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "atk", trainingPractice: "external", category: "물리", effect: { kind: "defDown", chance: 50 } },
+  { id: "aerial",      name: "제비반환",   stars: 0, progress: 0, difficulty: 3, power: 60,  accuracy: 100, priority: 0, type: "비행",   soul: 0, stat: "atk", trainingPractice: "external", category: "물리" },
+  { id: "watergun",    name: "물대포",     stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "물",     soul: 0, stat: "spa", trainingPractice: "internal", category: "특수" },
+  { id: "ember",       name: "불꽃세례",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "불꽃",   soul: 0, stat: "spa", trainingPractice: "internal", category: "특수", effect: { kind: "burn", chance: 10 } },
+  { id: "shock",       name: "전기쇼크",   stars: 0, progress: 0, difficulty: 2, power: 40,  accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", trainingPractice: "internal", category: "특수", effect: { kind: "paralysis", chance: 10 } },
+  { id: "confusion",   name: "염동력",     stars: 0, progress: 0, difficulty: 3, power: 50,  accuracy: 100, priority: 0, type: "에스퍼", soul: 0, stat: "spa", trainingPractice: "internal", category: "특수" },
+  { id: "shadowball",  name: "섀도볼",     stars: 0, progress: 0, difficulty: 5, power: 80,  accuracy: 100, priority: 0, type: "고스트", soul: 0, stat: "spa", trainingPractice: "internal", category: "특수", effect: { kind: "spdDown", chance: 20 } },
+  { id: "thunderbolt", name: "10만볼트",   stars: 0, progress: 0, difficulty: 6, power: 90, accuracy: 100, priority: 0, type: "전기",   soul: 0, stat: "spa", trainingPractice: "internal", category: "특수", effect: { kind: "paralysis", chance: 10 } },
+  { id: "icebeam",     name: "냉동빔",     stars: 0, progress: 0, difficulty: 6, power: 90, accuracy: 100, priority: 0, type: "얼음",   soul: 0, stat: "spa", trainingPractice: "internal", category: "특수" },
+  { id: "aura",        name: "파동탄",     stars: 0, progress: 0, difficulty: 6, power: 80, accuracy: 100, priority: 0, type: "격투",   soul: 0, stat: "spa", trainingPractice: "internal", category: "특수" },
+  { id: "meteor",      name: "용성군",     stars: 0, progress: 0, difficulty: 8, power: 130, accuracy: 90,  priority: 0, type: "드래곤", soul: 0, stat: "spa", trainingPractice: "internal", category: "특수", effect: { kind: "selfSpaDown", chance: 100 } }
 ];
 
 const ITEMS = {
@@ -558,7 +558,7 @@ const moveDifficultyBreakdown = (move) => {
   };
 };
 const moveDifficulty = (move) => moveDifficultyBreakdown(move).final;
-const moveTrainingPracticeId = (move) => move.stat === "spa" ? "internal" : "external";
+const moveTrainingPracticeId = (move) => move.trainingPractice;
 const moveRealmRequirement = (move) => {
   const difficulty = moveDifficulty(move);
   if (difficulty < 5) return null;
