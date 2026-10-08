@@ -752,8 +752,8 @@ const enemyResistance = (enemy) =>
 const resistanceChance = (attackerOffense, defenderResistance) => {
   const offense = Math.max(0, attackerOffense || 0);
   const resistance = Math.max(0, defenderResistance || 0);
-  if (resistance <= 0) return 0;
-  return Math.min(0.80, resistance / Math.max(1, offense + resistance));
+  if (resistance <= offense || resistance <= 0) return 0;
+  return Math.min(0.80, 1 - offense / resistance);
 };
 
 function resistedHarmfulEffect(attackerOffense, defenderResistance) {
