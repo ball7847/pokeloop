@@ -92,6 +92,28 @@ function rollNextSpecies() {
 
 const statKeys = Object.keys(stats);
 
+const POKEMON_TYPES = [
+  "노말", "불꽃", "물", "전기", "풀", "얼음", "격투", "독", "땅",
+  "비행", "에스퍼", "벌레", "바위", "고스트", "드래곤", "악", "강철", "페어리"
+];
+let typeAssimilation = Object.fromEntries(POKEMON_TYPES.map((type) => [type, 0]));
+
+const storedTypeAssimilation = (type) =>
+  Math.max(0, Math.min(200, Number(typeAssimilation[type]) || 0));
+
+const effectivePlayerTypeAssimilation = (type) =>
+  Math.max(storedTypeAssimilation(type), currentSpecies().types.includes(type) ? 100 : 0);
+
+const effectiveEnemyTypeAssimilation = (enemy, type) => {
+  const stored = enemy && enemy.typeAssimilation && Number.isFinite(enemy.typeAssimilation[type])
+    ? Math.max(0, Math.min(200, enemy.typeAssimilation[type]))
+    : 0;
+  return Math.max(stored, enemy && Array.isArray(enemy.types) && enemy.types.includes(type) ? 100 : 0);
+};
+
+const typeAttackMultiplier = (assimilation) => 1 + Math.max(0, Math.min(200, assimilation)) / 200;
+const typeDefenseMultiplier = (assimilation) => 1 / typeAttackMultiplier(assimilation);
+
 const TRAINING_PRACTICES = {
   external:   { id: "external",   name: "외공 수련", stats: ["atk", "def"], desc: "공격과 방어를 함께 단련합니다." },
   foundation: { id: "foundation", name: "근골 수련", stats: ["hp", "atk"],  desc: "체력과 공격을 함께 단련합니다." },
@@ -305,6 +327,7 @@ function saveGame() {
       tab,
       action,
       battle,
+      typeAssimilation,
       trainingRealms,
       stats: Object.fromEntries(
         statKeys.map((key) => [key, { iv: stats[key].iv, ev: stats[key].ev }])
@@ -352,6 +375,14 @@ function loadGame() {
       itemIds.forEach((id) => {
         if (Number.isFinite(payload.inventory[id])) {
           inventory[id] = Math.max(0, Math.floor(payload.inventory[id]));
+        }
+      });
+    }
+
+    if (payload.typeAssimilation && typeof payload.typeAssimilation === "object") {
+      POKEMON_TYPES.forEach((type) => {
+        if (Number.isFinite(payload.typeAssimilation[type])) {
+          typeAssimilation[type] = Math.max(0, Math.min(200, payload.typeAssimilation[type]));
         }
       });
     }
@@ -642,11 +673,21 @@ function typeEffectiveness(moveType, targetTypes) {
   }, 1);
 }
 
-function combatDamage({ attackerStat, defenderStat, power, stab, effectiveness }) {
+function combatDamage({
+  attackerStat,
+  defenderStat,
+  power,
+  attackTypeMultiplier = 1,
+  defenseTypeMultiplier = 1,
+  effectiveness
+}) {
   const ratio = Math.max(0.15, attackerStat / Math.max(1, defenderStat));
   const base = Math.max(1, (power * ratio) / 2.5);
   const random = 0.85 + Math.random() * 0.15;
-  return Math.max(1, Math.floor(base * stab * effectiveness * random));
+  return Math.max(
+    1,
+    Math.floor(base * attackTypeMultiplier * defenseTypeMultiplier * effectiveness * random)
+  );
 }
 
 function effectivenessText(mult) {
@@ -996,13 +1037,15 @@ function combatTick() {
         ? currentTarget.spd * currentTarget.status.spdMod
         : currentTarget.def * currentTarget.status.defMod;
       const power = act.move.system ? act.move.power : moveCombatPower(act.move);
-      const stab = currentSpecies().types.includes(act.move.type) ? 1.5 : 1;
       const effectiveness = typeEffectiveness(act.move.type, currentTarget.types);
+      const attackAssimilation = effectivePlayerTypeAssimilation(act.move.type);
+      const defenseAssimilation = effectiveEnemyTypeAssimilation(currentTarget, act.move.type);
       const damage = effectiveness === 0 ? 0 : combatDamage({
         attackerStat: attackStat,
         defenderStat: defenseStat,
         power,
-        stab,
+        attackTypeMultiplier: typeAttackMultiplier(attackAssimilation),
+        defenseTypeMultiplier: typeDefenseMultiplier(defenseAssimilation),
         effectiveness
       });
 
@@ -1043,13 +1086,15 @@ function combatTick() {
         ? act.enemy.spa
         : statusPhysicalAttack(act.enemy.atk, act.enemy.status);
       const defenseStat = act.move.category === "특수" ? finalStat("spd") : finalStat("def");
-      const stab = act.enemy.types.includes(act.move.type) ? 1.5 : 1;
       const effectiveness = typeEffectiveness(act.move.type, currentSpecies().types);
+      const attackAssimilation = effectiveEnemyTypeAssimilation(act.enemy, act.move.type);
+      const defenseAssimilation = effectivePlayerTypeAssimilation(act.move.type);
       const damage = effectiveness === 0 ? 0 : combatDamage({
         attackerStat: attackStat,
         defenderStat: defenseStat,
         power: act.move.power,
-        stab,
+        attackTypeMultiplier: typeAttackMultiplier(attackAssimilation),
+        defenseTypeMultiplier: typeDefenseMultiplier(defenseAssimilation),
         effectiveness
       });
 
@@ -1361,6 +1406,7 @@ function battleView() {
           <span>공격 ${formatNumber(finalStat("atk"))}</span>
           <span>특공 ${formatNumber(finalStat("spa"))}</span>
           <span>방어 ${formatNumber(finalStat("def"))}</span>
+          <span>타입 동화 ${currentSpecies().types.map((type) => type + " " + effectivePlayerTypeAssimilation(type).toFixed(0) + "%").join(" · ")}</span>
           <span id="live-revive-count">기력의조각 ${inventory.revive}</span>
         </div>
         <div class="status-line" id="live-player-status">
