@@ -2105,7 +2105,7 @@ function render() {
           </div>
 
           ${statKeys.map((key) => `
-            <div class="statrow" style="--c:${stats[key].color}" title="${stats[key].auxiliary ? "EV " + effectiveEV(key) + " · 상대 공격/특공과 비교해 상태이상·능력저하 저항" : "BS " + stats[key].bs + " + IV " + stats[key].iv + " + EV " + effectiveEV(key)}">
+            <div class="statrow" style="--c:${stats[key].color}" title="${stats[key].auxiliary ? "EV " + effectiveEV(key) + " · 해로운 효과 저항 판정은 추후 적용" : "BS " + stats[key].bs + " + IV " + stats[key].iv + " + EV " + effectiveEV(key)}">
               <span>${stats[key].label}</span>
               <strong id="live-stat-${key}">${formatNumber(finalStat(key))}</strong>
             </div>
@@ -2154,3 +2154,67 @@ function render() {
           <span class="muted">실제 20초 = 게임 1주 · 행동시간 최소 1주 · 1주 미만 속도는 효율로 전환 · 80년 활동시간 = 21시간 20분</span>
         </div>
         <div class="logs" id="live-logs">${logs.map((line) => '<p>' + line + '</p>').join("")}</div>
+      </section>
+    </div>
+  `;
+
+  lastRenderedLogs = logs.join("\n");
+
+  if (window.scrollX !== scrollX || window.scrollY !== scrollY) {
+    window.scrollTo(scrollX, scrollY);
+  }
+}
+
+loadGame();
+if (ageWeeks >= LIFESPAN_WEEKS) {
+  rebirth("lifespan");
+} else {
+  render();
+}
+
+window.addEventListener("beforeunload", saveGame);
+
+setInterval(() => {
+  if (action.kind === "training" || action.kind === "move" || action.kind === "explore") {
+    const deltaWeeks = DT / REAL_SECONDS_PER_WEEK;
+    ageWeeks += deltaWeeks;
+    processActionTime(deltaWeeks);
+  } 
+
+  if (ageWeeks >= LIFESPAN_WEEKS) {
+    rebirth("lifespan");
+    return;
+  }
+
+  if (action.kind === "combat") {
+    combatTickProgress += DT;
+    while (combatTickProgress >= 1 && action.kind === "combat") {
+      combatTickProgress -= 1;
+      combatTick();
+      if (action.kind === "combat") refreshCombatUI();
+    }
+  } else if (action.kind === "repeatWait") {
+    combatTickProgress = 0;
+    if (battle && battle.repeat && Date.now() >= action.until) {
+      const area = areas.find((item) => item.id === action.areaId);
+      battle = null;
+      tab = "explore";
+      action = { kind: "explore", id: area.id, weeks: 0, progress: 0, repeat: true };
+      addLog(area.name + " 재탐색을 시작했습니다.");
+      saveGame();
+      render();
+    }
+  } else {
+    combatTickProgress = 0;
+  }
+
+  if (Date.now() - lastSaveAt >= 1000) {
+    saveGame();
+  }
+
+  renderAccumulator += DT;
+  if (renderAccumulator >= RENDER_INTERVAL) {
+    renderAccumulator = 0;
+    refreshLiveUI();
+  }
+}, TICK_MS);
