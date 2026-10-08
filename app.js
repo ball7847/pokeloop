@@ -558,6 +558,23 @@ const moveDifficultyBreakdown = (move) => {
   };
 };
 const moveDifficulty = (move) => moveDifficultyBreakdown(move).final;
+const moveTrainingPracticeId = (move) => move.stat === "spa" ? "internal" : "external";
+const moveRealmRequirement = (move) => {
+  const difficulty = moveDifficulty(move);
+  if (difficulty < 5) return null;
+  const practiceId = moveTrainingPracticeId(move);
+  return {
+    practiceId,
+    practice: TRAINING_PRACTICES[practiceId],
+    requiredLevel: difficulty,
+    currentLevel: trainingRealm(practiceId).level
+  };
+};
+const canLearnMove = (move) => {
+  if (!move || move.stars > 0) return true;
+  const requirement = moveRealmRequirement(move);
+  return !requirement || requirement.currentLevel >= requirement.requiredLevel;
+};
 const difficultyMultiplier = (difficulty) => DIFFICULTY_MULTIPLIER[difficulty] || DIFFICULTY_MULTIPLIER[8];
 const moveTrainingSpeed = (move) =>
   (1 + ivTrainingBonus(stats[move.stat].iv)) *
@@ -713,6 +730,20 @@ function train(practiceId) {
 function trainMove(id) {
   if (action.kind === "combat") return;
   const move = moves.find((item) => item.id === id);
+  if (!move) return;
+
+  if (move.stars <= 0 && !canLearnMove(move)) {
+    const requirement = moveRealmRequirement(move);
+    addLog(
+      move.name + " 습득 실패 · " +
+      requirement.practice.name + " " + requirement.requiredLevel + "단계가 필요합니다. " +
+      "(현재 " + requirement.currentLevel + "단계)"
+    );
+    saveGame();
+    refreshLiveUI();
+    return;
+  }
+
   action = { kind: "move", id, weeks: 0 };
   addLog(move.name + " 수련을 시작했습니다.");
   saveGame();
@@ -1212,7 +1243,7 @@ function movesView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">무공 수련</p><h2>기술</h2></div>
-      <p class="muted">10성은 완성, 12성은 대성. 기술마다 기본 난이도 1~8이 있으며, 자신의 타입이면 -1, 종족 특기 기술이면 -1이 적용됩니다. 최종 난이도는 최소 1입니다.</p>
+      <p class="muted">10성은 완성, 12성은 대성. 기술마다 기본 난이도 1~8이 있으며, 자신의 타입이면 -1, 종족 특기 기술이면 -1이 적용됩니다. 최종 난이도 5 이상 기술은 같은 단계의 관련 수련 경지가 있어야 최초 습득할 수 있습니다.</p>
     </div>
     <section class="move-loadout">
       <div class="move-loadout-head">
@@ -1232,7 +1263,10 @@ function movesView() {
       </div>
     </section>
     <div class="cards">
-      ${moves.map((move) => `
+      ${moves.map((move) => {
+        const realmRequirement = moveRealmRequirement(move);
+        const learnable = canLearnMove(move);
+        return `
         <article class="card">
           <div class="cardtop">
             <div><h3>${move.name}</h3><span class="muted">난이도 ${moveDifficulty(move)}</span></div>
@@ -1248,12 +1282,14 @@ function movesView() {
             <div><dt>부가 효과</dt><dd>${moveEffectText(move)}</dd></div>
             <div><dt>현재 실전 위력</dt><dd id="live-move-power-${move.id}">${move.stars ? moveCombatPower(move) : "-"}</dd></div>
             <div><dt>연동 IV</dt><dd>${stats[move.stat].label} IV ${stats[move.stat].iv}</dd></div>
-            <div><dt>기본 난이도</dt><dd>${move.difficulty}</dd></div>\n            <div><dt>최종 난이도</dt><dd>${moveDifficulty(move)}${moveDifficultyBreakdown(move).typeBonus ? " · 타입 -1" : ""}${moveDifficultyBreakdown(move).specialBonus ? " · 특기 -1" : ""}</dd></div>\n            <div><dt>난이도 배율</dt><dd>×${difficultyMultiplier(moveDifficulty(move)).toFixed(2)}</dd></div>
+            <div><dt>기본 난이도</dt><dd>${move.difficulty}</dd></div>\n            <div><dt>최종 난이도</dt><dd>${moveDifficulty(move)}${moveDifficultyBreakdown(move).typeBonus ? " · 타입 -1" : ""}${moveDifficultyBreakdown(move).specialBonus ? " · 특기 -1" : ""}</dd></div>
+            <div><dt>습득 경지</dt><dd id="live-move-realm-${move.id}">${realmRequirement ? realmRequirement.practice.name + " " + realmRequirement.requiredLevel + "단계 · 현재 " + realmRequirement.currentLevel + "단계" : "조건 없음"}</dd></div>
+            <div><dt>난이도 배율</dt><dd>×${difficultyMultiplier(moveDifficulty(move)).toFixed(2)}</dd></div>
             <div><dt>수련 속도</dt><dd>×${moveTrainingSpeed(move).toFixed(2)}</dd></div>
             <div><dt>전생 숙련</dt><dd>+${move.soul.toFixed(1)}%</dd></div>
           </dl>
           <div class="move-card-actions">
-            <button id="live-move-train-${move.id}" class="action" onclick="trainMove('${move.id}')">${move.stars ? "수련" : "습득 수련"}</button>
+            <button id="live-move-train-${move.id}" class="action" ${move.stars <= 0 && !learnable ? "disabled" : ""} onclick="trainMove('${move.id}')">${move.stars ? "수련" : learnable ? "습득 수련" : "경지 부족"}</button>
             <button
               id="live-move-equip-${move.id}"
               class="ghost ${moveLoadout.includes(move.id) ? "equipped" : ""}"
@@ -1262,7 +1298,8 @@ function movesView() {
             >${moveLoadout.includes(move.id) ? "장착 해제" : "전투 장착"}</button>
           </div>
         </article>
-      `).join("")}
+      `;
+      }).join("")}
     </div>
   `;
 }
@@ -1719,7 +1756,19 @@ function refreshMoveMetaUI(move, loadoutChanged = false) {
   if (power) power.textContent = move.stars ? moveCombatPower(move) : "-";
 
   const trainButton = document.getElementById("live-move-train-" + move.id);
-  if (trainButton) trainButton.textContent = move.stars ? "수련" : "습득 수련";
+  if (trainButton) {
+    const learnable = canLearnMove(move);
+    trainButton.disabled = move.stars <= 0 && !learnable;
+    trainButton.textContent = move.stars ? "수련" : learnable ? "습득 수련" : "경지 부족";
+  }
+
+  const realmRequirement = moveRealmRequirement(move);
+  const realmEl = document.getElementById("live-move-realm-" + move.id);
+  if (realmEl) {
+    realmEl.textContent = realmRequirement
+      ? realmRequirement.practice.name + " " + realmRequirement.requiredLevel + "단계 · 현재 " + realmRequirement.currentLevel + "단계"
+      : "조건 없음";
+  }
 
   const equipButton = document.getElementById("live-move-equip-" + move.id);
   if (equipButton) {
@@ -1815,6 +1864,21 @@ function refreshLiveUI() {
   if (highestMasteryEl) highestMasteryEl.textContent = Math.max(...moves.map((move) => move.stars)) + "성";
 
   moves.forEach((move) => {
+    const trainButton = document.getElementById("live-move-train-" + move.id);
+    if (trainButton) {
+      const learnable = canLearnMove(move);
+      trainButton.disabled = move.stars <= 0 && !learnable;
+      trainButton.textContent = move.stars ? "수련" : learnable ? "습득 수련" : "경지 부족";
+    }
+
+    const realmRequirement = moveRealmRequirement(move);
+    const realmEl = document.getElementById("live-move-realm-" + move.id);
+    if (realmEl) {
+      realmEl.textContent = realmRequirement
+        ? realmRequirement.practice.name + " " + realmRequirement.requiredLevel + "단계 · 현재 " + realmRequirement.currentLevel + "단계"
+        : "조건 없음";
+    }
+
     const progress = document.getElementById("live-move-progress-" + move.id);
     if (progress) progress.style.width = move.progress + "%";
 
