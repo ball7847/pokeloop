@@ -127,7 +127,7 @@ const trainingRealmBonuses = (practiceId) => {
   };
 };
 
-const trainingMasteryGain = () => 1;
+const trainingMasteryGain = () => 1 + ivTrainingBonus(averageCoreIV());
 
 const WEEKS_PER_MONTH = 4;
 const MONTHS_PER_YEAR = 12;
@@ -511,6 +511,9 @@ const remainingLifeText = () => {
   return y + "년 " + m + "개월 " + w + "주";
 };
 const lifespanProgress = () => Math.min(100, ageWeeks / LIFESPAN_WEEKS * 100);
+const CORE_IV_STATS = ["hp", "atk", "def", "spa", "spd", "spe"];
+const averageCoreIV = () =>
+  CORE_IV_STATS.reduce((sum, key) => sum + (stats[key].iv || 0), 0) / CORE_IV_STATS.length;
 const ivTrainingBonus = (iv) => Math.floor(iv / 3) / 100;
 const practiceStatSpeed = (key) =>
   (1 + ivTrainingBonus(stats[key].iv || 0)) * (1 + statFactionBonus(key));
@@ -1566,7 +1569,8 @@ function actionPanel() {
         <div><span>최종 수련속도</span><strong id="live-action-training-speed">×${trainingPracticeSpeed(practice).toFixed(2)}</strong></div>
         <div><span>실제 소요</span><strong id="live-action-training-duration">${trainingInterval(practice).toFixed(2)}주</strong></div>
         <div><span>완료 보상</span><strong id="live-action-training-reward">${practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ")}</strong></div>
-        <div><span>완료 숙련</span><strong>수련 숙련도 +${trainingMasteryGain().toFixed(0)}</strong></div>
+        <div><span>6종 평균 IV</span><strong>${averageCoreIV().toFixed(1)} · 숙련 +${(ivTrainingBonus(averageCoreIV()) * 100).toFixed(0)}%</strong></div>
+        <div><span>완료 숙련</span><strong>수련 숙련도 +${trainingMasteryGain().toFixed(2)}</strong></div>
       </div>
       <button class="ghost full" onclick="stopAction()">중단</button>
     `;
@@ -1670,7 +1674,7 @@ function processActionTime(deltaWeeks) {
       addLog(
         practice.name + " 완료 · " + duration.toFixed(2) + "주 소요 · " +
         practice.stats.map((key) => stats[key].label + " EV +" + gain.toFixed(2)).join(" · ") +
-        " · 수련 숙련도 +" + trainingMasteryGain().toFixed(0)
+        " · 수련 숙련도 +" + trainingMasteryGain().toFixed(2)
       );
 
       duration = trainingInterval(practice);
