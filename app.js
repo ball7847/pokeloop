@@ -1653,21 +1653,11 @@ function processActionTime(deltaWeeks) {
       if (realm.level < MAX_TRAINING_REALM) {
         realm.mastery += trainingMasteryGain();
 
-        let requirement = trainingRealmRequirement(practice.id);
-        while (
-          realm.level < MAX_TRAINING_REALM &&
-          requirement !== null &&
-          realm.mastery >= requirement
-        ) {
-          realm.mastery -= requirement;
+        const requirement = trainingRealmRequirement(practice.id);
+        if (requirement !== null && realm.mastery >= requirement) {
           realm.level += 1;
+          realm.mastery = 0;
           addLog(practice.name + " 수련 경지가 " + realm.level + "단계에 도달했습니다.");
-
-          if (realm.level >= MAX_TRAINING_REALM) {
-            realm.mastery = 0;
-            break;
-          }
-          requirement = trainingRealmRequirement(practice.id);
         }
       }
 
