@@ -744,8 +744,41 @@ function pushBattleLog(message) {
   battle.battleLog = battle.battleLog.slice(0, 24);
 }
 
-function applyMoveEffect(move, target, isPlayerTarget = false) {
+const enemyResistance = (enemy) =>
+  Number.isFinite(enemy && enemy.res)
+    ? Math.max(0, enemy.res)
+    : Math.max(0, Math.floor(((enemy && enemy.def) || 0) + ((enemy && enemy.spd) || 0)) / 2);
+
+const resistanceChance = (attackerResistance, defenderResistance) => {
+  const attack = Math.max(0, attackerResistance || 0);
+  const defense = Math.max(0, defenderResistance || 0);
+  if (defense <= 0) return 0;
+  return Math.min(0.80, defense / (attack + defense + 100));
+};
+
+function resistedHarmfulEffect(attackerResistance, defenderResistance) {
+  return Math.random() < resistanceChance(attackerResistance, defenderResistance);
+}
+
+function applyMoveEffect(move, target, isPlayerTarget = false, attackerResistance = 0) {
   if (!move.effect || Math.random() * 100 > move.effect.chance) return;
+
+  // Self-inflicted drawbacks are part of the technique itself and cannot be resisted.
+  if (move.effect.kind === "selfSpaDown") {
+    battle.playerStatus.spaMod = Math.max(0.4, battle.playerStatus.spaMod * 0.67);
+    pushBattleLog(currentSpecies().name + "의 특공이 크게 떨어졌다!");
+    return;
+  }
+
+  const defenderResistance = isPlayerTarget
+    ? finalStat("res")
+    : enemyResistance(target);
+
+  if (resistedHarmfulEffect(attackerResistance, defenderResistance)) {
+    const defenderName = isPlayerTarget ? currentSpecies().name : target.name;
+    pushBattleLog(defenderName + "은(는) 해로운 효과를 저항했다!");
+    return;
+  }
 
   if (move.effect.kind === "burn") {
     const status = isPlayerTarget ? battle.playerStatus : target.status;
@@ -765,9 +798,6 @@ function applyMoveEffect(move, target, isPlayerTarget = false) {
   } else if (move.effect.kind === "spdDown" && !isPlayerTarget) {
     target.status.spdMod = Math.max(0.5, target.status.spdMod * 0.8);
     pushBattleLog(target.name + "의 특방이 떨어졌다!");
-  } else if (move.effect.kind === "selfSpaDown") {
-    battle.playerStatus.spaMod = Math.max(0.4, battle.playerStatus.spaMod * 0.67);
-    pushBattleLog(currentSpecies().name + "의 특공이 크게 떨어졌다!");
   }
 }
 
@@ -903,9 +933,9 @@ function combatTick() {
       if (effText) pushBattleLog(effText + "!");
 
       if (damage > 0 && currentTarget.currentHP > 0) {
-        applyMoveEffect(act.move, currentTarget, false);
+        applyMoveEffect(act.move, currentTarget, false, finalStat("res"));
       } else if (act.move.effect && act.move.effect.kind === "selfSpaDown") {
-        applyMoveEffect(act.move, currentTarget, false);
+        applyMoveEffect(act.move, currentTarget, false, finalStat("res"));
       }
 
       if (currentTarget.currentHP <= 0) {
@@ -1082,14 +1112,14 @@ function trainingView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">무림 수련</p><h2>노력치 수련</h2></div>
-      <p class="muted">수련법 하나가 두 능력을 함께 단련합니다. 기본 1회는 4주이며, 완료 시 총 EV 1을 두 능력에 절반씩 나눠 획득합니다.</p>
+      <p class="muted">수련법 하나가 두 능력을 함께 단련합니다. 기본 1회는 4주이며, 완료 시 두 능력치가 각각 EV +1씩 증가합니다.</p>
     </div>
     <div class="table">
       <div class="tr th"><span>수련법</span><span>상승 능력</span><span>현재 EV</span><span>획득 주기</span><span></span></div>
       ${trainingPracticeIds.map((id) => {
         const practice = TRAINING_PRACTICES[id];
         const timing = trainingTiming(practice);
-        const gain = 0.5 * timing.efficiency;
+        const gain = timing.efficiency;
         return `
           <div class="tr ${action.kind === "training" && action.practiceId === id ? "selected" : ""}" title="${practice.desc}">
             <strong>${practice.name}</strong>
@@ -1418,7 +1448,7 @@ function actionPanel() {
   if (action.kind === "training") {
     const practice = TRAINING_PRACTICES[action.practiceId] || TRAINING_PRACTICES.foundation;
     const timing = trainingTiming(practice);
-    const gain = 0.5 * timing.efficiency;
+    const gain = timing.efficiency;
     return `
       <div class="progress"><i id="live-action-progress" style="width:${action.progress}%"></i></div>
       <div class="metric"><span>수련 진행</span><strong id="live-action-progress-text">${(action.weeks || 0).toFixed(2)} / ${trainingInterval(practice).toFixed(2)}주</strong></div>
@@ -1898,33 +1928,3 @@ setInterval(() => {
 
   if (action.kind === "combat") {
     combatTickProgress += DT;
-    while (combatTickProgress >= 1 && action.kind === "combat") {
-      combatTickProgress -= 1;
-      combatTick();
-      if (action.kind === "combat") refreshCombatUI();
-    }
-  } else if (action.kind === "repeatWait") {
-    combatTickProgress = 0;
-    if (battle && battle.repeat && Date.now() >= action.until) {
-      const area = areas.find((item) => item.id === action.areaId);
-      battle = null;
-      tab = "explore";
-      action = { kind: "explore", id: area.id, weeks: 0, progress: 0, repeat: true };
-      addLog(area.name + " 재탐색을 시작했습니다.");
-      saveGame();
-      render();
-    }
-  } else {
-    combatTickProgress = 0;
-  }
-
-  if (Date.now() - lastSaveAt >= 1000) {
-    saveGame();
-  }
-
-  renderAccumulator += DT;
-  if (renderAccumulator >= RENDER_INTERVAL) {
-    renderAccumulator = 0;
-    refreshLiveUI();
-  }
-}, TICK_MS);
