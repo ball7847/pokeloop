@@ -750,10 +750,13 @@ const enemyResistance = (enemy) =>
     : Math.max(0, Math.floor((((enemy && enemy.def) || 0) + ((enemy && enemy.spd) || 0)) / 2));
 
 const resistanceChance = (attackerOffense, defenderResistance) => {
-  const offense = Math.max(0, attackerOffense || 0);
+  const offense = Math.max(1, attackerOffense || 0);
   const resistance = Math.max(0, defenderResistance || 0);
-  if (resistance <= offense || resistance <= 0) return 0;
-  return Math.min(0.80, 1 - offense / resistance);
+  if (resistance <= offense) return 0;
+
+  const ratio = resistance / offense;
+  const percent = Math.min(90, Math.max(0, Math.round((ratio - 1) * 10)));
+  return percent / 100;
 };
 
 function resistedHarmfulEffect(attackerOffense, defenderResistance) {
