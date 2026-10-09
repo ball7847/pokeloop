@@ -464,9 +464,16 @@ function loadGame() {
       if (compatibleEnemies) {
         battle = payload.battle;
         if (!Array.isArray(battle.battleLog)) battle.battleLog = ["전투를 이어서 시작합니다."];
-        if (!battle.playerStatus) battle.playerStatus = { burn: false, paralysis: false, spaMod: 1 };
+        if (!battle.playerStatus || typeof battle.playerStatus !== "object") battle.playerStatus = {};
+        battle.playerStatus.burn = Boolean(battle.playerStatus.burn);
+        battle.playerStatus.paralysis = Boolean(battle.playerStatus.paralysis);
+        battle.playerStatus.spaMod = Number.isFinite(battle.playerStatus.spaMod) ? battle.playerStatus.spaMod : 1;
         battle.enemies.forEach((enemy) => {
-          if (!enemy.status) enemy.status = { burn: false, paralysis: false, defMod: 1, spdMod: 1 };
+          if (!enemy.status || typeof enemy.status !== "object") enemy.status = {};
+          enemy.status.burn = Boolean(enemy.status.burn);
+          enemy.status.paralysis = Boolean(enemy.status.paralysis);
+          enemy.status.defMod = Number.isFinite(enemy.status.defMod) ? enemy.status.defMod : 1;
+          enemy.status.spdMod = Number.isFinite(enemy.status.spdMod) ? enemy.status.spdMod : 1;
         });
       } else {
         battle = null;
@@ -797,6 +804,7 @@ function trainMove(id) {
 function explore(id, repeat = false) {
   if (action.kind === "combat") return;
   const area = areas.find((item) => item.id === id);
+  if (!area) return;
   action = { kind: "explore", id, weeks: 0, progress: 0, repeat };
   addLog(area.name + (repeat ? " 반복 탐험을 시작했습니다." : " 탐색을 시작했습니다."));
   saveGame();
@@ -1240,8 +1248,14 @@ function rebirth(reason = "manual") {
 
 function currentActionTitle() {
   if (action.kind === "training") return (TRAINING_PRACTICES[action.practiceId] || TRAINING_PRACTICES.foundation).name;
-  if (action.kind === "move") return moves.find((item) => item.id === action.id).name;
-  if (action.kind === "explore") return areas.find((item) => item.id === action.id).name + " 탐색";
+  if (action.kind === "move") {
+    const move = moves.find((item) => item.id === action.id);
+    return move ? move.name : "휴식";
+  }
+  if (action.kind === "explore") {
+    const area = areas.find((item) => item.id === action.id);
+    return area ? area.name + " 탐색" : "휴식";
+  }
   if (action.kind === "combat") return "전투 중";
   if (action.kind === "repeatWait") return "재탐색 준비";
   return "휴식";
@@ -1251,7 +1265,7 @@ function trainingView() {
   return `
     <div class="heading">
       <div><p class="eyebrow">무림 수련</p><h2>노력치 수련</h2></div>
-      <p class="muted">수련 완료마다 해당 수련 숙련도 +1. 수련 경지는 1~8단계이며, 경지가 높을수록 수련속도와 노력치 획득량이 증가합니다. 환생하면 수련 경지는 초기화됩니다.</p>
+      <p class="muted">수련 완료마다 기본 숙련도 +1에 6종 IV 평균 보너스가 적용됩니다. 수련 경지는 1~8단계이며, 경지가 높을수록 수련속도와 노력치 획득량이 증가합니다. 환생하면 수련 경지는 초기화됩니다.</p>
     </div>
     <div class="table">
       <div class="tr th"><span>수련법</span><span>수련 경지</span><span>숙련도</span><span>상승 능력 / 보너스</span><span></span></div>
@@ -1721,7 +1735,10 @@ function processActionTime(deltaWeeks) {
     action.progress = Math.min(100, action.weeks / duration * 100);
   } else if (action.kind === "move") {
     const move = moves.find((item) => item.id === action.id);
-    if (!move) return;
+    if (!move) {
+      action = { kind: "idle" };
+      return;
+    }
 
     action.weeks = (action.weeks || 0) + deltaWeeks;
     const duration = moveTrainingInterval(move);
@@ -1770,6 +1787,11 @@ function processActionTime(deltaWeeks) {
 
     if (action.weeks >= EXPLORE_TRAVEL_WEEKS) {
       const area = areas.find((item) => item.id === action.id);
+      if (!area) {
+        action = { kind: "idle" };
+        addLog("저장된 탐험 지역을 찾을 수 없어 탐험을 중단했습니다.");
+        return;
+      }
       addLog(area.name + "에 도착했습니다. 이동에 " + EXPLORE_TRAVEL_WEEKS.toFixed(2) + "주가 소요되었습니다.");
       startBattle(area);
     }
