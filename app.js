@@ -841,10 +841,12 @@ function startBattle(area) {
     repeat,
     playerHP: playerMaxHP,
     playerMaxHP,
+    playerStatus: { burn: false, paralysis: false, spaMod: 1 },
     enemies: area.enemies.map((enemy, index) => ({
       ...enemy,
       id: area.id + "-" + index,
-      currentHP: enemy.hp
+      currentHP: enemy.hp,
+      status: { burn: false, paralysis: false, defMod: 1, spdMod: 1 }
     })),
     turn: 0,
     result: null,
