@@ -67,3 +67,23 @@ test('desktop layout confines scrolling to panels without clipping mobile docume
  assert.match(css,/\@media \(max-width:950px\) \{/);
  assert.match(css,/\.shell \{ height:auto; min-height:100dvh; overflow:visible; \}/);
 });
+
+test('wild card layout follows portrait, basic stats, extras, rewards and footer',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+   const {WildPage,visibleWildBasicStats,visibleWildExtraStats}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+   const html=renderToStaticMarkup(React.createElement(WildPage));
+   assert.equal((html.match(/class="wild-card-upper"/g)||[]).length,3);
+   assert.equal((html.match(/class="wild-extra-stats"/g)||[]).length,3);
+   assert.equal((html.match(/class="wild-rewards"/g)||[]).length,3);
+   assert.equal((html.match(/class="wild-card-footer"/g)||[]).length,3);
+   assert.ok(html.indexOf('wild-card-portrait')<html.indexOf('wild-basic-stats'));
+   assert.ok(html.indexOf('wild-basic-stats')<html.indexOf('wild-extra-stats'));
+   assert.ok(html.indexOf('wild-extra-stats')<html.indexOf('wild-rewards'));
+   assert.match(html,/2,000ms/);
+   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,9);
+   assert.deepEqual(visibleWildBasicStats({hp:3,attack:0,speed:2000}).map(x=>x.key),['hp','speed']);
+   assert.deepEqual(visibleWildExtraStats({extraStats:{dodge:0,critChance:12}}),[['critChance',12]]);
+   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
+ }finally{await vite.close();}
+});
