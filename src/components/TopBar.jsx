@@ -1,0 +1,37 @@
+import React from 'react';
+import {useGameStore} from '../store/useGameStore.js';
+import {visibleBasicStats,formatBasicStat} from '../core/dittoStats.js';
+import {HealthBar} from './CombatPanel.jsx';
+const TOP_STATS=[
+  {key:'hp',label:'HP'},{key:'attack',label:'공격'},
+  {key:'specialAttack',label:'특수공격'},{key:'speed',label:'스피드'},
+  {key:'defense',label:'방어'},{key:'specialDefense',label:'특수방어'}
+];
+export function StatsPanel(){
+  const stats=useGameStore(s=>s.game.dittoStats);
+  const visible=new Set(visibleBasicStats(stats).map(x=>x.key));
+  return <div className="top-stats" aria-label="메타몽 기본 능력치">
+    <div className="ditto-avatar"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png" alt="메타몽" width="64" height="64"/></div>
+    <div className="stat-grid">{TOP_STATS.filter(x=>visible.has(x.key)).map(x=>
+      <div className="stat-box" key={x.key}><span>{x.label}</span><strong>{formatBasicStat(x.key,stats[x.key])}</strong></div>)}</div>
+  </div>;
+}
+function MiniBattle(){
+  const combat=useGameStore(s=>s.game.combat);
+  const dispatch=useGameStore(s=>s.dispatch);
+  if(!combat.active||!combat.enemy)return null;
+  const enemy=combat.enemy;
+  return <section className="mini-combat" aria-label="간이전투 영역">
+    <div className="mini-combat-main">
+      <div className="combat-portrait">{enemy.imageUrl?<img src={enemy.imageUrl} alt={enemy.name}/>:<span aria-hidden="true">?</span>}</div>
+      <div className="combat-bars">
+        <div className="combat-unit enemy"><HealthBar name={enemy.name} hp={enemy.hp} compact/></div>
+        <div className="combat-unit ditto"><HealthBar name="메타몽" hp={combat.dittoHp} compact/></div>
+      </div>
+    </div>
+    <button type="button" className="run-away" onClick={()=>dispatch({type:'FLEE'})}>도망가기</button>
+  </section>;
+}
+export function TopBar(){
+  return <header className="topbar new-topbar"><StatsPanel/><MiniBattle/></header>;
+}
