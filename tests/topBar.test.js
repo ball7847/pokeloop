@@ -5,7 +5,7 @@ import { TOP_STATS, renderTopBar } from '../src/ui/topBar.js';
 test('3-column 2-row stats read row-major in approved order', () => {
   assert.deepEqual(TOP_STATS.map(x => x.label), ['HP','공격','특수공격','스피드','방어','특수방어']);
   const html = renderTopBar();
-  assert.equal((html.match(/class="stat-box"/g) || []).length, 0);
+  assert.equal((html.match(/class="stat-box"/g) || []).length, 3);
 });
 test('combat is right-hand block with only escape control', () => {
   const html = renderTopBar({ battle: { active: true, enemy: { name: '야생 적' } } });
