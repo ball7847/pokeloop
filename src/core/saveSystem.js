@@ -89,6 +89,7 @@ export function writeLocalSave(game,storage=getStorage(),now=Date.now()){
 export function clearLocalSave(storage=getStorage()){
   if(!storage)throw new Error('브라우저 로컬 저장소를 사용할 수 없습니다.');
   storage.removeItem(SAVE_KEY);
+  storage.removeItem(AUTOSAVE_KEY);
 }
 export function readAutoSaveEnabled(storage=getStorage()){
   try{return storage?.getItem(AUTOSAVE_KEY)!=='false';}catch{return true;}
