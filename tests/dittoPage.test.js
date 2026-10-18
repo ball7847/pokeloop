@@ -61,7 +61,7 @@ test('main app persists selected Ditto subtab independently of primary tabs', ()
 test('basic ability tab hides zero values and default minimum damage percentage', () => {
   const stats={hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85};
   const html=renderDittoPage({stats});
-  for(const item of ['HP','공격','스피드','3,000ms']) assert.ok(html.includes(item));
-  assert.doesNotMatch(html,/특수공격|특수방어|<span>방어<\/span>|최소 피해량|85%/);
-  assert.equal((html.match(/class="ditto-detail-stat"/g)||[]).length,3);
+  for(const item of ['HP','공격']) assert.ok(html.includes(item));
+  assert.doesNotMatch(html,/특수공격|특수방어|<span>방어<\/span>|최소 피해량|85%|스피드|3,000ms/);
+  assert.equal((html.match(/class="ditto-detail-stat"/g)||[]).length,2);
 });
