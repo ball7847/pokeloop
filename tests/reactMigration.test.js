@@ -194,3 +194,17 @@ test('Ditto top stats keep 3 columns and six stable slots with hidden zero value
    assert.match(css,/\.stat-grid\{flex:1;min-width:0;display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
  }finally{await vite.close();}
 });
+
+test('energy navigation has approved order and reveals discovered balances only',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try {
+   const {Sidebar,discoveredEnergyItems}=await vite.ssrLoadModule('/src/App.jsx');
+   const html=renderToStaticMarkup(React.createElement(Sidebar,{activeTab:'energy',onTabChange:()=>{}}));
+   assert.ok(html.indexOf('설정')<html.indexOf('메타몽'));
+   assert.ok(html.indexOf('메타몽')<html.indexOf('야생'));
+   assert.ok(html.indexOf('야생')<html.indexOf('도감'));
+   assert.ok(html.indexOf('도감')<html.indexOf('에너지'));
+   assert.match(html,/발견한 에너지가 없습니다/);
+   assert.deepEqual(discoveredEnergyItems({discoveredEnergies:['energy-02'],energyBalances:{'energy-02':42}}),[{id:'energy-02',name:'에너지 2',amount:42}]);
+ }finally{await vite.close();}
+});
