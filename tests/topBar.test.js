@@ -50,10 +50,10 @@ test('combat column remains reserved with no battle', async () => {
   assert.doesNotMatch(renderTopBar(), /class="mini-combat"/);
 });
 
-test('topbar hides zero values, showing only nonzero core stats and not minimum damage', () => {
+test('topbar shows Ditto speed even at its baseline and hides non-core defaults', () => {
   const html = renderTopBar({stats:{hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85}});
-  assert.equal((html.match(/class="stat-box"/g)||[]).length,2);
-  assert.doesNotMatch(html, /3,000ms/);
+  assert.equal((html.match(/class="stat-box"/g)||[]).length,3);
+  assert.match(html, /3,000ms/);
   assert.doesNotMatch(html, /특수공격|특수방어|최소 피해량/);
   assert.match(html, /<span>HP<\/span><strong>10<\/strong>/);
 });

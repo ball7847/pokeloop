@@ -15,7 +15,8 @@ test('React root renders all primary regions and initial stat values',async()=>{
   } finally {await vite.close();}
   for(const label of ['메타몽','야생','도감','설정','기본 능력치'])
     assert.ok(markup.includes(label),label);
-  assert.equal(markup.includes('85%'),false);
+  assert.equal(markup.includes('85%'),true);
+  assert.equal(markup.includes('3,000ms'),true);
   assert.ok(markup.includes('class="ditto-battle-region"'));
   assert.equal(markup.includes('class="mini-combat"'),false);
 });
@@ -135,5 +136,20 @@ test('wild omitted properties resolve to shared defaults without altering encoun
    assert.equal(WILD_POKEMON[2].speed,3000);
    assert.equal(WILD_POKEMON.every(x=>x.defense===0&&x.specialAttack===0&&x.specialDefense===0&&x.minDamagePercent===85),true);
    assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','attack']);
+ }finally{await vite.close();}
+});
+
+test('Ditto detail always shows HP, attack, speed and minimum damage; header shows 3 core stats',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try {
+   const {DittoPage}=await vite.ssrLoadModule('/src/pages/DittoPage.jsx');
+   const {StatsPanel}=await vite.ssrLoadModule('/src/components/TopBar.jsx');
+   const detail=renderToStaticMarkup(React.createElement(DittoPage,{infoTab:'basic',setInfoTab:()=>{}}));
+   const header=renderToStaticMarkup(React.createElement(StatsPanel));
+   for(const value of ['10','1','3,000ms','85%'])assert.ok(detail.includes(value));
+   assert.equal((detail.match(/class="ditto-detail-stat"/g)||[]).length,4);
+   assert.equal((header.match(/class="stat-box"/g)||[]).length,3);
+   assert.ok(header.includes('3,000ms'));
+   assert.equal(header.includes('85%'),false);
  }finally{await vite.close();}
 });

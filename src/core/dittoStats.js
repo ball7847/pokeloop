@@ -32,8 +32,10 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'minDamagePercent', label:'최소 피해량', description:'최종 피해 배율의 하한입니다. 1% 단위로 최대 100%까지 무작위 선택합니다.' }
 ]);
 
+export const ALWAYS_VISIBLE_DITTO_STATS = Object.freeze(['hp','attack','speed','minDamagePercent']);
 export function visibleBasicStats(stats = {}) {
-  return BASIC_STAT_FIELDS.filter(({key}) => !isDefaultStat(key,resolveStats(stats)[key]));
+  const resolved=resolveStats(stats);
+  return BASIC_STAT_FIELDS.filter(({key}) => ALWAYS_VISIBLE_DITTO_STATS.includes(key) || !isDefaultStat(key,resolved[key]));
 }
 export function formatBasicStat(key, value) {
   if (!Number.isFinite(value)) return '—';
