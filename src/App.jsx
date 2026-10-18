@@ -13,7 +13,8 @@ export function discoveredEnergyItems(game){
   return ENERGY_IDS.filter(id=>discovered.includes(id)).map(id=>({id,name:'에너지 '+Number(id.slice(-2)),amount:amounts[id]??0}));
 }
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
-  const items=useGameStore(s=>discoveredEnergyItems(s.game));
+  const game=useGameStore(s=>s.game);
+  const items=discoveredEnergyItems(game);
   return <nav className="sidebar" aria-label="메인 메뉴"><small>MENU</small>
     {TABS.map(([id,label])=><button key={id} className={'tab '+(activeTab===id?'selected':'')}
       type="button" aria-current={activeTab===id?'page':undefined}
@@ -41,7 +42,8 @@ function DexPage(){return <><div className="intro"><span>COLLECTION</span><h2>�
     <p>도감 데이터는 이후 추가합니다.</p></div></>}
 function EnergyPage(){
   const [purchaseTab,setPurchaseTab]=useState('stats');
-  const items=useGameStore(s=>discoveredEnergyItems(s.game));
+  const game=useGameStore(s=>s.game);
+  const items=discoveredEnergyItems(game);
   return <><div className="intro"><span>ENERGY</span><h2>에너지</h2><p>발견한 에너지를 확인하고 강화 및 자동화를 관리합니다.</p></div>
     <section className="panel energy-page-balances"><h3>보유 에너지 <small>{items.length}/18종 발견</small></h3>
       {items.length?<div className="energy-balance-grid">{items.map(item=><div key={item.id} className="energy-balance-item"><span>{item.name}</span><strong>{String(item.amount)}</strong></div>)}</div>:<p>아직 발견한 에너지가 없습니다.</p>}</section>
