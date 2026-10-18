@@ -1,32 +1,28 @@
 import React from 'react';
 
-// Original Pokémon HOME images are not bundled until their file bytes have
-// been acquired and verified. Never request unverified external media paths.
-export const HOME_STAT_FILES=Object.freeze({
-  hp:'hp.png',
-  attack:'attack.png',
-  defense:'defense.png',
-  specialAttack:'specialAttack.png',
-  specialDefense:'specialDefense.png',
-  speed:'speed.png'
+// Local SVG vectorizations of the six user-provided Pokémon HOME PNG silhouettes.
+export const HOME_STAT_FILES = Object.freeze({
+  hp:'hp.svg', attack:'attack.svg', defense:'defense.svg',
+  specialAttack:'specialAttack.svg', specialDefense:'specialDefense.svg', speed:'speed.svg'
 });
-const ABBREVIATIONS=Object.freeze({
+const SHORT_LABELS=Object.freeze({
   hp:'HP',attack:'공격',defense:'방어',
   specialAttack:'특공',specialDefense:'특방',speed:'스피드'
 });
-export function homeStatIconUrl(_key) {
-  // Assets unavailable: return null instead of creating broken requests.
-  return null;
+export function homeStatIconUrl(stat) {
+  const file=HOME_STAT_FILES[stat];
+  return file ? import.meta.env.BASE_URL+'assets/stats/'+file : null;
 }
 export function StatIcon({stat,className=''}) {
-  const url=homeStatIconUrl(stat);
-  return url?<img className={'home-stat-icon '+className} src={url} alt="" width="18" height="18" />:null;
+  const src=homeStatIconUrl(stat);
+  return src?<img className={'home-stat-icon '+className} src={src} alt="" width="18" height="18" loading="eager"/>:null;
 }
 export function StatLabel({stat,label,compact=false}) {
-  const name=label??ABBREVIATIONS[stat]??stat;
-  const hasIcon=Boolean(homeStatIconUrl(stat));
+  const name=label??SHORT_LABELS[stat]??stat;
+  const src=homeStatIconUrl(stat);
   return <span className="stat-label" title={name}>
-    {hasIcon&&<StatIcon stat={stat}/>}
-    <span className="stat-label-text">{compact?(hasIcon?'':ABBREVIATIONS[stat]??name):name}</span>
+    {src?<StatIcon stat={stat}/>:null}
+    {!compact&&<span className="stat-label-text">{name}</span>}
+    {compact&&!src&&<span className="stat-label-text">{SHORT_LABELS[stat]??name}</span>}
   </span>;
 }

@@ -90,11 +90,19 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
  }finally{await vite.close();}
 });
 
-test('missing original HOME assets display readable labels without broken image requests',async()=>{
+test('six local user-supplied stat silhouettes appear without duplicate text',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- try{
-   const {homeStatIconUrl}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
-   assert.equal(homeStatIconUrl('hp'),null);
+ try {
+   const {homeStatIconUrl,HOME_STAT_FILES}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+   assert.equal(Object.keys(HOME_STAT_FILES).length,6);
+   for(const key of Object.keys(HOME_STAT_FILES)){
+     const url=homeStatIconUrl(key);
+     assert.match(url,/assets\/stats\/.*\.svg$/);
+     const name=HOME_STAT_FILES[key];
+     const svg=readFileSync(new URL('../public/assets/stats/'+name,import.meta.url),'utf8');
+     assert.match(svg,/<svg/);
+     assert.match(svg,/<path/);
+   }
    const {StatsPanel}=await vite.ssrLoadModule('/src/components/TopBar.jsx');
    const {DittoPage}=await vite.ssrLoadModule('/src/pages/DittoPage.jsx');
    const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
@@ -102,16 +110,16 @@ test('missing original HOME assets display readable labels without broken image 
    const detail=renderToStaticMarkup(React.createElement(DittoPage,{infoTab:'basic',setInfoTab:()=>{}}));
    const wild=renderToStaticMarkup(React.createElement(WildPage));
    for(const html of [header,detail,wild]){
-     assert.equal(html.includes('archives.bulbagarden.net'),false);
-     assert.equal(html.includes('Special:Redirect/file'),false);
-     assert.equal(html.includes('home-stat-fallback'),false);
-     assert.doesNotMatch(html,/class="home-stat-icon/);
+     assert.match(html,/class="home-stat-icon/);
+     assert.doesNotMatch(html,/archives\.bulbagarden\.net|Special:Redirect|home-stat-fallback/);
    }
-   assert.ok(header.includes('스피드'));
-   assert.ok(wild.includes('공격'));
+   assert.match(header,/hp\.svg/);
+   assert.match(header,/speed\.svg/);
+   assert.match(detail,/attack\.svg/);
+   assert.match(wild,/speed\.svg/);
    assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,8);
    assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,17);
- }finally{await vite.close();}
+ } finally { await vite.close(); }
 });
 test('wild Pokemon inherit 85% damage floor while the default never takes a card slot',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
