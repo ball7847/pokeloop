@@ -23,10 +23,18 @@ export function getActiveWildPokemon(state){
 }
 export const spriteUrl=number=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+number+'.png';
 export const getWildPokemon=id=>[...WILD_POKEMON,...UNCOMMON_STARTERS].find(p=>p.id===id)||null;
+export const INITIAL_UNLOCK_COUNT=3;
+// The number of available encounters depends on UNIQUE first victories,
+// not total victories and not the identity of a specific starter Pokemon.
+export function unlockedPokemonCount(kills={},starterId=null){
+ const lineup=getActiveWildPokemon({uncommonStarterId:starterId});
+ const distinctVictories=lineup.reduce((count,p)=>count+((kills[p.id]||0)>0?1:0),0);
+ return Math.min(lineup.length,INITIAL_UNLOCK_COUNT+distinctVictories);
+}
 export function isPokemonUnlocked(kills,id,starterId=null){
- const lineup=[...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===starterId)];
+ const lineup=getActiveWildPokemon({uncommonStarterId:starterId});
  const index=lineup.findIndex(p=>p.id===id);
- return index===0||(index>0&&(kills[lineup[index-1].id]||0)>0);
+ return index>=0&&index<unlockedPokemonCount(kills,starterId);
 }
 export function rewardMultiplier(previousVictories,decay=REGION.rewardDecay){
  return 1/(1+Math.max(0,previousVictories)*decay);
