@@ -24,7 +24,7 @@ export function visibleWildBasicStats(pokemon){
 }
 export function visibleWildExtraStats(pokemon){
   const extras={minDamagePercent:pokemon.minDamagePercent??DEFAULT_MIN_DAMAGE_PERCENT,...(pokemon.extraStats??{})};
-  return Object.entries(extras).filter(([,value])=>Number.isFinite(value)&&value!==0&&!(key==='minDamagePercent'&&value===DEFAULT_MIN_DAMAGE_PERCENT));
+  return Object.entries(extras).filter(([key,value])=>Number.isFinite(value)&&value!==0&&!(key==='minDamagePercent'&&value===DEFAULT_MIN_DAMAGE_PERCENT));
 }
 function WildCard({pokemon,index,count,unlocked,capped,fighting,disabled,onSelect}){
   const basic=visibleWildBasicStats(pokemon);
