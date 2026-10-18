@@ -214,3 +214,20 @@
 
 .wild-rare-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#efeae0;color:#908477;border:1px dashed #c6b9a7}
 .wild-rare-empty strong{font-size:12px}.wild-rare-empty small{font-size:10px}
+
+/* Energy inventory below the sidebar navigation. */
+.sidebar-energies{margin:20px 4px 0;padding:13px 6px 0;border-top:1px solid #e1dacf;min-width:0}
+.sidebar-energy-title{display:flex;justify-content:space-between;gap:4px;align-items:center;font-size:12px;color:#655e55}
+.sidebar-energy-title small{font-size:10px;color:#948578}
+.sidebar-energy-list{display:flex;flex-direction:column;gap:5px;margin-top:11px;max-height:45dvh;overflow-y:auto}
+.sidebar-energy-item{display:flex;justify-content:space-between;gap:6px;font-size:11px;min-width:0}
+.sidebar-energy-item span{overflow-wrap:anywhere}.sidebar-energy-item strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:right}
+.sidebar-energy-empty{font-size:11px;line-height:1.6;color:#948578;margin:10px 0}
+.energy-page-balances h3{display:flex;justify-content:space-between;gap:8px;align-items:center}.energy-page-balances h3 small{font-size:12px}
+.energy-balance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:15px}
+.energy-balance-item{border:1px solid #e1dacf;background:#f7f4ee;border-radius:6px;padding:12px;display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.energy-purchase-panel{margin-top:14px}.energy-purchase-tabs{display:flex;gap:8px;border-bottom:1px solid #e1dacf;padding-bottom:12px}
+.energy-purchase-tabs button{flex:1;border:1px solid #d9d0c1;border-radius:6px;background:#f4f0e9;padding:10px;cursor:pointer}
+.energy-purchase-tabs button.selected{background:#e3eade;border-color:#8ca68a;font-weight:700}
+.energy-purchase-placeholder{padding:30px 8px;text-align:center;color:#80776d;font-size:13px}
+@media(max-width:600px){.sidebar{grid-template-columns:repeat(5,minmax(0,1fr))}.sidebar-energies{grid-column:1/-1;margin:7px 4px 0;padding:8px 4px 0}.sidebar-energy-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:130px}.energy-balance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
