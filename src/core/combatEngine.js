@@ -11,7 +11,8 @@ export function startBattle(state,id) {
   if(!p || (p.rarity==='uncommon'&&p.id!==state.uncommonStarterId) || state.combat.active || state.phase==='paused'||state.phase==='finished' ||
     (state.killCounts[id]||0)>=REGION.defaultKillLimit || !isPokemonUnlocked(state.killCounts,id,state.uncommonStarterId))return state;
   const hp=state.dittoStats.hp;
-  return {...state,phase:'running',eventSerial:state.eventSerial+1,combat:{
+  return {...state,phase:'running',eventSerial:state.eventSerial+1,
+    dexDiscovered:state.dexDiscovered.includes(id)?state.dexDiscovered:[...state.dexDiscovered,id],combat:{
     ...emptyCombat(hp),active:true,pokemonId:id,
     enemy:{
       name:p.name,imageUrl:spriteUrl(p.number),
