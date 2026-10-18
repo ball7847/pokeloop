@@ -4,6 +4,7 @@ import {useGameStore} from './store/useGameStore.js';
 import {TopBar} from './components/TopBar.jsx';
 import {DittoPage} from './pages/DittoPage.jsx';
 import {WildPage} from './pages/WildPage.jsx';
+import {CombatBarAnimator} from './components/CombatBarAnimator.jsx';
 const TABS=[['ditto','메타몽'],['wild','야생'],['dex','도감'],['settings','설정']];
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
   return <nav className="sidebar" aria-label="메인 메뉴"><small>MENU</small>
@@ -130,7 +131,7 @@ export function CombatClock(){
 export function App(){
   const [activeTab,setActiveTab]=useState('ditto');
   const [infoTab,setInfoTab]=useState('basic');
-  return <div className="shell"><CombatClock/><AutoSaveClock/><TopBar/>
+  return <div className="shell"><CombatClock/><CombatBarAnimator/><AutoSaveClock/><TopBar/>
     <div className="workspace">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab}/>
       <main className="main" id="main-content">

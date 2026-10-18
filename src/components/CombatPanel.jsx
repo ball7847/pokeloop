@@ -15,10 +15,11 @@ export function HealthBar({name,hp,compact=false}){
 }
 function Cooldown({name,value,kind}){
   const available=value&&Number.isFinite(value.elapsed)&&Number.isFinite(value.duration)&&value.duration>0;
+  // Visual progress is animated outside React; combat timing remains store-driven.
   const progress=available?percent(value.elapsed,value.duration):0;
   return <div className={'battle-cooldown '+kind}><span>{name}</span>
     <div className="battle-cooldown-track" role="progressbar" aria-label={name} aria-valuemin={0} aria-valuemax={100} aria-valuenow={available?progress:undefined} aria-valuetext={available?undefined:'미설정'}>
-      <div className="battle-cooldown-fill" style={{width:progress+'%'}}/>
+      <div className="battle-cooldown-fill"/>
     </div></div>;
 }
 export function DittoBattle(){
