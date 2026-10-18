@@ -7,6 +7,7 @@ export const initialState = () => ({
   dittoStats:{...DEFAULT_DITTO_STATS},
   killCounts:Object.fromEntries(WILD_POKEMON.map(p=>[p.id,0])),
   uncommonChance:UNCOMMON_BASE_CHANCE,uncommonStarterId:null,dexDiscovered:[],
+  energyBalances:{},discoveredEnergies:[],
   combat:emptyCombat(DEFAULT_DITTO_STATS.hp)
 });
 export function transition(state, action) {
