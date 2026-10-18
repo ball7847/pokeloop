@@ -24,7 +24,7 @@ export function DittoPage({infoTab,setInfoTab}){
       <div className="ditto-info-body" role="tabpanel">
         {infoTab==='basic'?<div className="ditto-detail-stats">
           {visibleBasicStats(stats).map(({key,label,description})=>
-            <div key={key} className="ditto-detail-stat" title={description}><span>{label}</span>
+            <div key={key} className="ditto-detail-stat" title={description}><StatLabel stat={key} label={label}/>
               <strong>{formatBasicStat(key,stats[key])}</strong></div>)}
         </div>:<div className="ditto-info-pending">{PENDING[infoTab]}</div>}
       </div>
