@@ -48,3 +48,15 @@ test('invalid or malicious saves are rejected without changing state',()=>{
  assert.throws(()=>decodeSave(mutate(obj=>obj.game.killCounts.rattata=-9)));
  assert.throws(()=>decodeSave(mutate(obj=>obj.game.floor=0)));
 });
+
+test('energy discovery and balances round-trip while old saves default to undiscovered',()=>{
+ const game=initialState();
+ game.discoveredEnergies=['energy-01','energy-18'];game.energyBalances={'energy-01':12,'energy-18':7};
+ const restored=decodeSave(encodeSave(game)).game;
+ assert.deepEqual(restored.discoveredEnergies,['energy-01','energy-18']);
+ assert.deepEqual(restored.energyBalances,{'energy-01':12,'energy-18':7});
+ const old=initialState();delete old.discoveredEnergies;delete old.energyBalances;
+ const legacy=decodeSave(encodeSave(old)).game;
+ assert.deepEqual(legacy.discoveredEnergies,[]);
+ assert.deepEqual(legacy.energyBalances,{});
+});
