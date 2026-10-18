@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 import { initialState, transition } from '../core/gameState.js';
+import {loadLocalSave,readAutoSaveEnabled,writeLocalSave,writeAutoSaveEnabled,clearLocalSave} from '../core/saveSystem.js';
+
+function initialPersistence(){
+  let local=null,error=null;
+  try{local=loadLocalSave();}catch(e){error='로컬 저장 데이터 불러오기 실패: '+e.message;}
+  return {game:local?.game??initialState(),lastSavedAt:local?.savedAt??null,autoSaveEnabled:readAutoSaveEnabled(),saveError:error};
+}
 
 const labels={attack:'공격',hp:'HP'};
 const pretty=n=>Number(n.toFixed(4)).toLocaleString('en-US',{maximumFractionDigits:4});
@@ -13,8 +20,22 @@ export function eventMessage(event) {
   return null;
 }
 export const useGameStore=create((set,get)=>({
-  game:initialState(),
+  ...initialPersistence(),
   logs:[],
+  saveLocal:()=>{
+    const savedAt=writeLocalSave(get().game);
+    set({lastSavedAt:savedAt,saveError:null});
+    return savedAt;
+  },
+  setAutoSaveEnabled:(enabled)=>{
+    writeAutoSaveEnabled(enabled);
+    set({autoSaveEnabled:enabled});
+  },
+  restoreGame:(game)=>set({game,logs:[],saveError:null}),
+  resetSavedGame:()=>{
+    clearLocalSave();
+    set({game:initialState(),logs:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null});
+  },
   dispatch:(action)=>set(previous=>{
     const game=transition(previous.game,action);
     if(game===previous.game)return previous;
