@@ -1,3 +1,4 @@
+import {isAmount,compareAmount,formatAmount} from './bigNumber.js';
 // The minimum damage roll is a shared baseline for all combatants.
 export const DEFAULT_MIN_DAMAGE_PERCENT = 85;
 // One shared baseline for all combatants. Omitted stats inherit these values.
@@ -17,7 +18,7 @@ export function resolveStats(overrides = {}) {
   return {...DEFAULT_STATS,...Object.fromEntries(Object.entries(overrides).filter(([,v])=>v!==undefined&&v!==null))};
 }
 export function isDefaultStat(key,value) {
-  return !Number.isFinite(value) || value === defaultStat(key);
+  return !isAmount(value) || compareAmount(value,defaultStat(key))===0;
 }
 // Ditto retains its original 3,000ms starting speed as an explicit override.
 export const DEFAULT_DITTO_STATS = Object.freeze(resolveStats({hp:10,attack:1,speed:3000}));
@@ -42,10 +43,9 @@ export function visibleBasicStats(stats = {}) {
   return BASIC_STAT_FIELDS.filter(({key}) => ALWAYS_VISIBLE_DITTO_STATS.includes(key) || !isDefaultStat(key,resolved[key]));
 }
 export function formatBasicStat(key, value) {
-  if (!Number.isFinite(value)) return '—';
-  if (key === 'speed') return value.toLocaleString('en-US') + 'ms';
-  if (key === 'minDamagePercent') return value + '%';
-  return value.toLocaleString('en-US');
+  if (key === 'speed') return Number.isFinite(value)?value.toLocaleString('en-US') + 'ms':'—';
+  if (key === 'minDamagePercent') return Number.isFinite(value)?value + '%':'—';
+  return formatAmount(value);
 }
 // One integer-percent roll from [lowerBound, 100], inclusive.
 // Only used when the future combat damage calculation is connected.

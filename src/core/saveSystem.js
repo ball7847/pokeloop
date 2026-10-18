@@ -2,13 +2,13 @@ import {initialState,PHASE} from './gameState.js';
 import {WILD_POKEMON} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
+import {isAmount,storedAmount,compareAmount} from './bigNumber.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=1;
+export const SAVE_VERSION=2;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
-const MAX_STAT=1e15;
 const MAX_COUNTER=1e12;
 const basicKeys=['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent'];
 const progressKeys=['floor','encounterIndex','victories','runId','eventSerial'];
@@ -39,7 +39,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||data.version!==SAVE_VERSION||!data.game||typeof data.game!=='object')
+  if(!data||![1,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -55,12 +55,16 @@ export function decodeSave(encoded){
   if(!original.dittoStats||typeof original.dittoStats!=='object')throw new Error('메타몽 능력치가 없습니다.');
   const stats=resolveStats(original.dittoStats);
   for(const key of basicKeys){
-    if(typeof stats[key]!=='number'||!Number.isFinite(stats[key])||stats[key]<0||stats[key]>MAX_STAT)
+    if(['speed','minDamagePercent'].includes(key)){
+      if(typeof stats[key]!=='number'||!Number.isFinite(stats[key])||stats[key]<0)
+        throw new Error('능력치 값이 올바르지 않습니다: '+key);
+    }else if(!isAmount(stats[key])){
       throw new Error('능력치 값이 올바르지 않습니다: '+key);
+    }
   }
   if(stats.speed!==0&&stats.speed<1)throw new Error('스피드 값이 올바르지 않습니다.');
   if(stats.minDamagePercent>100)throw new Error('최소 피해량이 올바르지 않습니다.');
-  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,stats[key]]));
+  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,['speed','minDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
   if(!original.killCounts||typeof original.killCounts!=='object')throw new Error('처치 기록이 없습니다.');
   cleanGame.killCounts=Object.fromEntries(WILD_POKEMON.map(p=>{
     const count=original.killCounts[p.id]??0;

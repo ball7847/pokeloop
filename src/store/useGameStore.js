@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import {formatAmount} from '../core/bigNumber.js';
 import { initialState, transition } from '../core/gameState.js';
 import {loadLocalSave,readAutoSaveEnabled,writeLocalSave,writeAutoSaveEnabled,clearLocalSave} from '../core/saveSystem.js';
 
@@ -9,7 +10,7 @@ function initialPersistence(){
 }
 
 const labels={attack:'공격',hp:'HP'};
-const pretty=n=>Number(n.toFixed(4)).toLocaleString('en-US',{maximumFractionDigits:4});
+const pretty=formatAmount;
 export function eventMessage(event) {
   if(!event)return null;
   if(event.type==='start')return event.name+'과(와) 전투 시작';

@@ -1,9 +1,10 @@
 import React from 'react';
+import {formatAmount,isAmount,decimal,compareAmount} from '../core/bigNumber.js';
 import {useGameStore} from '../store/useGameStore.js';
-const fmt=n=>Number.isFinite(n)?Number(n.toFixed(2)).toLocaleString('en-US',{maximumFractionDigits:2}):'—';
-const percent=(current,max)=>Number.isFinite(current)&&Number.isFinite(max)&&max>0?Math.max(0,Math.min(100,current/max*100)):0;
+const fmt=formatAmount;
+const percent=(current,max)=>isAmount(current)&&isAmount(max)&&compareAmount(max,0)>0?Math.max(0,Math.min(100,decimal(current).div(decimal(max)).mul(100).toNumber())):0;
 export function HealthBar({name,hp,compact=false}){
-  const available=hp && Number.isFinite(hp.current)&&Number.isFinite(hp.max)&&hp.max>0;
+  const available=hp && isAmount(hp.current)&&isAmount(hp.max)&&compareAmount(hp.max,0)>0;
   const value=available?percent(hp.current,hp.max):0;
   return compact?<><div className="combat-unit-line"><strong>{name}</strong><span>{available?fmt(hp.current)+' / '+fmt(hp.max):'— / —'}</span></div>
     <div className="combat-health" role="progressbar" aria-label={name+' HP'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={available?value:undefined} aria-valuetext={available?undefined:'미설정'}>
@@ -28,7 +29,7 @@ export function DittoBattle(){
   return <section className="ditto-battle-region" aria-label="전투 영역">
     <div className="battle-opponent">
       <div className="battle-stats-panel"><h3>적 능력치</h3><div className="battle-enemy-stats">
-        {Object.entries(enemy.stats||{}).filter(([,v])=>Number.isFinite(v)).map(([key,value])=>
+        {Object.entries(enemy.stats||{}).filter(([,v])=>isAmount(v)).map(([key,value])=>
           <div key={key}><span>{key}</span><strong>{fmt(value)}</strong></div>)}
       </div></div>
       <div className="battle-enemy-image"><strong>{enemy.name}</strong>
