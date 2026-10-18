@@ -96,7 +96,7 @@ export function renderDittoBattle(battle = null) {
       '<div class="battle-image-placeholder" aria-hidden="true">?</div>') + '</div>' +
     '<div class="battle-side-panel"><div class="battle-rewards"><h3>보상</h3>' +
     rewardDetails(enemy.rewards) + '</div>' +
-    '<button class="battle-escape" type="button" disabled title="도주 기능은 추후 연결됩니다">도망가기</button></div></div>' +
+    '<button class="battle-escape" type="button" data-flee title="전투에서 도망칩니다">도망가기</button></div></div>' +
     '<div class="battle-vitals">' +
     cooldownBlock('적 공격', enemy.attackCooldown, 'enemy') +
     healthBlock(name, enemy.hp, 'enemy') +

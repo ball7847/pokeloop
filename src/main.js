@@ -1,3 +1,4 @@
+import { renderWildPage } from './ui/wildPage.js';
 import { renderDittoPage, isDittoInfoTab } from './ui/dittoPage.js';
 import { renderTopBar } from './ui/topBar.js';
 import { createGameStore } from './core/gameState.js';
@@ -13,11 +14,14 @@ const app = document.getElementById('app');
 let activeTab = TABS[0].id;
 let activeDittoInfoTab = 'basic';
 let logs = [];
+let lastLoggedEvent = null;
+const labels = {attack:'공격',hp:'HP'};
+const pretty = n => Number(n.toFixed(4)).toLocaleString('en-US',{maximumFractionDigits:4});
 const phaseLabels = { ready:'대기 중', running:'진행 중', paused:'일시정지', finished:'완료' };
 
 function contents(state) {
   if (activeTab === 'ditto') return renderDittoPage({ infoTab: activeDittoInfoTab, stats: state.dittoStats, battle: state.combat });
-  if (activeTab === 'wild') return '<div class="intro"><span>EXPLORATION</span><h2>야생</h2><p>야생 포켓몬과 층 진행 화면입니다.</p></div><div class="panel empty"><div class="symbol">◇</div><h3>야생 탐험 준비 중</h3><p>전투 시스템은 아직 연결되지 않았습니다.</p></div>';
+  if (activeTab === 'wild') return renderWildPage(state);
   if (activeTab === 'dex') return '<div class="intro"><span>COLLECTION</span><h2>도감</h2><p>발견한 포켓몬을 확인하는 화면입니다.</p></div><div class="panel empty"><div class="symbol">▤</div><h3>도감 준비 중</h3><p>도감 데이터는 이후 추가합니다.</p></div>';
   return '<div class="intro"><span>OPTIONS</span><h2>설정</h2><p>기본 게임 상태를 제어할 수 있습니다.</p></div><div class="panel"><h3>게임 상태: ' + phaseLabels[state.phase] + '</h3><div class="actions">' +
     [['시작','START',state.phase !== 'ready'],['일시정지','PAUSE',state.phase !== 'running'],['재개','RESUME',state.phase !== 'paused'],['초기화','RESET',false]].map(([label,action,disabled]) =>
@@ -35,6 +39,10 @@ function render() {
     '</div></aside></div></div>';
 }
 app.addEventListener('click', event => {
+  const flee = event.target.closest('[data-flee]');
+  if (flee && game.getState().combat.active) {game.dispatch({type:'FLEE'});return;}
+  const pokemon = event.target.closest('[data-pokemon]');
+  if (pokemon && !pokemon.disabled) {game.dispatch({type:'SELECT_WILD',pokemonId:pokemon.dataset.pokemon});return;}
   const infoTabButton = event.target.closest('[data-ditto-info-tab]');
   if (infoTabButton && activeTab === 'ditto' && isDittoInfoTab(infoTabButton.dataset.dittoInfoTab)) {
     activeDittoInfoTab = infoTabButton.dataset.dittoInfoTab;
@@ -58,5 +66,17 @@ app.addEventListener('click', event => {
   logs = logs.slice(0, 100);
   render();
 });
-game.subscribe(render);
+game.subscribe(state=>{
+  const event=state.combat.lastEvent;
+  if(event && event!==lastLoggedEvent){
+    lastLoggedEvent=event;
+    const message=event.type==='start'?event.name+'과(와) 전투 시작'
+      :event.type==='victory'?event.name+' '+event.count+'회 처치 · '+Object.entries(event.rewards).map(([k,v])=>labels[k]+' +'+pretty(v)).join(', ')
+      :event.type==='defeat'?event.name+'에게 쓰러졌습니다.':'전투에서 도망쳤습니다.';
+    logs.unshift(message);logs=logs.slice(0,100);
+  }
+  if(state.combat.active===false && state.phase==='ready')lastLoggedEvent=null;
+  render();
+});
+setInterval(()=>{const state=game.getState();if(state.combat.active && state.phase==='running')game.dispatch({type:'COMBAT_TICK',deltaMs:100});},100);
 render();

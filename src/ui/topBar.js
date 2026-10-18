@@ -53,6 +53,6 @@ export function renderTopBar({ stats = {}, battle = null } = {}) {
     '<div class="combat-portrait">' + portrait + '</div>' +
     '<div class="combat-bars">' + combatHp(enemyName, enemyHp, 'enemy') +
     combatHp('메타몽', dittoHp, 'ditto') + '</div></div>' +
-    '<button type="button" class="run-away" disabled title="전투 시스템 연결 후 사용할 수 있습니다">도망가기</button>' +
+    '<button type="button" class="run-away" data-flee title="전투에서 도망칩니다">도망가기</button>' +
     '</section>' : '') + '</header>';
 }

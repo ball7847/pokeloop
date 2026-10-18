@@ -1,9 +1,12 @@
+import {REGION} from './wildData.js';
+import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0,
   dittoStats:{...DEFAULT_DITTO_STATS},
-  combat:{ currentHp: DEFAULT_DITTO_STATS.hp, maxHp: DEFAULT_DITTO_STATS.hp, active:false, enemy:null }
+  killCounts:Object.fromEntries(['rattata','pidgey','mankey'].map(id=>[id,0])),
+  combat:emptyCombat(DEFAULT_DITTO_STATS.hp)
 });
 export function transition(state, action) {
   switch(action.type) {
@@ -11,6 +14,9 @@ export function transition(state, action) {
     case 'PAUSE': return state.phase===PHASE.RUNNING ? {...state,phase:PHASE.PAUSED}:state;
     case 'RESUME': return state.phase===PHASE.PAUSED ? {...state,phase:PHASE.RUNNING}:state;
     case 'RESET': return {...initialState(),runId:state.runId+1};
+    case 'SELECT_WILD': return startBattle(state,action.pokemonId);
+    case 'COMBAT_TICK': return advanceBattle(state,action.deltaMs,action.random);
+    case 'FLEE': return fleeBattle(state);
     case 'ENCOUNTER_WON':
       if(state.phase!==PHASE.RUNNING || action.encounterIndex!==state.encounterIndex)return state;
       return {...state,victories:state.victories+1,encounterIndex:state.encounterIndex+1};
