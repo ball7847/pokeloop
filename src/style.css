@@ -68,7 +68,7 @@
 .battle-cooldown{display:flex;align-items:center;gap:9px;font-size:10px;color:#81786c}
 .battle-cooldown span{min-width:70px}
 .battle-cooldown-track{height:7px;background:#e5e0d8;border-radius:99px;overflow:hidden;flex:1}
-.battle-cooldown-fill{height:100%;background:#e7454c}
+.battle-cooldown-fill{height:100%;width:100%;background:#e7454c;transform-origin:left center;transform:scaleX(0);will-change:transform}
 .battle-cooldown.ditto .battle-cooldown-fill{background:#3d82dd}
 @media(max-width:1100px){.battle-opponent{grid-template-columns:minmax(0,1fr) minmax(130px,1.2fr)}.battle-side-panel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto}.battle-escape{min-width:110px}}
 @media(max-width:600px){.main:has(.ditto-page){padding:10px}.ditto-page{grid-template-rows:minmax(215px,auto) minmax(340px,1fr);gap:10px}.ditto-info-tab{padding:11px 10px}.ditto-info-body{padding:12px}.ditto-detail-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ditto-detail-stat{padding:10px}.ditto-battle-region{min-height:340px}.battle-opponent{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.battle-stats-panel,.battle-rewards{padding:9px}.battle-enemy-image{min-height:160px}.battle-enemy-image img,.battle-image-placeholder{height:130px}.battle-side-panel{grid-column:1/-1}}

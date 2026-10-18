@@ -3,7 +3,7 @@ export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',
 const entries=[
 {id:'rattata',number:19,name:'꼬렛',hp:3,attack:2,speed:2100,rewards:{attack:1}},
 {id:'pidgey',number:16,name:'구구',hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
-{id:'mankey',number:56,name:'망키',hp:20,attack:4,speed:1800,rewards:{hp:5.6,attack:5.7}},
+{id:'mankey',number:56,name:'망키',hp:20,attack:4,speed:1800,rewards:{hp:5.6,attack:2}},
 {id:'spearow',number:21,name:'깨비참',hp:12,attack:2.1,speed:1800,rewards:{hp:2.1,attack:1}},
 {id:'zubat',number:41,name:'주뱃',hp:10,attack:1.45,speed:1100,rewards:{attack:1,speed:-20}}
 ];
