@@ -4,7 +4,7 @@ import Decimal from 'break_eternity.js';
 // All arithmetic is done with Decimal; speed (milliseconds) and percentage rolls stay Numbers.
 export const MAX_GAME_AMOUNT='1e10000';
 const NUMBER_LIMIT=1e12;
-const validText=/^(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:e[+-]?\\d+)?$/i;
+const validText=/^(?:0|[1-9]\d*)(?:\.\d+)?(?:e[+-]?\d+)?$/i;
 export function decimal(value){
   if(value instanceof Decimal)return value;
   if(typeof value==='number'){
