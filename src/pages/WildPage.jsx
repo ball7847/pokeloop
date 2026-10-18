@@ -1,3 +1,4 @@
+import {StatLabel} from '../components/StatIcon.jsx';
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {REGION,WILD_POKEMON,spriteUrl,isPokemonUnlocked,rewardMultiplier} from '../core/wildData.js';
@@ -42,7 +43,7 @@ function WildCard({pokemon,index,count,unlocked,capped,fighting,disabled,onSelec
         <strong className="wild-name">{pokemon.name}</strong>
         <div className="wild-basic-stats">
           {basic.map(({key,label})=><div key={key} className="wild-stat-box">
-            <span>{label}</span><strong>{formatBasicStat(key,pokemon[key])}</strong>
+            <StatLabel stat={key} label={label} compact/><strong>{formatBasicStat(key,pokemon[key])}</strong>
           </div>)}
         </div>
       </div>
@@ -53,7 +54,7 @@ function WildCard({pokemon,index,count,unlocked,capped,fighting,disabled,onSelec
       </div>)}
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
-      {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}>{label} +{format(value)}</span>)}
+      {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}><StatLabel stat={stat} label={label} compact/> +{format(value)}</span>)}
     </div>
     <div className="wild-card-footer">
       <span className="wild-kills">{count} / {REGION.defaultKillLimit}회</span>

@@ -150,3 +150,16 @@
 .wild-card-footer .wild-state{text-align:right}
 @media(max-width:1050px){.wild-card,.wild-empty-cell{min-height:165px}.wild-card-upper{grid-template-columns:minmax(32px,38%) minmax(0,1fr);gap:4px}.wild-card-portrait img{max-height:58px}.wild-stat-box{padding:3px}.wild-stat-box span,.wild-stat-box strong{font-size:9px}}
 @media(max-width:650px){.wild-card,.wild-empty-cell{min-height:154px}.wild-card-upper{grid-template-columns:minmax(28px,38%) minmax(0,1fr);padding:5px 3px}.wild-card-portrait img{width:100%;height:auto;max-height:45px}.wild-name{font-size:10px}.wild-rewards .wild-reward{font-size:9px}}
+
+/* Shared HOME ability icons. Keep the existing neutral UI palette. */
+.stat-label{display:inline-flex;align-items:center;gap:5px;min-width:0;color:inherit}
+.stat-label-text{min-width:0;overflow-wrap:anywhere}
+.home-stat-icon{display:inline-grid;place-items:center;flex:0 0 18px;width:18px;height:18px;vertical-align:middle}
+.home-stat-icon img{display:block;width:100%;height:100%;object-fit:contain}
+.home-stat-fallback{display:grid;place-items:center;width:100%;height:100%;border:1px solid #b6aa98;border-radius:50%;font-size:8px;font-weight:800;background:#e9e3d7;color:#63584c}
+.stat-box>.stat-label,.ditto-detail-stat>.stat-label{font-size:inherit;white-space:nowrap}
+.wild-stat-box>.stat-label{flex:0 0 auto}
+.wild-stat-box .home-stat-icon,.wild-reward .home-stat-icon{width:15px;height:15px;flex-basis:15px}
+.wild-reward{display:inline-flex;align-items:center;gap:2px}
+.wild-card .wild-stat-box{min-height:20px}
+@media(max-width:1050px){.wild-stat-box .home-stat-icon,.wild-reward .home-stat-icon{width:13px;height:13px;flex-basis:13px}}

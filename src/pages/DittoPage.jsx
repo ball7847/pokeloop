@@ -1,3 +1,4 @@
+import {StatLabel} from '../components/StatIcon.jsx';
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {visibleBasicStats,formatBasicStat} from '../core/dittoStats.js';

@@ -87,3 +87,23 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
    assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
  }finally{await vite.close();}
 });
+
+test('official HOME stat icon keys are shared across top, Ditto and wild views',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+   const {HOME_STAT_FILES,homeStatIconUrl}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+   assert.deepEqual(Object.keys(HOME_STAT_FILES).sort(),['hp','attack','defense','specialAttack','specialDefense','speed'].sort());
+   assert.ok(homeStatIconUrl('attack').includes('Attack_icon_HOME.png'));
+   const {StatsPanel}=await vite.ssrLoadModule('/src/components/TopBar.jsx');
+   const {DittoPage}=await vite.ssrLoadModule('/src/pages/DittoPage.jsx');
+   const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+   for(const element of [React.createElement(StatsPanel),React.createElement(DittoPage,{infoTab:'basic',setInfoTab:()=>{}}),React.createElement(WildPage)]){
+     const html=renderToStaticMarkup(element);
+     assert.match(html,/class="home-stat-icon/);
+     assert.match(html,/Special:Redirect\/file/);
+   }
+   const wild=renderToStaticMarkup(React.createElement(WildPage));
+   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,9);
+   assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,17);
+ }finally{await vite.close();}
+});
