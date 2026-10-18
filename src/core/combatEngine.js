@@ -1,5 +1,6 @@
 import {REGION,WILD_POKEMON,getWildPokemon,isPokemonUnlocked,spriteUrl,rewardMultiplier} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
+import {addAmount,subtractAmount,multiplyAmount,divideAmount,compareAmount} from './bigNumber.js';
 export const emptyCombat = hp=>({
   active:false, enemy:null, currentHp:hp, maxHp:hp,
   dittoHp:{current:hp,max:hp}, dittoAttackCooldown:null,
@@ -17,7 +18,7 @@ export function startBattle(state,id) {
       hp:{current:p.hp,max:p.hp},
       stats:Object.fromEntries(visibleNonDefaultStats(p).map(({key,label})=>[label,p[key]])),
       minDamagePercent:p.minDamagePercent,
-      rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,value*rewardMultiplier(state.killCounts[id]||0)])),
+      rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,divideAmount(value,1+(state.killCounts[id]||0)*REGION.rewardDecay)])),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack
     },
@@ -30,13 +31,13 @@ function finish(state,c,type) {
   if(type==='victory') {
     const count=state.killCounts[p.id]||0;
     if(count>=REGION.defaultKillLimit)return {...state,combat:{...c,active:false,enemy:null}};
-    const ratio=rewardMultiplier(count);
+    const divisor=1+count*REGION.rewardDecay;
     const stats={...state.dittoStats};
-    for(const [key,base] of Object.entries(p.rewards))stats[key]+=base*ratio;
+    for(const [key,base] of Object.entries(p.rewards))stats[key]=addAmount(stats[key],divideAmount(base,divisor));
     return {...state,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,encounterIndex:state.encounterIndex+1,
       killCounts:{...state.killCounts,[p.id]:count+1},
       combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type:'victory',pokemonId:p.id,name:p.name,
-        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,v*ratio]))}}};
+        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,divideAmount(v,divisor)]))}}};
   }
   return {...state,eventSerial:state.eventSerial+1,combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type,pokemonId:p.id,name:p.name}}};
 }
@@ -58,16 +59,17 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
       const factor=rollDamagePercent(state.dittoStats.minDamagePercent,random)/100;
-      c.enemy.hp.current=Math.max(0,c.enemy.hp.current-Math.max(0,state.dittoStats.attack*factor));
-      if(c.enemy.hp.current<=0)return finish(state,c,'victory');
+      c.enemy.hp.current=subtractAmount(c.enemy.hp.current,multiplyAmount(state.dittoStats.attack,factor));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory');
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
       const factor=rollDamagePercent(c.enemy.minDamagePercent,random)/100;
-      const damage=Math.max(0,c.enemy.damage*factor-Math.max(0,state.dittoStats.defense));
-      c.currentHp=Math.max(0,c.currentHp-damage);
+      const rawDamage=multiplyAmount(c.enemy.damage,factor);
+      const damage=subtractAmount(rawDamage,state.dittoStats.defense);
+      c.currentHp=subtractAmount(c.currentHp,damage);
       c.dittoHp.current=c.currentHp;
-      if(c.currentHp<=0)return finish(state,c,'defeat');
+      if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat');
     }
   }
   return {...state,combat:c};

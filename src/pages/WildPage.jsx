@@ -1,4 +1,5 @@
 import {StatLabel} from '../components/StatIcon.jsx';
+import {formatAmount,divideAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {REGION,WILD_POKEMON,spriteUrl,isPokemonUnlocked,rewardMultiplier} from '../core/wildData.js';
@@ -17,7 +18,7 @@ const EXTRA_LABELS=Object.freeze({
   minDamagePercent:'최소 피해량'
 });
 const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP'});
-const format=n=>Number(n.toFixed(4)).toLocaleString('en-US',{maximumFractionDigits:4});
+const format=formatAmount;
 
 export function visibleWildBasicStats(pokemon){
   return WILD_BASIC_FIELDS.filter(({key})=>!isDefaultStat(key,resolveStats(pokemon)[key]));
@@ -29,8 +30,8 @@ export function visibleWildExtraStats(pokemon){
 function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
   const basic=new Set(visibleWildBasicStats(pokemon).map(({key})=>key));
   const extras=visibleWildExtraStats(pokemon);
-  const gain=Object.entries(pokemon.rewards).filter(([,v])=>Number.isFinite(v)&&v!==0)
-    .map(([stat,val])=>({stat,label:REWARD_LABELS[stat]??stat,value:val*rewardMultiplier(count)}));
+  const gain=Object.entries(pokemon.rewards).filter(([,v])=>isAmount(v)&&compareAmount(v,0)!==0)
+    .map(([stat,val])=>({stat,label:REWARD_LABELS[stat]??stat,value:divideAmount(val,1+count*REGION.rewardDecay)}));
   return <button type="button" disabled={disabled}
     className={'wild-card '+(fighting?'is-fighting':!unlocked?'is-locked':'')}
     aria-label={pokemon.name+' 선택'} onClick={onSelect}>
