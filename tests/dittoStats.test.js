@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_DITTO_STATS, visibleBasicStats, rollDamagePercent } from '../src/core/dittoStats.js';
+import { DEFAULT_STATS, DEFAULT_DITTO_STATS, resolveStats, isDefaultStat, visibleBasicStats, rollDamagePercent } from '../src/core/dittoStats.js';
 import { initialState, transition } from '../src/core/gameState.js';
 
 test('initial Ditto stats use approved seven defaults', () => {
@@ -10,7 +10,7 @@ test('initial Ditto stats use approved seven defaults', () => {
 test('zero-valued ability is retained in state but hidden from UI', () => {
   const state=initialState();
   assert.equal(state.dittoStats.defense,0);
-  assert.deepEqual(visibleBasicStats(state.dittoStats).map(x=>x.key),['hp','attack','speed']);
+  assert.deepEqual(visibleBasicStats(state.dittoStats).map(x=>x.key),['hp','attack']);
 });
 test('combat current HP is separate from immutable HP stat', () => {
   const state=initialState();
@@ -37,4 +37,14 @@ test('default minimum damage is shared and hidden; modified values remain visibl
  assert.equal(s.minDamagePercent,85);
  assert.equal(visibleBasicStats(s).some(x=>x.key==='minDamagePercent'),false);
  assert.equal(visibleBasicStats({...s,minDamagePercent:90}).some(x=>x.key==='minDamagePercent'),true);
+});
+
+test('common stats default independently of Ditto starting overrides',()=>{
+ assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85});
+ assert.deepEqual(resolveStats({hp:6,attack:2.5}),{...DEFAULT_STATS,hp:6,attack:2.5});
+ assert.equal(isDefaultStat('speed',3000),true);
+ assert.equal(isDefaultStat('speed',2000),false);
+ assert.equal(isDefaultStat('critChance',0),true);
+ assert.equal(isDefaultStat('critChance',10),false);
+ assert.equal(visibleBasicStats(DEFAULT_DITTO_STATS).map(x=>x.key).join(','),'hp,attack');
 });

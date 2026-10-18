@@ -13,7 +13,7 @@ test('React root renders all primary regions and initial stat values',async()=>{
     const {App}=await vite.ssrLoadModule('/src/App.jsx');
     markup=renderToStaticMarkup(React.createElement(App));
   } finally {await vite.close();}
-  for(const label of ['메타몽','야생','도감','설정','기본 능력치','3,000ms'])
+  for(const label of ['메타몽','야생','도감','설정','기본 능력치'])
     assert.ok(markup.includes(label),label);
   assert.equal(markup.includes('85%'),false);
   assert.ok(markup.includes('class="ditto-battle-region"'));
@@ -82,7 +82,7 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
    assert.ok(html.indexOf('wild-basic-stats')<html.indexOf('wild-extra-stats'));
    assert.ok(html.indexOf('wild-extra-stats')<html.indexOf('wild-rewards'));
    assert.match(html,/2,000ms/);
-   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,9);
+   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,8);
    assert.deepEqual(visibleWildBasicStats({hp:3,attack:0,speed:2000}).map(x=>x.key),['hp','speed']);
    assert.deepEqual(visibleWildExtraStats({extraStats:{dodge:0,critChance:12}}),[['critChance',12]]);
    assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
@@ -104,7 +104,7 @@ test('official HOME stat icon keys are shared across top, Ditto and wild views',
      assert.match(html,/Special:Redirect\/file/);
    }
    const wild=renderToStaticMarkup(React.createElement(WildPage));
-   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,9);
+   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,8);
    assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,17);
  }finally{await vite.close();}
 });
@@ -121,5 +121,19 @@ test('wild Pokemon inherit 85% damage floor while the default never takes a card
    const {initialState,transition}=await vite.ssrLoadModule('/src/core/gameState.js');
    const started=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});
    assert.equal(started.combat.enemy.minDamagePercent,85);
+ }finally{await vite.close();}
+});
+
+test('wild omitted properties resolve to shared defaults without altering encounter balance',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+   const {WILD_POKEMON}=await vite.ssrLoadModule('/src/core/wildData.js');
+   const {visibleWildBasicStats}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+   assert.equal(WILD_POKEMON[0].hp,3);
+   assert.equal(WILD_POKEMON[0].attack,2);
+   assert.equal(WILD_POKEMON[1].attack,2.5);
+   assert.equal(WILD_POKEMON[2].speed,3000);
+   assert.equal(WILD_POKEMON.every(x=>x.defense===0&&x.specialAttack===0&&x.specialDefense===0&&x.minDamagePercent===85),true);
+   assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','attack']);
  }finally{await vite.close();}
 });

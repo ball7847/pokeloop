@@ -2,7 +2,7 @@ import {StatLabel} from '../components/StatIcon.jsx';
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {REGION,WILD_POKEMON,spriteUrl,isPokemonUnlocked,rewardMultiplier} from '../core/wildData.js';
-import {formatBasicStat,DEFAULT_MIN_DAMAGE_PERCENT} from '../core/dittoStats.js';
+import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
 
 // The first six basic stats match the order of Ditto's compact top bar.
 export const WILD_BASIC_FIELDS=Object.freeze([
@@ -20,11 +20,11 @@ const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP'});
 const format=n=>Number(n.toFixed(4)).toLocaleString('en-US',{maximumFractionDigits:4});
 
 export function visibleWildBasicStats(pokemon){
-  return WILD_BASIC_FIELDS.filter(({key})=>Number.isFinite(pokemon[key])&&pokemon[key]!==0);
+  return WILD_BASIC_FIELDS.filter(({key})=>!isDefaultStat(key,resolveStats(pokemon)[key]));
 }
 export function visibleWildExtraStats(pokemon){
-  const extras={minDamagePercent:pokemon.minDamagePercent??DEFAULT_MIN_DAMAGE_PERCENT,...(pokemon.extraStats??{})};
-  return Object.entries(extras).filter(([key,value])=>Number.isFinite(value)&&value!==0&&!(key==='minDamagePercent'&&value===DEFAULT_MIN_DAMAGE_PERCENT));
+  const extras={minDamagePercent:resolveStats(pokemon).minDamagePercent,...(pokemon.extraStats??{})};
+  return Object.entries(extras).filter(([key,value])=>!isDefaultStat(key,value));
 }
 function WildCard({pokemon,index,count,unlocked,capped,fighting,disabled,onSelect}){
   const basic=visibleWildBasicStats(pokemon);

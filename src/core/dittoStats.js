@@ -1,15 +1,26 @@
 // The minimum damage roll is a shared baseline for all combatants.
 export const DEFAULT_MIN_DAMAGE_PERCENT = 85;
-// Base stats are independent from transient combat HP.
-export const DEFAULT_DITTO_STATS = Object.freeze({
-  hp: 10,
-  attack: 1,
+// One shared baseline for all combatants. Omitted stats inherit these values.
+export const DEFAULT_STATS = Object.freeze({
+  hp: 0,
+  attack: 0,
   defense: 0,
   specialAttack: 0,
   specialDefense: 0,
   speed: 3000,
   minDamagePercent: DEFAULT_MIN_DAMAGE_PERCENT
 });
+export function defaultStat(key) {
+  return Object.hasOwn(DEFAULT_STATS,key) ? DEFAULT_STATS[key] : 0;
+}
+export function resolveStats(overrides = {}) {
+  return {...DEFAULT_STATS,...Object.fromEntries(Object.entries(overrides).filter(([,v])=>v!==undefined&&v!==null))};
+}
+export function isDefaultStat(key,value) {
+  return !Number.isFinite(value) || value === defaultStat(key);
+}
+// Ditto starts with explicit HP and Attack overrides; all other stats inherit defaults.
+export const DEFAULT_DITTO_STATS = Object.freeze(resolveStats({hp:10,attack:1}));
 
 export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'hp', label:'HP', description:'현재 HP가 0이 되면 쓰러집니다.' },
@@ -22,7 +33,7 @@ export const BASIC_STAT_FIELDS = Object.freeze([
 ]);
 
 export function visibleBasicStats(stats = {}) {
-  return BASIC_STAT_FIELDS.filter(({key}) => Number.isFinite(stats[key]) && stats[key] !== 0 && !(key === 'minDamagePercent' && stats[key] === DEFAULT_MIN_DAMAGE_PERCENT));
+  return BASIC_STAT_FIELDS.filter(({key}) => !isDefaultStat(key,resolveStats(stats)[key]));
 }
 export function formatBasicStat(key, value) {
   if (!Number.isFinite(value)) return '—';
