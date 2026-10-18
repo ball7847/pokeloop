@@ -1,7 +1,7 @@
 name: Validate React migration
 on:
   push:
-    branches: [react-migration, dev/region1-encounters-20261018]
+    branches: [react-migration]
   workflow_dispatch:
 permissions:
   contents: read
