@@ -2,21 +2,28 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {App,Sidebar,LogPanel} from '../src/App.jsx';
-import {TopBar} from '../src/components/TopBar.jsx';
-import {DittoPage} from '../src/pages/DittoPage.jsx';
-import {WildPage} from '../src/pages/WildPage.jsx';
+import {createServer} from 'vite';
 import {useGameStore} from '../src/store/useGameStore.js';
 const dispatch=action=>useGameStore.getState().dispatch(action);
-test('React root renders all primary regions and initial stat values',()=>{
-  const markup=renderToStaticMarkup(React.createElement(App));
+test('React root renders all primary regions and initial stat values',async()=>{
+  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+  let markup;
+  try {
+    const {App}=await vite.ssrLoadModule('/src/App.jsx');
+    markup=renderToStaticMarkup(React.createElement(App));
+  } finally {await vite.close();}
   for(const label of ['메타몽','야생','도감','설정','기본 능력치','3,000ms','85%'])
     assert.ok(markup.includes(label),label);
   assert.ok(markup.includes('class="ditto-battle-region"'));
   assert.equal(markup.includes('class="mini-combat"'),false);
 });
-test('React wild page has 3 Pokemon and 17 empty grid cells',()=>{
- const html=renderToStaticMarkup(React.createElement(WildPage));
+test('React wild page has 3 Pokemon and 17 empty grid cells',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ let html;
+ try {
+   const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+   html=renderToStaticMarkup(React.createElement(WildPage));
+ } finally {await vite.close();}
  for(const name of ['꼬렛','구구','망키'])assert.ok(html.includes(name));
  assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
 });
