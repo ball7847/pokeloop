@@ -25,6 +25,19 @@ jobs:
             'specialDefense':'Special_Defense_icon_HOME.png',
             'speed':'Speed_icon_HOME.png'
           }
+          try:
+              src='https://r.jina.ai/https://bulbapedia.bulbagarden.net/wiki/Stat'
+              req=urllib.request.Request(src,headers={'User-Agent':'Mozilla/5.0'})
+              with urllib.request.urlopen(req,timeout=30) as resp: text=resp.read().decode('utf-8','replace')
+              i=text.lower().find('## icons')
+              print('STAT PAGE ICON SOURCES:',text[i:i+7000],flush=True)
+          except Exception as e:
+              print('STAT PAGE SOURCE ERROR:',str(e),flush=True)
+          print('TEST ORIGIN:',flush=True)
+          test_url='https://images.weserv.nl/?url='+urllib.parse.quote('https://archives.bulbagarden.net/media/upload/1/12/Attack_icon_HOME.png',safe='')
+          try:
+              with urllib.request.urlopen(test_url,timeout=25) as resp:print('ATTACK PROXY:',resp.status,resp.headers.get('Content-Type'),len(resp.read()),flush=True)
+          except Exception as e:print('ATTACK PROXY ERROR:',str(e),flush=True)
           os.makedirs('public/assets/stats',exist_ok=True)
           for key,name in names.items():
               hash=hashlib.md5(name.encode()).hexdigest()
