@@ -40,7 +40,7 @@ export function renderTopBar({ stats = {}, battle = null } = {}) {
   const enemyName = enemy?.name ?? '적 대기 중';
   const enemyHp = enemy?.hp ?? null;
   const dittoHp = inBattle ? battle.dittoHp : null;
-  const hasValidEnemyImage = typeof enemy?.imageUrl === 'string' && /^(\\.\\/|\\/|https:\\/\\/)/.test(enemy.imageUrl);
+  const hasValidEnemyImage = typeof enemy?.imageUrl === 'string' && (enemy.imageUrl.startsWith('./') || enemy.imageUrl.startsWith('/') || enemy.imageUrl.startsWith('https://'));
   const portrait = hasValidEnemyImage
     ? '<img src="' + safeText(enemy.imageUrl) + '" alt="' + safeText(enemyName) + '" />'
     : '<span aria-hidden="true">?</span>';
