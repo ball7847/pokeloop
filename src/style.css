@@ -193,3 +193,21 @@
 @media(max-width:430px){
   .wild-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+/* Save management */
+.save-panel{margin-top:16px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.save-panel h3{font-size:18px}
+.save-last{background:#f5f1e9;border:1px solid #e1dacf;border-radius:7px;padding:12px;display:flex;flex-direction:column;gap:5px}
+.save-last small,.save-toggle small{font-size:11px;color:#80776d}
+.save-last strong{font-size:14px;font-weight:650}
+.save-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.save-toggle span{font-weight:650;display:flex;flex-direction:column;gap:4px}
+.save-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.save-panel button{border:1px solid #d6cab8;background:#f2eee6;color:#40382e;padding:10px 12px;border-radius:7px;cursor:pointer;min-width:0}
+.save-panel button:hover{background:#e8e0d3}
+.save-panel button:focus-visible{outline:2px solid #76628a;outline-offset:2px}
+.save-panel .save-danger{color:#9a3434;border-color:#dfb9b4}
+.save-paste{display:flex;flex-direction:column;gap:8px}
+.save-paste textarea{width:100%;resize:vertical;min-height:90px;padding:8px;border:1px solid #d6cab8;border-radius:6px}
+.save-feedback{margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:430px){.save-panel{padding:12px}.save-panel button{padding:9px 5px;font-size:12px}}
