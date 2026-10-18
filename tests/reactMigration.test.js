@@ -13,8 +13,9 @@ test('React root renders all primary regions and initial stat values',async()=>{
     const {App}=await vite.ssrLoadModule('/src/App.jsx');
     markup=renderToStaticMarkup(React.createElement(App));
   } finally {await vite.close();}
-  for(const label of ['메타몽','야생','도감','설정','기본 능력치','3,000ms','85%'])
+  for(const label of ['메타몽','야생','도감','설정','기본 능력치','3,000ms'])
     assert.ok(markup.includes(label),label);
+  assert.equal(markup.includes('85%'),false);
   assert.ok(markup.includes('class="ditto-battle-region"'));
   assert.equal(markup.includes('class="mini-combat"'),false);
 });
@@ -105,5 +106,20 @@ test('official HOME stat icon keys are shared across top, Ditto and wild views',
    const wild=renderToStaticMarkup(React.createElement(WildPage));
    assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,9);
    assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,17);
+ }finally{await vite.close();}
+});
+
+test('wild Pokemon inherit 85% damage floor while the default never takes a card slot',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try {
+   const {visibleWildExtraStats,WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+   const html=renderToStaticMarkup(React.createElement(WildPage));
+   assert.equal(html.includes('85%'),false);
+   assert.deepEqual(visibleWildExtraStats({}),[]);
+   assert.deepEqual(visibleWildExtraStats({minDamagePercent:90}),[['minDamagePercent',90]]);
+   assert.deepEqual(visibleWildExtraStats({extraStats:{minDamagePercent:85,critChance:3}}),[['critChance',3]]);
+   const {initialState,transition}=await vite.ssrLoadModule('/src/core/gameState.js');
+   const started=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});
+   assert.equal(started.combat.enemy.minDamagePercent,85);
  }finally{await vite.close();}
 });

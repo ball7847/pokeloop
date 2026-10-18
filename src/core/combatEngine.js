@@ -1,5 +1,5 @@
 import {REGION,WILD_POKEMON,getWildPokemon,isPokemonUnlocked,spriteUrl,rewardMultiplier} from './wildData.js';
-import {rollDamagePercent} from './dittoStats.js';
+import {rollDamagePercent, DEFAULT_MIN_DAMAGE_PERCENT} from './dittoStats.js';
 export const emptyCombat = hp=>({
   active:false, enemy:null, currentHp:hp, maxHp:hp,
   dittoHp:{current:hp,max:hp}, dittoAttackCooldown:null,
@@ -16,6 +16,7 @@ export function startBattle(state,id) {
       name:p.name,imageUrl:spriteUrl(p.number),
       hp:{current:p.hp,max:p.hp},
       stats:{HP:p.hp,공격:p.attack,스피드:p.speed},
+      minDamagePercent:p.minDamagePercent??DEFAULT_MIN_DAMAGE_PERCENT,
       rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,value*rewardMultiplier(state.killCounts[id]||0)])),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack
@@ -62,7 +63,7 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
-      const factor=rollDamagePercent(85,random)/100;
+      const factor=rollDamagePercent(c.enemy.minDamagePercent,random)/100;
       const damage=Math.max(0,c.enemy.damage*factor-Math.max(0,state.dittoStats.defense));
       c.currentHp=Math.max(0,c.currentHp-damage);
       c.dittoHp.current=c.currentHp;

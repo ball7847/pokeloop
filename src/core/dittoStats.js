@@ -1,3 +1,5 @@
+// The minimum damage roll is a shared baseline for all combatants.
+export const DEFAULT_MIN_DAMAGE_PERCENT = 85;
 // Base stats are independent from transient combat HP.
 export const DEFAULT_DITTO_STATS = Object.freeze({
   hp: 10,
@@ -6,7 +8,7 @@ export const DEFAULT_DITTO_STATS = Object.freeze({
   specialAttack: 0,
   specialDefense: 0,
   speed: 3000,
-  minDamagePercent: 85
+  minDamagePercent: DEFAULT_MIN_DAMAGE_PERCENT
 });
 
 export const BASIC_STAT_FIELDS = Object.freeze([
@@ -20,7 +22,7 @@ export const BASIC_STAT_FIELDS = Object.freeze([
 ]);
 
 export function visibleBasicStats(stats = {}) {
-  return BASIC_STAT_FIELDS.filter(({key}) => Number.isFinite(stats[key]) && stats[key] !== 0);
+  return BASIC_STAT_FIELDS.filter(({key}) => Number.isFinite(stats[key]) && stats[key] !== 0 && !(key === 'minDamagePercent' && stats[key] === DEFAULT_MIN_DAMAGE_PERCENT));
 }
 export function formatBasicStat(key, value) {
   if (!Number.isFinite(value)) return '—';
