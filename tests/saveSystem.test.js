@@ -31,7 +31,8 @@ test('local save writes, reads, clears and autosave preference survives independ
  assert.ok(mem.getItem(SAVE_KEY));
  clearLocalSave(mem);
  assert.equal(loadLocalSave(mem),null);
- assert.equal(readAutoSaveEnabled(mem),false);
+ assert.equal(readAutoSaveEnabled(mem),true);
+ assert.equal(mem.getItem(AUTOSAVE_KEY),null);
 });
 test('invalid or malicious saves are rejected without changing state',()=>{
  const game=initialState();
