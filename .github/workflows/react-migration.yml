@@ -1,7 +1,7 @@
 name: Validate React migration
 on:
   push:
-    branches: [react-migration]
+    branches: [react-migration, dev/large-numbers-20261018]
   workflow_dispatch:
 permissions:
   contents: read
