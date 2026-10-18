@@ -41,3 +41,11 @@ test('battle active requires an enemy, regardless of game running state', () => 
   assert.doesNotMatch(renderTopBar({battle:{active:true}}),/class="mini-combat"/);
   assert.match(renderTopBar({battle:{active:true,enemy:{name:'적'}}}),/class="mini-combat"/);
 });
+
+test('combat column remains reserved with no battle', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
+  assert.match(css, /\.new-topbar\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(260px,340px\)/);
+  assert.doesNotMatch(css, /\.new-topbar:has\(\.mini-combat\)/);
+  assert.doesNotMatch(renderTopBar(), /class="mini-combat"/);
+});
