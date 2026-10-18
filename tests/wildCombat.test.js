@@ -14,10 +14,16 @@ test('reward formula matches Rejected Draft diminishing returns',()=>{
  assert.equal(rewardMultiplier(0),1);assert.equal(rewardMultiplier(1),0.5);
  assert.ok(Math.abs(rewardMultiplier(2)-1/3)<1e-10);assert.equal(rewardMultiplier(9),0.1);
 });
-test('only first encounter unlocked until first victory',()=>{
- const s=initialState();assert.ok(isPokemonUnlocked(s.killCounts,'rattata'));
- assert.equal(isPokemonUnlocked(s.killCounts,'pidgey'),false);
- assert.equal(select(s,'pidgey'),s);
+test('first three encounters are accessible immediately; fourth requires first unique victory',()=>{
+ const s=initialState();
+ for(const id of ['rattata','pidgey','mankey']){
+  assert.equal(isPokemonUnlocked(s.killCounts,id),true);
+  assert.equal(select(s,id).combat.active,true);
+ }
+ for(const id of ['spearow','zubat']){
+  assert.equal(isPokemonUnlocked(s.killCounts,id),false);
+  assert.equal(select(s,id),s);
+ }
 });
 test('wild battle shows both UIs and resolves a single victory with reward',()=>{
  let s=select(initialState(),'rattata');assert.equal(s.combat.active,true);
@@ -26,7 +32,8 @@ test('wild battle shows both UIs and resolves a single victory with reward',()=>
  assert.equal(s.victories,1);assert.equal(s.killCounts.rattata,1);
  assert.equal(s.dittoStats.attack,2);assert.equal(s.dittoStats.hp,10);
  assert.equal(s.combat.active,false);
- assert.equal(isPokemonUnlocked(s.killCounts,'pidgey'),true);
+ assert.equal(isPokemonUnlocked(s.killCounts,'spearow'),true);
+ assert.equal(isPokemonUnlocked(s.killCounts,'zubat'),false);
  const after=tick(s);assert.equal(after,s);assert.equal(after.victories,1);
 });
 test('repeated same enemy applies diminishing fractional rewards and 10 kill cap',()=>{
@@ -51,7 +58,7 @@ test('battle HP is separate, flee has no reward, pause freezes combat',()=>{
  assert.equal(s.killCounts.rattata,0);assert.equal(s.victories,0);
 });
 test('a player defeat never rewards or doubles victory',()=>{
- let s=select(initialState(),'mankey');assert.equal(s.combat.active,false);
+ let s=select(initialState(),'mankey');assert.equal(s.combat.active,true);
  // Force one unlocked enemy with zero damage to exercise player defeat.
  s=select(initialState(),'rattata');
  s={...s,dittoStats:{...s.dittoStats,attack:0},combat:{...s.combat,currentHp:1,dittoHp:{current:1,max:10}}};

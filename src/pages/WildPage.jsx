@@ -90,6 +90,6 @@ export function WildPage(){
       {Array.from({length:REGION.capacity-pokemon.length-(uncommonStarterId?0:1)},(_,i)=>
         <div key={'empty-'+i} className="wild-empty-cell" aria-hidden="true"/>)}
     </div>
-    <p className="wild-footnote">포켓몬을 선택하면 자동 전투가 시작됩니다. 각 포켓몬은 이전 순서의 포켓몬을 1회 처치하면 해금됩니다. 보상은 처치 횟수에 따라 감소합니다.</p>
+    <p className="wild-footnote">포켓몬을 선택하면 자동 전투가 시작됩니다. 처음 3마리가 해금되며, 서로 다른 포켓몬을 처음 처치할 때마다 다음 포켓몬이 1마리씩 해금됩니다. 반복 처치는 추가 해금되지 않습니다. 보상은 처치 횟수에 따라 감소합니다.</p>
   </section>;
 }
