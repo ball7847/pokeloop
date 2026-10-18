@@ -29,25 +29,29 @@ function combatHp(label, hp, kind) {
     (info.available ? 'aria-valuenow="' + info.percent.toFixed(1) + '"' : 'aria-valuetext="미설정"') + '>' +
     '<div class="combat-health-fill" style="width:' + info.percent.toFixed(2) + '%"></div></div></div>';
 }
-export function renderTopBar({ stats = {}, enemy = null, dittoHp = null } = {}) {
+export function renderTopBar({ stats = {}, battle = null } = {}) {
   const statGrid = TOP_STATS.map(({ id, label }) => {
     const v = stats[id];
     return '<div class="stat-box"><span>' + label + '</span><strong>' +
       (Number.isFinite(v) ? safeText(v) : '—') + '</strong></div>';
   }).join('');
+  const inBattle = battle?.active === true && battle.enemy != null;
+  const enemy = inBattle ? battle.enemy : null;
   const enemyName = enemy?.name ?? '적 대기 중';
   const enemyHp = enemy?.hp ?? null;
-  const hasValidEnemyImage = typeof enemy?.imageUrl === 'string' && /^(\.\/|\/|https:\/\/)/.test(enemy.imageUrl);
+  const dittoHp = inBattle ? battle.dittoHp : null;
+  const hasValidEnemyImage = typeof enemy?.imageUrl === 'string' && /^(\\.\\/|\\/|https:\\/\\/)/.test(enemy.imageUrl);
   const portrait = hasValidEnemyImage
     ? '<img src="' + safeText(enemy.imageUrl) + '" alt="' + safeText(enemyName) + '" />'
     : '<span aria-hidden="true">?</span>';
   return '<header class="topbar new-topbar">' +
-    '<div class="top-stats" aria-label="메타몽 기본 능력치"><div class="top-stats-title"><span class="eyebrow">POKÉLOOP</span><strong>메타몽 능력치</strong></div>' +
+    '<div class="top-stats" aria-label="메타몽 기본 능력치">' +
+    '<div class="ditto-avatar"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png" alt="메타몽" width="64" height="64" /></div>' +
     '<div class="stat-grid">' + statGrid + '</div></div>' +
-    '<section class="mini-combat" aria-label="간이전투 영역"><div class="mini-combat-main">' +
+    (inBattle ? '<section class="mini-combat" aria-label="간이전투 영역"><div class="mini-combat-main">' +
     '<div class="combat-portrait">' + portrait + '</div>' +
     '<div class="combat-bars">' + combatHp(enemyName, enemyHp, 'enemy') +
     combatHp('메타몽', dittoHp, 'ditto') + '</div></div>' +
     '<button type="button" class="run-away" disabled title="전투 시스템 연결 후 사용할 수 있습니다">도망가기</button>' +
-    '</section></header>';
+    '</section>' : '') + '</header>';
 }
