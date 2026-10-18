@@ -1,5 +1,10 @@
+import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
-export const initialState = () => ({ phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0 });
+export const initialState = () => ({
+  phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0,
+  dittoStats:{...DEFAULT_DITTO_STATS},
+  combat:{ currentHp: DEFAULT_DITTO_STATS.hp, maxHp: DEFAULT_DITTO_STATS.hp, active:false, enemy:null }
+});
 export function transition(state, action) {
   switch(action.type) {
     case 'START': return state.phase===PHASE.READY ? {...state,phase:PHASE.RUNNING}:state;

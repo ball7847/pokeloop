@@ -5,7 +5,7 @@ import { TOP_STATS, renderTopBar } from '../src/ui/topBar.js';
 test('3-column 2-row stats read row-major in approved order', () => {
   assert.deepEqual(TOP_STATS.map(x => x.label), ['HP','공격','특수공격','스피드','방어','특수방어']);
   const html = renderTopBar();
-  assert.equal((html.match(/class="stat-box"/g) || []).length, 6);
+  assert.equal((html.match(/class="stat-box"/g) || []).length, 0);
 });
 test('combat is right-hand block with only escape control', () => {
   const html = renderTopBar({ battle: { active: true, enemy: { name: '야생 적' } } });
@@ -48,4 +48,12 @@ test('combat column remains reserved with no battle', async () => {
   assert.match(css, /\.new-topbar\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(260px,340px\)/);
   assert.doesNotMatch(css, /\.new-topbar:has\(\.mini-combat\)/);
   assert.doesNotMatch(renderTopBar(), /class="mini-combat"/);
+});
+
+test('topbar hides zero values, showing only nonzero core stats and not minimum damage', () => {
+  const html = renderTopBar({stats:{hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85}});
+  assert.equal((html.match(/class="stat-box"/g)||[]).length,3);
+  assert.match(html, /3,000ms/);
+  assert.doesNotMatch(html, /특수공격|특수방어|최소 피해량/);
+  assert.match(html, /<span>HP<\/span><strong>10<\/strong>/);
 });

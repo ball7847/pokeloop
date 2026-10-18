@@ -17,7 +17,7 @@ test('each info subtab renders distinct content', () => {
     assert.match(html, new RegExp('data-ditto-info-tab="' + tab.id + '" role="tab" aria-selected="true"'));
     assert.match(html, /class="ditto-info-body"/);
   }
-  assert.match(renderDittoPage({infoTab:'basic'}), /class="ditto-detail-stats"/);
+  assert.match(renderDittoPage({infoTab:'basic',stats:{hp:10}}), /class="ditto-detail-stats"/);
   assert.match(renderDittoPage({infoTab:'special'}), /특수 능력치 시스템은 추후 연결됩니다/);
   assert.match(renderDittoPage({infoTab:'bonus'}), /보너스 효과 시스템은 추후 연결됩니다/);
   assert.match(renderDittoPage({infoTab:'automation'}), /자동화 기능은 추후 연결됩니다/);
@@ -55,5 +55,13 @@ test('main app persists selected Ditto subtab independently of primary tabs', ()
   const code = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(code,/let activeDittoInfoTab = 'basic'/);
   assert.match(code,/isDittoInfoTab\(infoTabButton\.dataset\.dittoInfoTab\)/);
-  assert.match(code,/renderDittoPage\(\{ infoTab: activeDittoInfoTab, battle: null \}\)/);
+  assert.match(code,/renderDittoPage\(\{ infoTab: activeDittoInfoTab, stats: state\.dittoStats, battle: state\.combat \}\)/);
+});
+
+test('basic ability tab hides zero values and displays minimum damage percentage', () => {
+  const stats={hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85};
+  const html=renderDittoPage({stats});
+  for(const item of ['HP','공격','스피드','3,000ms','최소 피해량','85%']) assert.ok(html.includes(item));
+  assert.doesNotMatch(html,/특수공격|특수방어|<span>방어<\/span>/);
+  assert.equal((html.match(/class="ditto-detail-stat"/g)||[]).length,4);
 });

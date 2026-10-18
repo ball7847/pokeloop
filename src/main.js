@@ -16,7 +16,7 @@ let logs = [];
 const phaseLabels = { ready:'대기 중', running:'진행 중', paused:'일시정지', finished:'완료' };
 
 function contents(state) {
-  if (activeTab === 'ditto') return renderDittoPage({ infoTab: activeDittoInfoTab, battle: null });
+  if (activeTab === 'ditto') return renderDittoPage({ infoTab: activeDittoInfoTab, stats: state.dittoStats, battle: state.combat });
   if (activeTab === 'wild') return '<div class="intro"><span>EXPLORATION</span><h2>야생</h2><p>야생 포켓몬과 층 진행 화면입니다.</p></div><div class="panel empty"><div class="symbol">◇</div><h3>야생 탐험 준비 중</h3><p>전투 시스템은 아직 연결되지 않았습니다.</p></div>';
   if (activeTab === 'dex') return '<div class="intro"><span>COLLECTION</span><h2>도감</h2><p>발견한 포켓몬을 확인하는 화면입니다.</p></div><div class="panel empty"><div class="symbol">▤</div><h3>도감 준비 중</h3><p>도감 데이터는 이후 추가합니다.</p></div>';
   return '<div class="intro"><span>OPTIONS</span><h2>설정</h2><p>기본 게임 상태를 제어할 수 있습니다.</p></div><div class="panel"><h3>게임 상태: ' + phaseLabels[state.phase] + '</h3><div class="actions">' +
@@ -26,7 +26,7 @@ function contents(state) {
 function render() {
   const state = game.getState();
   app.innerHTML = '<div class="shell">' +
-    '' + renderTopBar() + '' +
+    '' + renderTopBar({ stats: state.dittoStats, battle: state.combat }) + '' +
     '<div class="workspace"><nav class="sidebar" aria-label="메인 메뉴"><small>MENU</small>' +
     TABS.map(tab => '<button type="button" data-tab="' + tab.id + '" class="tab ' + (activeTab === tab.id ? 'selected' : '') + '" ' + (activeTab === tab.id ? 'aria-current="page"' : '') + '>' + tab.label + '<span>›</span></button>').join('') +
     '</nav><main class="main" id="main-content">' + contents(state) + '</main>' +

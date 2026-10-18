@@ -1,3 +1,4 @@
+import { visibleBasicStats, formatBasicStat } from '../core/dittoStats.js';
 // UI-only header. No fabricated HP or stats are supplied until battle data exists.
 export const TOP_STATS = Object.freeze([
   { id: 'hp', label: 'HP' },
@@ -30,11 +31,11 @@ function combatHp(label, hp, kind) {
     '<div class="combat-health-fill" style="width:' + info.percent.toFixed(2) + '%"></div></div></div>';
 }
 export function renderTopBar({ stats = {}, battle = null } = {}) {
-  const statGrid = TOP_STATS.map(({ id, label }) => {
-    const v = stats[id];
-    return '<div class="stat-box"><span>' + label + '</span><strong>' +
-      (Number.isFinite(v) ? safeText(v) : '—') + '</strong></div>';
-  }).join('');
+  const visible = new Set(visibleBasicStats(stats).map(field => field.key));
+  const statGrid = TOP_STATS.filter(({id}) => visible.has(id)).map(({id,label}) =>
+    '<div class="stat-box"><span>' + label + '</span><strong>' +
+    safeText(formatBasicStat(id,stats[id])) + '</strong></div>'
+  ).join('');
   const inBattle = battle?.active === true && battle.enemy != null;
   const enemy = inBattle ? battle.enemy : null;
   const enemyName = enemy?.name ?? '적 대기 중';

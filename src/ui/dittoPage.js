@@ -1,3 +1,4 @@
+import { BASIC_STAT_FIELDS, visibleBasicStats, formatBasicStat } from '../core/dittoStats.js';
 // Pure renderer for the central Ditto tab. Data is supplied by future game systems.
 export const DITTO_INFO_TABS = Object.freeze([
   { id: 'basic', label: '기본 능력치' },
@@ -7,14 +8,6 @@ export const DITTO_INFO_TABS = Object.freeze([
   { id: 'assimilation', label: '동화도' }
 ]);
 
-const BASIC_STATS = Object.freeze([
-  { key: 'hp', label: 'HP' },
-  { key: 'attack', label: '공격' },
-  { key: 'defense', label: '방어' },
-  { key: 'specialAttack', label: '특수공격' },
-  { key: 'specialDefense', label: '특수방어' },
-  { key: 'speed', label: '스피드' }
-]);
 const PENDING_TEXT = {
   special: '특수 능력치 시스템은 추후 연결됩니다.',
   bonus: '보너스 효과 시스템은 추후 연결됩니다.',
@@ -32,9 +25,10 @@ function numericOrDash(value) {
   return typeof value === 'number' && Number.isFinite(value) ? escapeHtml(value) : '—';
 }
 function statDetails(stats) {
-  return '<div class="ditto-detail-stats">' + BASIC_STATS.map(({ key, label }) =>
-    '<div class="ditto-detail-stat"><span>' + label + '</span><strong>' +
-    numericOrDash(stats?.[key]) + '</strong></div>'
+  const shown = visibleBasicStats(stats);
+  return '<div class="ditto-detail-stats">' + shown.map(({ key, label, description }) =>
+    '<div class="ditto-detail-stat" title="' + escapeHtml(description) + '"><span>' + label +
+    '</span><strong>' + escapeHtml(formatBasicStat(key, stats[key])) + '</strong></div>'
   ).join('') + '</div>';
 }
 function health(value) {
