@@ -1,0 +1,58 @@
+name: Import Pokémon HOME stat icon assets
+on:
+  push:
+    paths:
+      - '.github/workflows/import-home-icons.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download and validate original PNG assets
+        run: |
+          python3 - <<'PY'
+          import json, os, struct, urllib.request, urllib.parse
+          names = {
+            'hp': 'HP_icon_HOME.png',
+            'attack': 'Attack_icon_HOME.png',
+            'defense': 'Defense_icon_HOME.png',
+            'specialAttack': 'Special_Attack_icon_HOME.png',
+            'specialDefense': 'Special_Defense_icon_HOME.png',
+            'speed': 'Speed_icon_HOME.png'
+          }
+          os.makedirs('public/assets/stats',exist_ok=True)
+          for key, name in names.items():
+              title='File:'+name
+              api='https://archives.bulbagarden.net/w/api.php?'+urllib.parse.urlencode({
+                'action':'query','titles':title,'prop':'imageinfo','iiprop':'url','format':'json'
+              })
+              req=urllib.request.Request(api,headers={'User-Agent':'PokeLoopAssetImporter/1.0 (personal game prototype)'})
+              with urllib.request.urlopen(req,timeout=30) as resp: data=json.load(resp)
+              page=next(iter(data['query']['pages'].values()))
+              if 'imageinfo' not in page:
+                  raise RuntimeError('No original file found for '+title)
+              url=page['imageinfo'][0]['url']
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (compatible; PokeLoopAssetImporter/1.0)'})
+              with urllib.request.urlopen(req,timeout=30) as resp: content=resp.read()
+              if not content.startswith(b'\x89PNG\r\n\x1a\n') or len(content)<100:
+                  raise RuntimeError('Invalid image response: '+title)
+              width,height=struct.unpack('>II',content[16:24])
+              if not(32<=width<=2048 and 32<=height<=2048):
+                  raise RuntimeError('Invalid PNG dimensions: '+title)
+              with open('public/assets/stats/'+key+'.png','wb') as out:out.write(content)
+              print(key, len(content),width,height,url)
+          PY
+      - name: Commit six verified original icons
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/assets/stats
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: vendor verified Pokémon HOME stat icons"
+            git push
+          fi
