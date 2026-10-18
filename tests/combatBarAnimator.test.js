@@ -1,9 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {cooldownProgress,paintCooldownBars} from '../src/components/CombatBarAnimator.jsx';
+import {createServer} from 'vite';
+async function loadAnimator(){
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{return await vite.ssrLoadModule('/src/components/CombatBarAnimator.jsx');}
+ finally{await vite.close();}
+}
 import {initialState,transition} from '../src/core/gameState.js';
 
-test('progress interpolates between 100ms simulation ticks without changing combat',()=>{
+test('progress interpolates between 100ms simulation ticks without changing combat',async()=>{
+ const {cooldownProgress}=await loadAnimator();
  const cooldown={elapsed:400,duration:2000};
  assert.equal(cooldownProgress(cooldown,0),20);
  assert.equal(cooldownProgress(cooldown,50),22.5);
@@ -13,7 +19,8 @@ test('progress interpolates between 100ms simulation ticks without changing comb
  assert.equal(cooldownProgress({elapsed:1950,duration:2000},300),100);
  assert.equal(cooldownProgress({elapsed:0,duration:0},10),0);
 });
-test('painting only updates both bars, not battle state',()=>{
+test('painting only updates both bars, not battle state',async()=>{
+ const {paintCooldownBars}=await loadAnimator();
  let s=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:350,random:()=>0.5});
  const controls=new Map();
