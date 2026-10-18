@@ -81,6 +81,14 @@ export function decodeSave(encoded){
   if(typeof chance!=='number'||!Number.isFinite(chance)||chance<0||chance>1)throw new Error('안흔함 확률이 올바르지 않습니다.');
   const found=original.dexDiscovered??[];
   if(!Array.isArray(found)||found.length>8||found.some(id=>typeof id!=='string'||!getWildPokemon(id))||new Set(found).size!==found.length)throw new Error('도감 정보가 올바르지 않습니다.');
+  const energyIds=Array.from({length:18},(_,i)=>'energy-'+String(i+1).padStart(2,'0'));
+  const discovered=original.discoveredEnergies??[];
+  const balances=original.energyBalances??{};
+  if(!Array.isArray(discovered)||discovered.length>18||discovered.some(id=>!energyIds.includes(id))||new Set(discovered).size!==discovered.length)
+    throw new Error('에너지 발견 정보가 올바르지 않습니다.');
+  if(!balances||typeof balances!=='object'||Array.isArray(balances)||Object.keys(balances).some(id=>!energyIds.includes(id)||!validInteger(balances[id],MAX_COUNTER)))
+    throw new Error('에너지 보유량이 올바르지 않습니다.');
+  cleanGame.discoveredEnergies=[...discovered];cleanGame.energyBalances={...balances};
   cleanGame.uncommonStarterId=starter;cleanGame.uncommonChance=chance;cleanGame.dexDiscovered=[...found];
   // Active combat is deliberately not persisted. Resuming requires a new battle.
   cleanGame.phase=original.phase===PHASE.RUNNING?PHASE.RUNNING:original.phase;
