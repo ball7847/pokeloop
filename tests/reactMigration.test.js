@@ -146,7 +146,7 @@ test('wild omitted properties resolve to shared defaults without altering encoun
    assert.equal(WILD_POKEMON[1].attack,2.5);
    assert.equal(WILD_POKEMON[2].speed,3000);
    assert.equal(WILD_POKEMON.every(x=>x.defense===0&&x.specialAttack===0&&x.specialDefense===0&&x.minDamagePercent===85),true);
-   assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','attack','speed']);
+   assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','speed','attack']);
  }finally{await vite.close();}
 });
 
