@@ -33,7 +33,7 @@ test('starter slot defaults absent and requires single chosen species',()=>{
  assert.equal(rollUncommonStarter(1,()=>0.999),'squirtle');
  const s=initialState();assert.equal(getActiveWildPokemon(s).length,5);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
- s.uncommonStarterId='charmander';s.killCounts.zubat=1;
+ s.uncommonStarterId='charmander';s.killCounts.rattata=1;s.killCounts.pidgey=1;s.killCounts.mankey=1;
  assert.equal(getActiveWildPokemon(s).length,6);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'charmander'}).combat.enemy.name,'파이리');
