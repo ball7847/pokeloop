@@ -16,7 +16,7 @@ jobs:
       - name: Download and validate original PNG assets
         run: |
           python3 - <<'PY'
-          import hashlib, os, struct, urllib.request
+          import hashlib, os, struct, urllib.request, urllib.parse
           names = {
             'hp':'HP_icon_HOME.png',
             'attack':'Attack_icon_HOME.png',
@@ -29,8 +29,22 @@ jobs:
           for key,name in names.items():
               hash=hashlib.md5(name.encode()).hexdigest()
               url=f'https://archives.bulbagarden.net/media/upload/{hash[0]}/{hash[:2]}/{name}'
-              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Referer':'https://archives.bulbagarden.net/'})
-              with urllib.request.urlopen(req,timeout=30) as resp: content=resp.read()
+              sources=[
+                  'https://images.weserv.nl/?url='+urllib.parse.quote(url,safe=''),
+                  'https://wsrv.nl/?url='+urllib.parse.quote(url,safe=''),
+                  url,
+              ]
+              errors=[]
+              for source in sources:
+                  try:
+                      req=urllib.request.Request(source,headers={'User-Agent':'Mozilla/5.0','Referer':'https://archives.bulbagarden.net/'})
+                      with urllib.request.urlopen(req,timeout=25) as resp: content=resp.read()
+                      if content.startswith(bytes.fromhex('89504e470d0a1a0a')):break
+                      errors.append('non PNG '+source)
+                  except Exception as exc:
+                      errors.append(str(exc)+' '+source)
+              else:
+                  raise RuntimeError('Image sources unavailable for '+name+': '+str(errors))
               if not content.startswith(bytes.fromhex('89504e470d0a1a0a')) or len(content)<100:
                   raise RuntimeError('Invalid PNG data: '+name)
               width,height=struct.unpack('>II',content[16:24])
