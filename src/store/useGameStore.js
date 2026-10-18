@@ -46,7 +46,8 @@ export const useGameStore=create((set,get)=>({
       START:'게임을 시작했습니다.',
       PAUSE:'게임이 일시정지되었습니다.',
       RESUME:'게임을 재개했습니다.',
-      RESET:'게임 진행 상태가 초기화되었습니다.'
+      RESET:'게임 진행 상태가 초기화되었습니다.',
+      MOVE_PLANET:'메타몽이 행성을 이동하고 대기 스텔라에너지를 흡수했습니다.'
     })[action.type];
     return {game,logs:message?[message,...previous.logs].slice(0,100):previous.logs};
   })
