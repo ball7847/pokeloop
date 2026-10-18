@@ -20,15 +20,15 @@ test('React root renders all primary regions and initial stat values',async()=>{
   assert.ok(markup.includes('class="ditto-battle-region"'));
   assert.equal(markup.includes('class="mini-combat"'),false);
 });
-test('React wild page has 3 Pokemon and 17 empty grid cells',async()=>{
+test('React wild page has 5 Pokemon and 15 inactive cells',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  let html;
  try {
    const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
    html=renderToStaticMarkup(React.createElement(WildPage));
  } finally {await vite.close();}
- for(const name of ['꼬렛','구구','망키'])assert.ok(html.includes(name));
- assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
+ for(const name of ['꼬렛','구구','망키','깨비참','주뱃'])assert.ok(html.includes(name));
+ assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,14);
 });
 test('Zustand dispatch records only event transitions, never combat ticks',()=>{
  dispatch({type:'RESET'});
@@ -75,18 +75,18 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
  try{
    const {WildPage,visibleWildBasicStats,visibleWildExtraStats}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
    const html=renderToStaticMarkup(React.createElement(WildPage));
-   assert.equal((html.match(/class="wild-card-upper"/g)||[]).length,3);
-   assert.equal((html.match(/class="wild-extra-stats"/g)||[]).length,3);
-   assert.equal((html.match(/class="wild-rewards"/g)||[]).length,3);
-   assert.equal((html.match(/class="wild-card-footer"/g)||[]).length,3);
+   assert.equal((html.match(/class="wild-card-upper"/g)||[]).length,5);
+   assert.equal((html.match(/class="wild-extra-stats"/g)||[]).length,5);
+   assert.equal((html.match(/class="wild-rewards"/g)||[]).length,5);
+   assert.equal((html.match(/class="wild-card-footer"/g)||[]).length,5);
    assert.ok(html.indexOf('wild-card-portrait')<html.indexOf('wild-basic-stats'));
    assert.ok(html.indexOf('wild-basic-stats')<html.indexOf('wild-extra-stats'));
    assert.ok(html.indexOf('wild-extra-stats')<html.indexOf('wild-rewards'));
    assert.match(html,/2,100ms/);
-   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,9);
+   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,15);
    assert.deepEqual(visibleWildBasicStats({hp:3,attack:0,speed:2000}).map(x=>x.key),['hp','speed']);
    assert.deepEqual(visibleWildExtraStats({extraStats:{dodge:0,critChance:12}}),[['critChance',12]]);
-   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
+   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,14);
  }finally{await vite.close();}
 });
 
@@ -117,8 +117,8 @@ test('six local user-supplied stat silhouettes appear without duplicate text',as
    assert.match(header,/speed\.svg/);
    assert.match(detail,/attack\.svg/);
    assert.match(wild,/speed\.svg/);
-   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,9);
-   assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,17);
+   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,15);
+   assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,14);
  } finally { await vite.close(); }
 });
 test('wild Pokemon inherit 85% damage floor while the default never takes a card slot',async()=>{
@@ -144,7 +144,7 @@ test('wild omitted properties resolve to shared defaults without altering encoun
    assert.equal(WILD_POKEMON[0].hp,3);
    assert.equal(WILD_POKEMON[0].attack,2);
    assert.equal(WILD_POKEMON[1].attack,2.5);
-   assert.equal(WILD_POKEMON[2].speed,3000);
+   assert.equal(WILD_POKEMON[2].speed,1750);
    assert.equal(WILD_POKEMON.every(x=>x.defense===0&&x.specialAttack===0&&x.specialDefense===0&&x.minDamagePercent===85),true);
    assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','speed','attack']);
  }finally{await vite.close();}
@@ -171,9 +171,9 @@ test('wild layout keeps 4 columns, square portrait, no sequence number and fixed
   const {WildPage,WILD_BASIC_FIELDS}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
   assert.deepEqual(WILD_BASIC_FIELDS.map(x=>x.key),['hp','speed','attack','defense','specialAttack','specialDefense']);
   const html=renderToStaticMarkup(React.createElement(WildPage));
-  assert.equal((html.match(/class="wild-basic-stats"/g)||[]).length,3);
-  assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,9);
-  assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
+  assert.equal((html.match(/class="wild-basic-stats"/g)||[]).length,5);
+  assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,15);
+  assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,14);
   assert.doesNotMatch(html,/class="wild-order"/);
   const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
   assert.match(css,/\.wild-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);

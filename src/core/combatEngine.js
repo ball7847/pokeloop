@@ -1,4 +1,4 @@
-import {REGION,WILD_POKEMON,getWildPokemon,isPokemonUnlocked,spriteUrl,rewardMultiplier} from './wildData.js';
+import {REGION,WILD_POKEMON,getWildPokemon,isPokemonUnlocked,spriteUrl,scaledReward} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {addAmount,subtractAmount,multiplyAmount,divideAmount,compareAmount} from './bigNumber.js';
 export const emptyCombat = hp=>({
@@ -8,17 +8,18 @@ export const emptyCombat = hp=>({
 });
 export function startBattle(state,id) {
   const p=getWildPokemon(id);
-  if(!p || state.combat.active || state.phase==='paused'||state.phase==='finished' ||
-    (state.killCounts[id]||0)>=REGION.defaultKillLimit || !isPokemonUnlocked(state.killCounts,id))return state;
+  if(!p || (p.rarity==='uncommon'&&p.id!==state.uncommonStarterId) || state.combat.active || state.phase==='paused'||state.phase==='finished' ||
+    (state.killCounts[id]||0)>=REGION.defaultKillLimit || !isPokemonUnlocked(state.killCounts,id,state.uncommonStarterId))return state;
   const hp=state.dittoStats.hp;
-  return {...state,phase:'running',eventSerial:state.eventSerial+1,combat:{
+  return {...state,phase:'running',eventSerial:state.eventSerial+1,
+    dexDiscovered:state.dexDiscovered.includes(id)?state.dexDiscovered:[...state.dexDiscovered,id],combat:{
     ...emptyCombat(hp),active:true,pokemonId:id,
     enemy:{
       name:p.name,imageUrl:spriteUrl(p.number),
       hp:{current:p.hp,max:p.hp},
       stats:Object.fromEntries(visibleNonDefaultStats(p).map(({key,label})=>[label,p[key]])),
       minDamagePercent:p.minDamagePercent,
-      rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,divideAmount(value,1+(state.killCounts[id]||0)*REGION.rewardDecay)])),
+      rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,scaledReward(key,value,state.killCounts[id]||0)])),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack
     },
@@ -31,13 +32,16 @@ function finish(state,c,type) {
   if(type==='victory') {
     const count=state.killCounts[p.id]||0;
     if(count>=REGION.defaultKillLimit)return {...state,combat:{...c,active:false,enemy:null}};
-    const divisor=1+count*REGION.rewardDecay;
     const stats={...state.dittoStats};
-    for(const [key,base] of Object.entries(p.rewards))stats[key]=addAmount(stats[key],divideAmount(base,divisor));
+    for(const [key,base] of Object.entries(p.rewards)){
+      const value=scaledReward(key,base,count);
+      stats[key]=key==='speed'?Math.max(1,stats.speed+value):addAmount(stats[key],value);
+    }
     return {...state,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,encounterIndex:state.encounterIndex+1,
       killCounts:{...state.killCounts,[p.id]:count+1},
+      dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
       combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type:'victory',pokemonId:p.id,name:p.name,
-        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,divideAmount(v,divisor)]))}}};
+        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,scaledReward(k,v,count)]))}}};
   }
   return {...state,eventSerial:state.eventSerial+1,combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type,pokemonId:p.id,name:p.name}}};
 }

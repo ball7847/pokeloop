@@ -211,3 +211,6 @@
 .save-paste textarea{width:100%;resize:vertical;min-height:90px;padding:8px;border:1px solid #d6cab8;border-radius:6px}
 .save-feedback{margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 @media(max-width:430px){.save-panel{padding:12px}.save-panel button{padding:9px 5px;font-size:12px}}
+
+.wild-rare-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#efeae0;color:#908477;border:1px dashed #c6b9a7}
+.wild-rare-empty strong{font-size:12px}.wild-rare-empty small{font-size:10px}

@@ -1,5 +1,5 @@
 import {initialState,PHASE} from './gameState.js';
-import {WILD_POKEMON} from './wildData.js';
+import {WILD_POKEMON,UNCOMMON_STARTERS,STARTER_IDS,getWildPokemon} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount,compareAmount} from './bigNumber.js';
@@ -19,7 +19,10 @@ export function gameSnapshot(game){
     phase:game.phase,
     ...Object.fromEntries(progressKeys.map(key=>[key,game[key]])),
     dittoStats:Object.fromEntries(basicKeys.map(key=>[key,game.dittoStats[key]])),
-    killCounts:Object.fromEntries(WILD_POKEMON.map(p=>[p.id,game.killCounts[p.id]??0]))
+    killCounts:Object.fromEntries([...WILD_POKEMON,...UNCOMMON_STARTERS].map(p=>[p.id,game.killCounts[p.id]??0])),
+    uncommonChance:game.uncommonChance??0,
+    uncommonStarterId:game.uncommonStarterId??null,
+    dexDiscovered:game.dexDiscovered??[]
   };
 }
 export function encodeSave(game,now=Date.now()){
@@ -66,11 +69,18 @@ export function decodeSave(encoded){
   if(stats.minDamagePercent>100)throw new Error('최소 피해량이 올바르지 않습니다.');
   cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,['speed','minDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
   if(!original.killCounts||typeof original.killCounts!=='object')throw new Error('처치 기록이 없습니다.');
-  cleanGame.killCounts=Object.fromEntries(WILD_POKEMON.map(p=>{
+  cleanGame.killCounts=Object.fromEntries([...WILD_POKEMON,...UNCOMMON_STARTERS].map(p=>{
     const count=original.killCounts[p.id]??0;
     if(!validInteger(count,MAX_COUNTER))throw new Error('처치 횟수가 올바르지 않습니다: '+p.id);
     return [p.id,count];
   }));
+  const starter=original.uncommonStarterId??null;
+  if(starter!==null&&!STARTER_IDS.includes(starter))throw new Error('6번 슬롯 정보가 올바르지 않습니다.');
+  const chance=original.uncommonChance??0;
+  if(typeof chance!=='number'||!Number.isFinite(chance)||chance<0||chance>1)throw new Error('안흔함 확률이 올바르지 않습니다.');
+  const found=original.dexDiscovered??[];
+  if(!Array.isArray(found)||found.length>8||found.some(id=>typeof id!=='string'||!getWildPokemon(id))||new Set(found).size!==found.length)throw new Error('도감 정보가 올바르지 않습니다.');
+  cleanGame.uncommonStarterId=starter;cleanGame.uncommonChance=chance;cleanGame.dexDiscovered=[...found];
   // Active combat is deliberately not persisted. Resuming requires a new battle.
   cleanGame.phase=original.phase===PHASE.RUNNING?PHASE.RUNNING:original.phase;
   cleanGame.combat=emptyCombat(cleanGame.dittoStats.hp);

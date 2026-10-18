@@ -36,7 +36,7 @@ export function DittoBattle(){
         {enemy.imageUrl?<img src={enemy.imageUrl} alt={enemy.name}/>:<div className="battle-image-placeholder" aria-hidden="true">?</div>}</div>
       <div className="battle-side-panel"><div className="battle-rewards"><h3>보상</h3><div className="battle-reward-items">
         {Object.entries(enemy.rewards||{}).map(([key,value])=>
-          <span key={key}><b>{({attack:'공격',hp:'HP'})[key]??key}</b> +{fmt(value)}</span>)}</div></div>
+          <span key={key}><b>{({attack:'공격',hp:'HP',speed:'스피드'})[key]??key}</b> {value<0?'−':'+'}{fmt(Math.abs(value))}{key==='speed'?'ms':''}</span>)}</div></div>
         <button type="button" className="battle-escape" onClick={()=>dispatch({type:'FLEE'})}>도망가기</button></div>
     </div>
     <div className="battle-vitals">

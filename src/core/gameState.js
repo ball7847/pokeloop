@@ -1,11 +1,12 @@
-import {REGION} from './wildData.js';
+import {WILD_POKEMON,UNCOMMON_BASE_CHANCE} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
   dittoStats:{...DEFAULT_DITTO_STATS},
-  killCounts:Object.fromEntries(['rattata','pidgey','mankey'].map(id=>[id,0])),
+  killCounts:Object.fromEntries(WILD_POKEMON.map(p=>[p.id,0])),
+  uncommonChance:UNCOMMON_BASE_CHANCE,uncommonStarterId:null,dexDiscovered:[],
   combat:emptyCombat(DEFAULT_DITTO_STATS.hp)
 });
 export function transition(state, action) {

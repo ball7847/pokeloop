@@ -9,13 +9,13 @@ function initialPersistence(){
   return {game:local?.game??initialState(),lastSavedAt:local?.savedAt??null,autoSaveEnabled:readAutoSaveEnabled(),saveError:error};
 }
 
-const labels={attack:'공격',hp:'HP'};
+const labels={attack:'공격',hp:'HP',speed:'스피드'};
 const pretty=formatAmount;
 export function eventMessage(event) {
   if(!event)return null;
   if(event.type==='start')return event.name+'과(와) 전투 시작';
   if(event.type==='victory')return event.name+' '+event.count+'회 처치 · '+
-    Object.entries(event.rewards).map(([k,v])=>labels[k]+' +'+pretty(v)).join(', ');
+    Object.entries(event.rewards).map(([k,v])=>labels[k]+' '+(v<0?'−':'+')+pretty(Math.abs(v))+(k==='speed'?'ms':'')).join(', ');
   if(event.type==='defeat')return event.name+'에게 쓰러졌습니다.';
   if(event.type==='flee')return '전투에서 도망쳤습니다.';
   return null;
