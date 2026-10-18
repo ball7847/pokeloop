@@ -13,8 +13,9 @@ export function StatsPanel(){
   const visible=new Set(visibleBasicStats(stats).map(x=>x.key));
   return <div className="top-stats" aria-label="메타몽 기본 능력치">
     <div className="ditto-avatar"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png" alt="메타몽" width="64" height="64"/></div>
-    <div className="stat-grid">{TOP_STATS.filter(x=>visible.has(x.key)).map(x=>
-      <div className="stat-box" key={x.key}><StatLabel stat={x.key} label={x.label}/><strong>{formatBasicStat(x.key,stats[x.key])}</strong></div>)}</div>
+    <div className="stat-grid">{TOP_STATS.map(x=>visible.has(x.key)
+      ? <div className="stat-box" key={x.key}><StatLabel stat={x.key} label={x.label}/><strong>{formatBasicStat(x.key,stats[x.key])}</strong></div>
+      : <div className="stat-slot-empty" key={x.key} aria-hidden="true"/>)}</div>
   </div>;
 }
 function MiniBattle(){

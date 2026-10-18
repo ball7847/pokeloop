@@ -164,3 +164,33 @@ test('Ditto detail always shows HP, attack, speed and minimum damage; header sho
    assert.equal(header.includes('85%'),false);
  }finally{await vite.close();}
 });
+
+test('wild layout keeps 4 columns, square portrait, no sequence number and fixed 2×3 stat positions',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+  const {WildPage,WILD_BASIC_FIELDS}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+  assert.deepEqual(WILD_BASIC_FIELDS.map(x=>x.key),['hp','speed','attack','defense','specialAttack','specialDefense']);
+  const html=renderToStaticMarkup(React.createElement(WildPage));
+  assert.equal((html.match(/class="wild-basic-stats"/g)||[]).length,3);
+  assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,9);
+  assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
+  assert.doesNotMatch(html,/class="wild-order"/);
+  const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
+  assert.match(css,/\.wild-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);
+  assert.match(css,/\.wild-card-portrait\{aspect-ratio:1\/1/);
+  assert.match(css,/\.wild-basic-stats\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ }finally{await vite.close();}
+});
+test('Ditto top stats keep 3 columns and six stable slots with hidden zero values',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+   const {StatsPanel}=await vite.ssrLoadModule('/src/components/TopBar.jsx');
+   const html=renderToStaticMarkup(React.createElement(StatsPanel));
+   assert.equal((html.match(/class="stat-box"/g)||[]).length,3);
+   assert.equal((html.match(/class="stat-slot-empty"/g)||[]).length,3);
+   assert.ok(html.indexOf('hp.svg')<html.indexOf('attack.svg'));
+   assert.ok(html.indexOf('attack.svg')<html.indexOf('speed.svg'));
+   const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
+   assert.match(css,/\.stat-grid\{flex:1;min-width:0;display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ }finally{await vite.close();}
+});

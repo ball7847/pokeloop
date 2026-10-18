@@ -4,13 +4,13 @@ import {useGameStore} from '../store/useGameStore.js';
 import {REGION,WILD_POKEMON,spriteUrl,isPokemonUnlocked,rewardMultiplier} from '../core/wildData.js';
 import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
 
-// The first six basic stats match the order of Ditto's compact top bar.
+// Row-major positions in a 2-column, 3-row grid: HP/Speed, Attack/Defense, Sp.Atk/Sp.Def.
 export const WILD_BASIC_FIELDS=Object.freeze([
   {key:'hp',label:'HP'},
-  {key:'attack',label:'공격'},
-  {key:'specialAttack',label:'특수공격'},
   {key:'speed',label:'스피드'},
+  {key:'attack',label:'공격'},
   {key:'defense',label:'방어'},
+  {key:'specialAttack',label:'특수공격'},
   {key:'specialDefense',label:'특수방어'}
 ]);
 const EXTRA_LABELS=Object.freeze({
@@ -26,8 +26,8 @@ export function visibleWildExtraStats(pokemon){
   const extras={minDamagePercent:resolveStats(pokemon).minDamagePercent,...(pokemon.extraStats??{})};
   return Object.entries(extras).filter(([key,value])=>!isDefaultStat(key,value));
 }
-function WildCard({pokemon,index,count,unlocked,capped,fighting,disabled,onSelect}){
-  const basic=visibleWildBasicStats(pokemon);
+function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
+  const basic=new Set(visibleWildBasicStats(pokemon).map(({key})=>key));
   const extras=visibleWildExtraStats(pokemon);
   const gain=Object.entries(pokemon.rewards).filter(([,v])=>Number.isFinite(v)&&v!==0)
     .map(([stat,val])=>({stat,label:REWARD_LABELS[stat]??stat,value:val*rewardMultiplier(count)}));
@@ -36,15 +36,14 @@ function WildCard({pokemon,index,count,unlocked,capped,fighting,disabled,onSelec
     aria-label={pokemon.name+' 선택'} onClick={onSelect}>
     <div className="wild-card-upper">
       <div className="wild-card-portrait">
-        <span className="wild-order">{index+1}</span>
         <img src={spriteUrl(pokemon.number)} alt={pokemon.name} width="64" height="64"/>
       </div>
       <div className="wild-card-info">
         <strong className="wild-name">{pokemon.name}</strong>
         <div className="wild-basic-stats">
-          {basic.map(({key,label})=><div key={key} className="wild-stat-box">
-            <StatLabel stat={key} label={label} compact/><strong>{formatBasicStat(key,pokemon[key])}</strong>
-          </div>)}
+          {WILD_BASIC_FIELDS.map(({key,label})=>basic.has(key)
+            ? <div key={key} className="wild-stat-box"><StatLabel stat={key} label={label} compact/><strong>{formatBasicStat(key,pokemon[key])}</strong></div>
+            : <div key={key} className="wild-stat-slot-empty" aria-hidden="true"/>)}
         </div>
       </div>
     </div>
@@ -79,7 +78,7 @@ export function WildPage(){
         const capped=count>=REGION.defaultKillLimit;
         const fighting=combatActive&&fightingId===p.id;
         const disabled=!unlocked||capped||combatActive||phase==='paused'||phase==='finished';
-        return <WildCard key={p.id} pokemon={p} index={i} count={count} unlocked={unlocked}
+        return <WildCard key={p.id} pokemon={p} count={count} unlocked={unlocked}
           capped={capped} fighting={fighting} disabled={disabled}
           onSelect={()=>dispatch({type:'SELECT_WILD',pokemonId:p.id})}/>;
       })}
