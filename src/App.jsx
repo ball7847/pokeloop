@@ -5,7 +5,6 @@ import {TopBar} from './components/TopBar.jsx';
 import {DittoPage} from './pages/DittoPage.jsx';
 import {WildPage} from './pages/WildPage.jsx';
 const TABS=[['ditto','메타몽'],['wild','야생'],['dex','도감'],['settings','설정']];
-const phaseLabels={ready:'대기 중',running:'진행 중',paused:'일시정지',finished:'완료'};
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
   return <nav className="sidebar" aria-label="메인 메뉴"><small>MENU</small>
     {TABS.map(([id,label])=><button key={id} className={'tab '+(activeTab===id?'selected':'')}
@@ -29,12 +28,7 @@ function DexPage(){return <><div className="intro"><span>COLLECTION</span><h2>�
   <div className="panel empty"><div className="symbol">▤</div><h3>도감 준비 중</h3>
     <p>도감 데이터는 이후 추가합니다.</p></div></>}
 function SettingsPage(){
-  const phase=useGameStore(s=>s.game.phase),dispatch=useGameStore(s=>s.dispatch);
-  const actions=[['시작','START',phase!=='ready'],['일시정지','PAUSE',phase!=='running'],['재개','RESUME',phase!=='paused']];
-  return <><div className="intro"><span>OPTIONS</span><h2>설정</h2><p>게임 진행 상태와 저장 데이터를 관리합니다.</p></div>
-    <div className="panel"><h3>게임 상태: {phaseLabels[phase]}</h3><div className="actions">
-      {actions.map(([label,type,disabled])=><button key={type} type="button" disabled={disabled}
-        onClick={()=>dispatch({type})}>{label}</button>)}</div></div>
+  return <><div className="intro"><span>OPTIONS</span><h2>설정</h2><p>저장 데이터를 관리합니다.</p></div>
     <SaveSettings/>
   </>;
 }
