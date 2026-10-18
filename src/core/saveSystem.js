@@ -22,7 +22,8 @@ export function gameSnapshot(game){
     killCounts:Object.fromEntries([...WILD_POKEMON,...UNCOMMON_STARTERS].map(p=>[p.id,game.killCounts[p.id]??0])),
     uncommonChance:game.uncommonChance??0,
     uncommonStarterId:game.uncommonStarterId??null,
-    dexDiscovered:game.dexDiscovered??[]
+    dexDiscovered:game.dexDiscovered??[],
+    energyBalances:game.energyBalances??{},discoveredEnergies:game.discoveredEnergies??[]
   };
 }
 export function encodeSave(game,now=Date.now()){
