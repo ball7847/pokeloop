@@ -1,3 +1,4 @@
+import { renderDittoPage, isDittoInfoTab } from './ui/dittoPage.js';
 import { renderTopBar } from './ui/topBar.js';
 import { createGameStore } from './core/gameState.js';
 
@@ -10,11 +11,12 @@ const TABS = [
 const game = createGameStore();
 const app = document.getElementById('app');
 let activeTab = TABS[0].id;
+let activeDittoInfoTab = 'basic';
 let logs = [];
 const phaseLabels = { ready:'대기 중', running:'진행 중', paused:'일시정지', finished:'완료' };
 
 function contents(state) {
-  if (activeTab === 'ditto') return '<div class="intro"><span>PARTNER</span><h2>메타몽</h2><p>메타몽의 상세 정보가 표시되는 화면입니다.</p></div><div class="panel ditto-content"><div class="ditto-image" aria-hidden="true">•ᴗ•</div><div><h3>메타몽</h3><p>능력치, 기술, 동화도 등 상세 정보는 추후 구현합니다.</p><small>상세 시스템 준비 중</small></div></div>';
+  if (activeTab === 'ditto') return renderDittoPage({ infoTab: activeDittoInfoTab, battle: null });
   if (activeTab === 'wild') return '<div class="intro"><span>EXPLORATION</span><h2>야생</h2><p>야생 포켓몬과 층 진행 화면입니다.</p></div><div class="panel empty"><div class="symbol">◇</div><h3>야생 탐험 준비 중</h3><p>전투 시스템은 아직 연결되지 않았습니다.</p></div>';
   if (activeTab === 'dex') return '<div class="intro"><span>COLLECTION</span><h2>도감</h2><p>발견한 포켓몬을 확인하는 화면입니다.</p></div><div class="panel empty"><div class="symbol">▤</div><h3>도감 준비 중</h3><p>도감 데이터는 이후 추가합니다.</p></div>';
   return '<div class="intro"><span>OPTIONS</span><h2>설정</h2><p>기본 게임 상태를 제어할 수 있습니다.</p></div><div class="panel"><h3>게임 상태: ' + phaseLabels[state.phase] + '</h3><div class="actions">' +
@@ -33,6 +35,12 @@ function render() {
     '</div></aside></div></div>';
 }
 app.addEventListener('click', event => {
+  const infoTabButton = event.target.closest('[data-ditto-info-tab]');
+  if (infoTabButton && activeTab === 'ditto' && isDittoInfoTab(infoTabButton.dataset.dittoInfoTab)) {
+    activeDittoInfoTab = infoTabButton.dataset.dittoInfoTab;
+    render();
+    return;
+  }
   const tab = event.target.closest('[data-tab]');
   if (tab && TABS.some(item => item.id === tab.dataset.tab)) {
     activeTab = tab.dataset.tab;
