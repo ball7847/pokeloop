@@ -11,7 +11,7 @@ test('combat is right-hand block with only escape control', () => {
   const html = renderTopBar({ battle: { active: true, enemy: { name: '야생 적' } } });
   assert.ok(html.indexOf('class="top-stats"') < html.indexOf('class="mini-combat"'));
   assert.match(html, /도망가기<\/button>/);
-  assert.match(html, /class="run-away" disabled/);
+  assert.match(html, /class="run-away" data-flee/);
   assert.doesNotMatch(html, /data-action="ATTACK"/);
 });
 test('unknown HP and enemy remain unfilled and clearly marked', () => {
