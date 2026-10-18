@@ -1,8 +1,8 @@
 import {resolveStats} from './dittoStats.js';
 export const REGION = Object.freeze({ id:'starting-plains', name:'시작의 평원', capacity:20, defaultKillLimit:10, rewardDecay:1 });
 const WILD_OVERRIDES = [
-  {id:'rattata',number:19,name:'꼬렛',hp:3,attack:2,speed:2000,rewards:{attack:1}},
-  {id:'pidgey',number:16,name:'구구',hp:6,attack:2.5,speed:2000,rewards:{hp:1}},
+  {id:'rattata',number:19,name:'꼬렛',hp:3,attack:2,speed:2100,rewards:{attack:1}},
+  {id:'pidgey',number:16,name:'구구',hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
   {id:'mankey',number:56,name:'망키',hp:15,attack:4,speed:3000,rewards:{attack:1,hp:1}}
 ];
 export const WILD_POKEMON = Object.freeze(WILD_OVERRIDES.map(p=>Object.freeze({

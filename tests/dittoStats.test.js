@@ -61,11 +61,11 @@ test('shared speed defaults to zero while initial combat speeds remain unchanged
  const {visibleNonDefaultStats}=await import('../src/core/dittoStats.js');
  assert.equal(resolveStats({hp:1}).speed,0);
  assert.equal(DEFAULT_DITTO_STATS.speed,3000);
- assert.deepEqual(WILD_POKEMON.map(x=>x.speed),[2000,2000,3000]);
+ assert.deepEqual(WILD_POKEMON.map(x=>x.speed),[2100,2400,3000]);
  assert.deepEqual(visibleNonDefaultStats({hp:3,speed:0}).map(x=>x.key),['hp']);
  assert.deepEqual(visibleNonDefaultStats({hp:3,speed:3000}).map(x=>x.key),['hp','speed']);
  const state=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});
  assert.equal(state.combat.dittoAttackCooldown.duration,3000);
- assert.equal(state.combat.enemy.attackCooldown.duration,2000);
- assert.equal(state.combat.enemy.stats['스피드'],2000);
+ assert.equal(state.combat.enemy.attackCooldown.duration,2100);
+ assert.equal(state.combat.enemy.stats['스피드'],2100);
 });
