@@ -34,7 +34,7 @@ export const useGameStore=create((set,get)=>({
   restoreGame:(game)=>set({game,logs:[],saveError:null}),
   resetSavedGame:()=>{
     clearLocalSave();
-    set({game:initialState(),logs:[],lastSavedAt:null,saveError:null});
+    set({game:initialState(),logs:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null});
   },
   dispatch:(action)=>set(previous=>{
     const game=transition(previous.game,action);
