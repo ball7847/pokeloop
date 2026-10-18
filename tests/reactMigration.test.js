@@ -159,7 +159,7 @@ test('Ditto detail always shows HP, attack, speed and minimum damage; header sho
    const header=renderToStaticMarkup(React.createElement(StatsPanel));
    for(const value of ['10','1','3,000ms','85%'])assert.ok(detail.includes(value));
    assert.equal((detail.match(/class="ditto-detail-stat"/g)||[]).length,4);
-   assert.equal((header.match(/class="stat-box"/g)||[]).length,5);
+   assert.equal((header.match(/class="stat-box"/g)||[]).length,3);
    assert.ok(header.includes('3,000ms'));
    assert.equal(header.includes('85%'),false);
  }finally{await vite.close();}
@@ -186,8 +186,8 @@ test('Ditto top stats keep 3 columns and six stable slots with hidden zero value
  try{
    const {StatsPanel}=await vite.ssrLoadModule('/src/components/TopBar.jsx');
    const html=renderToStaticMarkup(React.createElement(StatsPanel));
-   assert.equal((html.match(/class="stat-box"/g)||[]).length,5);
-   assert.equal((html.match(/class="stat-slot-empty"/g)||[]).length,5);
+   assert.equal((html.match(/class="stat-box"/g)||[]).length,3);
+   assert.equal((html.match(/class="stat-slot-empty"/g)||[]).length,3);
    assert.ok(html.indexOf('hp.svg')<html.indexOf('attack.svg'));
    assert.ok(html.indexOf('attack.svg')<html.indexOf('speed.svg'));
    const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
