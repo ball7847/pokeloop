@@ -62,3 +62,16 @@ test('save v3 round trip and planet travel preserve economy',()=>{
   assert.equal(moved.planetMoves,1);
   assert.equal(moved.phase,'running');
 });
+
+test('configured encounter essence payouts match species and sixth-slot starters',async()=>{
+  const {WILD_POKEMON,UNCOMMON_STARTERS}=await import('./wildData.js');
+  assert.deepEqual(WILD_POKEMON.map(p=>[p.id,p.essenceReward]),[
+    ['rattata',1],['pidgey',2],['mankey',10],['spearow',3],['zubat',3]
+  ]);
+  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.essenceReward),[132,132,132]);
+  const p=UNCOMMON_STARTERS[0];
+  const s=grantBattleEssence(initialEconomy(),p.types,p.essenceReward);
+  assert.equal(s.energyBank['풀'],132);
+  assert.equal(s.energyBank['독'],132);
+  assert.equal(s.essences['풀'],0);
+});
