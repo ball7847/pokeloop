@@ -3,10 +3,11 @@ import {WILD_POKEMON,UNCOMMON_STARTERS,STARTER_IDS,getWildPokemon} from './wildD
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount,compareAmount} from './bigNumber.js';
+import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=2;
+export const SAVE_VERSION=3;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -23,7 +24,9 @@ export function gameSnapshot(game){
     uncommonChance:game.uncommonChance??0,
     uncommonStarterId:game.uncommonStarterId??null,
     dexDiscovered:game.dexDiscovered??[],
-    energyBalances:game.energyBalances??{},discoveredEnergies:game.discoveredEnergies??[]
+    ...Object.fromEntries(['essences','energyBalances','energyEarned','energyBank','energyMilestones','unlockedLayer',
+      'normalFirstMilestonePermanent','pendingStellar','stellar','totalStellarEarned','planetMoves','essenceUpgrades',
+      'qolUnlocks','permanentUpgrades'].map(key=>[key,game[key]]))
   };
 }
 export function encodeSave(game,now=Date.now()){
@@ -43,7 +46,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -81,14 +84,51 @@ export function decodeSave(encoded){
   if(typeof chance!=='number'||!Number.isFinite(chance)||chance<0||chance>1)throw new Error('안흔함 확률이 올바르지 않습니다.');
   const found=original.dexDiscovered??[];
   if(!Array.isArray(found)||found.length>8||found.some(id=>typeof id!=='string'||!getWildPokemon(id))||new Set(found).size!==found.length)throw new Error('도감 정보가 올바르지 않습니다.');
-  const energyIds=Array.from({length:18},(_,i)=>'energy-'+String(i+1).padStart(2,'0'));
-  const discovered=original.discoveredEnergies??[];
-  const balances=original.energyBalances??{};
-  if(!Array.isArray(discovered)||discovered.length>18||discovered.some(id=>!energyIds.includes(id))||new Set(discovered).size!==discovered.length)
-    throw new Error('에너지 발견 정보가 올바르지 않습니다.');
-  if(!balances||typeof balances!=='object'||Array.isArray(balances)||Object.keys(balances).some(id=>!energyIds.includes(id)||!validInteger(balances[id],MAX_COUNTER)))
-    throw new Error('에너지 보유량이 올바르지 않습니다.');
-  cleanGame.discoveredEnergies=[...discovered];cleanGame.energyBalances={...balances};
+  // v1/v2 saves used nonfunctional energy-01 placeholders. Start the new economy
+  // from zero while preserving battle records; never reinterpret a placeholder as a type.
+  if(data.version>=3){
+    const eco=initialEconomy();
+    const amountRecords=['essences','energyBalances','energyEarned','energyBank'];
+    for(const key of amountRecords){
+      const record=original[key]??{};
+      if(!record||typeof record!=='object'||Array.isArray(record)||Object.keys(record).some(t=>!TYPES.includes(t)))
+        throw new Error('재화 데이터가 올바르지 않습니다: '+key);
+      eco[key]=Object.fromEntries(TYPES.map(t=>{
+        const value=record[t]??0;
+        if(!isAmount(value))throw new Error('재화 값이 올바르지 않습니다: '+key+'/'+t);
+        return [t,storedAmount(value)];
+      }));
+    }
+    const milestones=original.energyMilestones??{};
+    if(!milestones||typeof milestones!=='object'||Array.isArray(milestones)||Object.keys(milestones).some(t=>!TYPES.includes(t)))
+      throw new Error('이정표 데이터가 올바르지 않습니다.');
+    eco.energyMilestones=Object.fromEntries(TYPES.map(t=>{
+      const value=milestones[t]??0;
+      if(!validInteger(value,10))throw new Error('이정표 단계가 올바르지 않습니다.');
+      return [t,value];
+    }));
+    const layer=original.unlockedLayer??1;
+    if(!validInteger(layer,LAYERS.length)||layer<1)throw new Error('계층 상태가 올바르지 않습니다.');
+    eco.unlockedLayer=layer;
+    if(typeof original.normalFirstMilestonePermanent!=='boolean')throw new Error('노말 이정표 보존 상태가 올바르지 않습니다.');
+    eco.normalFirstMilestonePermanent=original.normalFirstMilestonePermanent;
+    for(const key of ['pendingStellar','stellar','totalStellarEarned']){
+      const value=original[key]??0;
+      if(!isAmount(value))throw new Error('스텔라에너지 값이 올바르지 않습니다.');
+      eco[key]=storedAmount(value);
+    }
+    if(!validInteger(original.planetMoves??0,MAX_COUNTER))throw new Error('행성 이동 횟수가 올바르지 않습니다.');
+    eco.planetMoves=original.planetMoves??0;
+    for(const key of ['essenceUpgrades','permanentUpgrades']){
+      const value=original[key]??{};
+      if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>100)throw new Error('강화 기록이 올바르지 않습니다.');
+      eco[key]={...value};
+    }
+    const qol=original.qolUnlocks??[];
+    if(!Array.isArray(qol)||qol.length>100||qol.some(v=>typeof v!=='string'||v.length>100))throw new Error('QoL 기록이 올바르지 않습니다.');
+    eco.qolUnlocks=[...qol];
+    Object.assign(cleanGame,eco);
+  }
   cleanGame.uncommonStarterId=starter;cleanGame.uncommonChance=chance;cleanGame.dexDiscovered=[...found];
   // Active combat is deliberately not persisted. Resuming requires a new battle.
   cleanGame.phase=original.phase===PHASE.RUNNING?PHASE.RUNNING:original.phase;
