@@ -102,7 +102,9 @@ test('missing original HOME assets display readable labels without broken image 
    const detail=renderToStaticMarkup(React.createElement(DittoPage,{infoTab:'basic',setInfoTab:()=>{}}));
    const wild=renderToStaticMarkup(React.createElement(WildPage));
    for(const html of [header,detail,wild]){
-     assert.doesNotMatch(html,/archives\\.bulbagarden\\.net|Special:Redirect\\/file|home-stat-fallback/);
+     assert.equal(html.includes('archives.bulbagarden.net'),false);
+     assert.equal(html.includes('Special:Redirect/file'),false);
+     assert.equal(html.includes('home-stat-fallback'),false);
      assert.doesNotMatch(html,/class="home-stat-icon/);
    }
    assert.ok(header.includes('스피드'));
