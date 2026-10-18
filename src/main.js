@@ -1,3 +1,4 @@
+import { renderTopBar } from './ui/topBar.js';
 import { createGameStore } from './core/gameState.js';
 
 const TABS = [
@@ -23,7 +24,7 @@ function contents(state) {
 function render() {
   const state = game.getState();
   app.innerHTML = '<div class="shell">' +
-    '<header class="topbar"><div class="identity"><div class="ditto-mini" aria-hidden="true">•ᴗ•</div><div><small>POKÉLOOP</small><strong>메타몽</strong></div></div><div class="metrics" aria-label="메타몽 간략 정보"><div>상태<strong>' + phaseLabels[state.phase] + '</strong></div><div>현재 층<strong>' + state.floor + '</strong></div><div>승리<strong>' + state.victories + '</strong></div></div></header>' +
+    '' + renderTopBar() + '' +
     '<div class="workspace"><nav class="sidebar" aria-label="메인 메뉴"><small>MENU</small>' +
     TABS.map(tab => '<button type="button" data-tab="' + tab.id + '" class="tab ' + (activeTab === tab.id ? 'selected' : '') + '" ' + (activeTab === tab.id ? 'aria-current="page"' : '') + '>' + tab.label + '<span>›</span></button>').join('') +
     '</nav><main class="main" id="main-content">' + contents(state) + '</main>' +
