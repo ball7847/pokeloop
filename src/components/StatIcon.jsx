@@ -1,32 +1,32 @@
-import React,{useState} from 'react';
+import React from 'react';
 
-// Official Pokémon HOME stat sprites as catalogued by Bulbagarden Archives.
-// MediaWiki's file redirect keeps file revisions and upload directory paths out of UI code.
+// Original Pokémon HOME images are not bundled until their file bytes have
+// been acquired and verified. Never request unverified external media paths.
 export const HOME_STAT_FILES=Object.freeze({
-  hp:'HP_icon_HOME.png',
-  attack:'Attack_icon_HOME.png',
-  defense:'Defense_icon_HOME.png',
-  specialAttack:'Special_Attack_icon_HOME.png',
-  specialDefense:'Special_Defense_icon_HOME.png',
-  speed:'Speed_icon_HOME.png'
+  hp:'hp.png',
+  attack:'attack.png',
+  defense:'defense.png',
+  specialAttack:'specialAttack.png',
+  specialDefense:'specialDefense.png',
+  speed:'speed.png'
 });
-const ABBREVIATIONS=Object.freeze({hp:'HP',attack:'공',defense:'방',specialAttack:'특공',specialDefense:'특방',speed:'속'});
-const HOME_STAT_NAMES=Object.freeze({hp:'HP',attack:'공격',defense:'방어',specialAttack:'특수공격',specialDefense:'특수방어',speed:'스피드'});
-export function homeStatIconUrl(key) {
-  const name=HOME_STAT_FILES[key];
-  return name?'https://archives.bulbagarden.net/wiki/Special:Redirect/file/'+encodeURIComponent(name):null;
+const ABBREVIATIONS=Object.freeze({
+  hp:'HP',attack:'공격',defense:'방어',
+  specialAttack:'특공',specialDefense:'특방',speed:'스피드'
+});
+export function homeStatIconUrl(_key) {
+  // Assets unavailable: return null instead of creating broken requests.
+  return null;
 }
 export function StatIcon({stat,className=''}) {
-  const [failed,setFailed]=useState(false);
   const url=homeStatIconUrl(stat);
-  if(!url)return null;
-  return <span className={'home-stat-icon '+className} aria-hidden="true">
-    {failed?<span className="home-stat-fallback">{ABBREVIATIONS[stat]}</span>:
-      <img src={url} alt="" width="18" height="18" loading="lazy" onError={()=>setFailed(true)}/>}
-  </span>;
+  return url?<img className={'home-stat-icon '+className} src={url} alt="" width="18" height="18" />:null;
 }
 export function StatLabel({stat,label,compact=false}) {
-  return <span className="stat-label" title={label??HOME_STAT_NAMES[stat]}>
-    <StatIcon stat={stat}/>{!compact&&<span className="stat-label-text">{label??HOME_STAT_NAMES[stat]}</span>}
+  const name=label??ABBREVIATIONS[stat]??stat;
+  const hasIcon=Boolean(homeStatIconUrl(stat));
+  return <span className="stat-label" title={name}>
+    {hasIcon&&<StatIcon stat={stat}/>}
+    <span className="stat-label-text">{compact?(hasIcon?'':ABBREVIATIONS[stat]??name):name}</span>
   </span>;
 }

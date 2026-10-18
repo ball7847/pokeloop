@@ -90,26 +90,27 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
  }finally{await vite.close();}
 });
 
-test('official HOME stat icon keys are shared across top, Ditto and wild views',async()=>{
+test('missing original HOME assets display readable labels without broken image requests',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  try{
-   const {HOME_STAT_FILES,homeStatIconUrl}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
-   assert.deepEqual(Object.keys(HOME_STAT_FILES).sort(),['hp','attack','defense','specialAttack','specialDefense','speed'].sort());
-   assert.ok(homeStatIconUrl('attack').includes('Attack_icon_HOME.png'));
+   const {homeStatIconUrl}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+   assert.equal(homeStatIconUrl('hp'),null);
    const {StatsPanel}=await vite.ssrLoadModule('/src/components/TopBar.jsx');
    const {DittoPage}=await vite.ssrLoadModule('/src/pages/DittoPage.jsx');
    const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
-   for(const element of [React.createElement(StatsPanel),React.createElement(DittoPage,{infoTab:'basic',setInfoTab:()=>{}}),React.createElement(WildPage)]){
-     const html=renderToStaticMarkup(element);
-     assert.match(html,/class="home-stat-icon/);
-     assert.match(html,/Special:Redirect\/file/);
-   }
+   const header=renderToStaticMarkup(React.createElement(StatsPanel));
+   const detail=renderToStaticMarkup(React.createElement(DittoPage,{infoTab:'basic',setInfoTab:()=>{}}));
    const wild=renderToStaticMarkup(React.createElement(WildPage));
+   for(const html of [header,detail,wild]){
+     assert.doesNotMatch(html,/archives\\.bulbagarden\\.net|Special:Redirect\\/file|home-stat-fallback/);
+     assert.doesNotMatch(html,/class="home-stat-icon/);
+   }
+   assert.ok(header.includes('스피드'));
+   assert.ok(wild.includes('공격'));
    assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,8);
    assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,17);
  }finally{await vite.close();}
 });
-
 test('wild Pokemon inherit 85% damage floor while the default never takes a card slot',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  try {
