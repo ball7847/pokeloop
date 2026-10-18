@@ -3,7 +3,7 @@ import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.j
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
-  phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0,
+  phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
   dittoStats:{...DEFAULT_DITTO_STATS},
   killCounts:Object.fromEntries(['rattata','pidgey','mankey'].map(id=>[id,0])),
   combat:emptyCombat(DEFAULT_DITTO_STATS.hp)
@@ -27,5 +27,5 @@ export function transition(state, action) {
 }
 export function createGameStore() {
  let state=initialState();const listeners=new Set();
- return {getState:()=>state,subscribe(fn){listeners.add(fn);return ()=>listeners.delete(fn)},dispatch(action){const next=transition(state,action);if(next!==state){state=next;listeners.forEach(fn=>fn(state))}return state}};
+ return {getState:()=>state,subscribe(fn){listeners.add(fn);return ()=>listeners.delete(fn)},dispatch(action){const next=transition(state,action);if(next!==state){state=next;listeners.forEach(fn=>fn(state,action))}return state}};
 }

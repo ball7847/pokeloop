@@ -1,3 +1,4 @@
+import { updateCombatDisplay } from './ui/combatUpdates.js';
 import { renderWildPage } from './ui/wildPage.js';
 import { renderDittoPage, isDittoInfoTab } from './ui/dittoPage.js';
 import { renderTopBar } from './ui/topBar.js';
@@ -14,7 +15,7 @@ const app = document.getElementById('app');
 let activeTab = TABS[0].id;
 let activeDittoInfoTab = 'basic';
 let logs = [];
-let lastLoggedEvent = null;
+let lastLoggedEventId = 0;
 const labels = {attack:'공격',hp:'HP'};
 const pretty = n => Number(n.toFixed(4)).toLocaleString('en-US',{maximumFractionDigits:4});
 const phaseLabels = { ready:'대기 중', running:'진행 중', paused:'일시정지', finished:'완료' };
@@ -66,17 +67,28 @@ app.addEventListener('click', event => {
   logs = logs.slice(0, 100);
   render();
 });
-game.subscribe(state=>{
+game.subscribe((state, action)=>{
   const event=state.combat.lastEvent;
-  if(event && event!==lastLoggedEvent){
-    lastLoggedEvent=event;
+  if(event && event.id !== lastLoggedEventId){
+    lastLoggedEventId=event.id;
     const message=event.type==='start'?event.name+'과(와) 전투 시작'
       :event.type==='victory'?event.name+' '+event.count+'회 처치 · '+Object.entries(event.rewards).map(([k,v])=>labels[k]+' +'+pretty(v)).join(', ')
       :event.type==='defeat'?event.name+'에게 쓰러졌습니다.':'전투에서 도망쳤습니다.';
     logs.unshift(message);logs=logs.slice(0,100);
   }
-  if(state.combat.active===false && state.phase==='ready')lastLoggedEvent=null;
+  if(action?.type === 'RESET')lastLoggedEventId=0;
+  if(action?.type === 'COMBAT_TICK' && state.combat.active){
+    updateCombatDisplay(app,state.combat);
+    return;
+  }
   render();
 });
-setInterval(()=>{const state=game.getState();if(state.combat.active && state.phase==='running')game.dispatch({type:'COMBAT_TICK',deltaMs:100});},100);
+let lastFrameAt = performance.now();
+setInterval(()=>{
+  const now = performance.now();
+  const deltaMs = Math.max(0,now-lastFrameAt);
+  lastFrameAt = now;
+  const state=game.getState();
+  if(state.combat.active && state.phase==='running')game.dispatch({type:'COMBAT_TICK',deltaMs});
+},100);
 render();
