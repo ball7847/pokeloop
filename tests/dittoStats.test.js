@@ -40,9 +40,10 @@ test('default minimum damage is shared and hidden; modified values remain visibl
 });
 
 test('common stats default independently of Ditto starting overrides',()=>{
- assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85});
+ assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85});
  assert.deepEqual(resolveStats({hp:6,attack:2.5}),{...DEFAULT_STATS,hp:6,attack:2.5});
- assert.equal(isDefaultStat('speed',3000),true);
+ assert.equal(isDefaultStat('speed',0),true);
+ assert.equal(isDefaultStat('speed',3000),false);
  assert.equal(isDefaultStat('speed',2000),false);
  assert.equal(isDefaultStat('critChance',0),true);
  assert.equal(isDefaultStat('critChance',10),false);
@@ -53,4 +54,18 @@ test('Ditto always displays four core abilities even at baseline values',()=>{
  const baseline=resolveStats({});
  assert.deepEqual(visibleBasicStats(baseline).map(x=>x.key),['hp','attack','speed','minDamagePercent']);
  assert.deepEqual(visibleBasicStats({...baseline,defense:4}).map(x=>x.key),['hp','attack','defense','speed','minDamagePercent']);
+});
+
+test('shared speed defaults to zero while initial combat speeds remain unchanged',async()=>{
+ const {WILD_POKEMON}=await import('../src/core/wildData.js');
+ const {visibleNonDefaultStats}=await import('../src/core/dittoStats.js');
+ assert.equal(resolveStats({hp:1}).speed,0);
+ assert.equal(DEFAULT_DITTO_STATS.speed,3000);
+ assert.deepEqual(WILD_POKEMON.map(x=>x.speed),[2000,2000,3000]);
+ assert.deepEqual(visibleNonDefaultStats({hp:3,speed:0}).map(x=>x.key),['hp']);
+ assert.deepEqual(visibleNonDefaultStats({hp:3,speed:3000}).map(x=>x.key),['hp','speed']);
+ const state=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});
+ assert.equal(state.combat.dittoAttackCooldown.duration,3000);
+ assert.equal(state.combat.enemy.attackCooldown.duration,2000);
+ assert.equal(state.combat.enemy.stats['스피드'],2000);
 });

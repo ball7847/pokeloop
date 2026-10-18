@@ -83,7 +83,7 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
    assert.ok(html.indexOf('wild-basic-stats')<html.indexOf('wild-extra-stats'));
    assert.ok(html.indexOf('wild-extra-stats')<html.indexOf('wild-rewards'));
    assert.match(html,/2,000ms/);
-   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,8);
+   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,9);
    assert.deepEqual(visibleWildBasicStats({hp:3,attack:0,speed:2000}).map(x=>x.key),['hp','speed']);
    assert.deepEqual(visibleWildExtraStats({extraStats:{dodge:0,critChance:12}}),[['critChance',12]]);
    assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,17);
@@ -146,7 +146,7 @@ test('wild omitted properties resolve to shared defaults without altering encoun
    assert.equal(WILD_POKEMON[1].attack,2.5);
    assert.equal(WILD_POKEMON[2].speed,3000);
    assert.equal(WILD_POKEMON.every(x=>x.defense===0&&x.specialAttack===0&&x.specialDefense===0&&x.minDamagePercent===85),true);
-   assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','attack']);
+   assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','attack','speed']);
  }finally{await vite.close();}
 });
 

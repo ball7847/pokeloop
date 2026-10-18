@@ -7,7 +7,7 @@ export const DEFAULT_STATS = Object.freeze({
   defense: 0,
   specialAttack: 0,
   specialDefense: 0,
-  speed: 3000,
+  speed: 0,
   minDamagePercent: DEFAULT_MIN_DAMAGE_PERCENT
 });
 export function defaultStat(key) {
@@ -19,8 +19,8 @@ export function resolveStats(overrides = {}) {
 export function isDefaultStat(key,value) {
   return !Number.isFinite(value) || value === defaultStat(key);
 }
-// Ditto starts with explicit HP and Attack overrides; all other stats inherit defaults.
-export const DEFAULT_DITTO_STATS = Object.freeze(resolveStats({hp:10,attack:1}));
+// Ditto retains its original 3,000ms starting speed as an explicit override.
+export const DEFAULT_DITTO_STATS = Object.freeze(resolveStats({hp:10,attack:1,speed:3000}));
 
 export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'hp', label:'HP', description:'현재 HP가 0이 되면 쓰러집니다.' },
@@ -32,6 +32,10 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'minDamagePercent', label:'최소 피해량', description:'최종 피해 배율의 하한입니다. 1% 단위로 최대 100%까지 무작위 선택합니다.' }
 ]);
 
+export function visibleNonDefaultStats(stats = {}) {
+  const resolved=resolveStats(stats);
+  return BASIC_STAT_FIELDS.filter(({key}) => !isDefaultStat(key,resolved[key]));
+}
 export const ALWAYS_VISIBLE_DITTO_STATS = Object.freeze(['hp','attack','speed','minDamagePercent']);
 export function visibleBasicStats(stats = {}) {
   const resolved=resolveStats(stats);
