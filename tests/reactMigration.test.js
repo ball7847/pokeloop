@@ -52,3 +52,17 @@ test('Zustand state maintains existing victory and reward rules',()=>{
  assert.equal(s.dittoStats.attack,2);
  assert.equal(s.dittoStats.hp,10);
 });
+
+test('desktop layout confines scrolling to panels without clipping mobile document',()=>{
+ const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
+ assert.match(css,/\@media \(min-width:951px\) \{/);
+ assert.match(css,/\.shell \{ height:100dvh; min-height:0; overflow:hidden; \}/);
+ assert.match(css,/\.workspace \{ flex:1 1 0; height:0; min-height:0; overflow:hidden; \}/);
+ assert.match(css,/\.main \{ min-height:0; min-width:0; overflow-y:auto;/);
+ assert.match(css,/\.ditto-page \{ flex:1; height:100%; min-height:0;/);
+ assert.match(css,/\.ditto-info-body \{ min-height:0; overflow-y:auto;/);
+ assert.match(css,/\.ditto-battle-region \{ min-height:0; overflow-y:auto;/);
+ assert.match(css,/\.log-body \{ min-height:0; overflow-y:auto;/);
+ assert.match(css,/\@media \(max-width:950px\) \{/);
+ assert.match(css,/\.shell \{ height:auto; min-height:100dvh; overflow:visible; \}/);
+});

@@ -95,3 +95,33 @@
 @media(max-width:1050px){.wild-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.wild-card,.wild-empty-cell{min-height:124px}.wild-card img{width:45px;height:45px}}
 @media(max-width:650px){.wild-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.wild-card,.wild-empty-cell{min-height:116px}.wild-card{padding:6px 2px}.wild-card img{width:38px;height:38px}.wild-card strong{font-size:11px}.wild-reward,.wild-state{font-size:9px}.wild-footnote{font-size:10px}}
 @media(max-width:430px){.wild-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* React desktop viewport layout: the document itself never grows with a tab.
+   Overflow stays inside the central pane, its panels, and the log history. */
+@media (min-width:951px) {
+  html,body,#app { height:100%; min-height:0; }
+  body { overflow:hidden; }
+  #app { overflow:hidden; }
+  .shell { height:100dvh; min-height:0; overflow:hidden; }
+  .new-topbar { flex:none; }
+  .workspace { flex:1 1 0; height:0; min-height:0; overflow:hidden; }
+  .sidebar { min-height:0; overflow-y:auto; }
+  .main { min-height:0; min-width:0; overflow-y:auto; overscroll-behavior:contain; }
+  .logs { min-height:0; max-height:none; overflow:hidden; }
+  .log-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+  .main:has(.ditto-page) { overflow:hidden; display:flex; flex-direction:column; }
+  .ditto-page { flex:1; height:100%; min-height:0; min-width:0;
+    grid-template-rows:minmax(0, 1fr) minmax(0, 1.6fr); }
+  .ditto-info-region { min-height:0; }
+  .ditto-info-tabs { flex:none; }
+  .ditto-info-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+  .ditto-battle-region { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+}
+/* At narrower widths the history moves below the game; keep natural page scrolling. */
+@media (max-width:950px) {
+  html,body,#app { height:auto; min-height:0; overflow:visible; }
+  .shell { height:auto; min-height:100dvh; overflow:visible; }
+  .workspace { height:auto; overflow:visible; }
+  .main { overflow:visible; }
+  .logs { max-height:240px; }
+}
