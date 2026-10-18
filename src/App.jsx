@@ -5,12 +5,23 @@ import {TopBar} from './components/TopBar.jsx';
 import {DittoPage} from './pages/DittoPage.jsx';
 import {WildPage} from './pages/WildPage.jsx';
 import {CombatBarAnimator} from './components/CombatBarAnimator.jsx';
-const TABS=[['ditto','메타몽'],['wild','야생'],['dex','도감'],['settings','설정']];
+const TABS=[['settings','설정'],['ditto','메타몽'],['wild','야생'],['dex','도감'],['energy','에너지']];
+const ENERGY_IDS=Array.from({length:18},(_,i)=>'energy-'+String(i+1).padStart(2,'0'));
+export function discoveredEnergyItems(game){
+  const discovered=Array.isArray(game?.discoveredEnergies)?game.discoveredEnergies:[];
+  const amounts=game?.energyBalances??{};
+  return ENERGY_IDS.filter(id=>discovered.includes(id)).map(id=>({id,name:'에너지 '+Number(id.slice(-2)),amount:amounts[id]??0}));
+}
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
+  const items=useGameStore(s=>discoveredEnergyItems(s.game));
   return <nav className="sidebar" aria-label="메인 메뉴"><small>MENU</small>
     {TABS.map(([id,label])=><button key={id} className={'tab '+(activeTab===id?'selected':'')}
       type="button" aria-current={activeTab===id?'page':undefined}
       onClick={()=>onTabChange(id)}>{label}<span>›</span></button>)}
+    <section className="sidebar-energies" aria-label="보유 에너지"><div className="sidebar-energy-title"><strong>보유 에너지</strong><small>{items.length}/18</small></div>
+      {items.length? <div className="sidebar-energy-list">{items.map(item=><div className="sidebar-energy-item" key={item.id}><span>{item.name}</span><strong>{String(item.amount)}</strong></div>)}</div>:
+        <p className="sidebar-energy-empty">발견한 에너지가 없습니다.</p>}
+    </section>
   </nav>;
 });
 export function LogPanel(){
@@ -28,6 +39,18 @@ function DexPage(){return <><div className="intro"><span>COLLECTION</span><h2>�
   <p>발견한 포켓몬을 확인하는 화면입니다.</p></div>
   <div className="panel empty"><div className="symbol">▤</div><h3>도감 준비 중</h3>
     <p>도감 데이터는 이후 추가합니다.</p></div></>}
+function EnergyPage(){
+  const [purchaseTab,setPurchaseTab]=useState('stats');
+  const items=useGameStore(s=>discoveredEnergyItems(s.game));
+  return <><div className="intro"><span>ENERGY</span><h2>에너지</h2><p>발견한 에너지를 확인하고 강화 및 자동화를 관리합니다.</p></div>
+    <section className="panel energy-page-balances"><h3>보유 에너지 <small>{items.length}/18종 발견</small></h3>
+      {items.length?<div className="energy-balance-grid">{items.map(item=><div key={item.id} className="energy-balance-item"><span>{item.name}</span><strong>{String(item.amount)}</strong></div>)}</div>:<p>아직 발견한 에너지가 없습니다.</p>}</section>
+    <section className="panel energy-purchase-panel"><div className="energy-purchase-tabs" role="tablist" aria-label="에너지 구매 분류">
+      <button type="button" role="tab" aria-selected={purchaseTab==='stats'} className={purchaseTab==='stats'?'selected':''} onClick={()=>setPurchaseTab('stats')}>능력치 강화</button>
+      <button type="button" role="tab" aria-selected={purchaseTab==='automation'} className={purchaseTab==='automation'?'selected':''} onClick={()=>setPurchaseTab('automation')}>자동화</button></div>
+      <div role="tabpanel" className="energy-purchase-placeholder">{purchaseTab==='stats'?'능력치 강화':'자동화'} 구매 항목은 추후 추가됩니다.</div></section>
+  </>;
+}
 function SettingsPage(){
   return <><div className="intro"><span>OPTIONS</span><h2>설정</h2><p>저장 데이터를 관리합니다.</p></div>
     <SaveSettings/>
@@ -136,7 +159,7 @@ export function App(){
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab}/>
       <main className="main" id="main-content">
         {activeTab==='ditto'?<DittoPage infoTab={infoTab} setInfoTab={setInfoTab}/>:
-          activeTab==='wild'?<WildPage/>:activeTab==='dex'?<DexPage/>:<SettingsPage/>}
+          activeTab==='wild'?<WildPage/>:activeTab==='dex'?<DexPage/>:activeTab==='energy'?<EnergyPage/>:<SettingsPage/>}
       </main>
       <LogPanel/>
     </div>
