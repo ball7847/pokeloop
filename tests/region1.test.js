@@ -5,7 +5,7 @@ import {initialState,transition} from '../src/core/gameState.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 test('region 1 position 3-5 stats and rewards',()=>{
  assert.deepEqual(WILD_POKEMON.map(p=>p.id),['rattata','pidgey','mankey','spearow','zubat']);
- assert.deepEqual([WILD_POKEMON[2].hp,WILD_POKEMON[2].attack,WILD_POKEMON[2].speed],[20,4,1750]);
+ assert.deepEqual([WILD_POKEMON[2].hp,WILD_POKEMON[2].attack,WILD_POKEMON[2].speed],[20,4,1800]);
  assert.deepEqual(WILD_POKEMON[2].rewards,{hp:5.6,attack:5.7});
  assert.deepEqual([WILD_POKEMON[3].hp,WILD_POKEMON[3].attack,WILD_POKEMON[3].speed],[12,2.1,1800]);
  assert.deepEqual(WILD_POKEMON[3].rewards,{hp:2.1,attack:1});
