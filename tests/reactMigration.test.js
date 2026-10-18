@@ -117,7 +117,7 @@ test('six local user-supplied stat silhouettes appear without duplicate text',as
    assert.match(header,/speed\.svg/);
    assert.match(detail,/attack\.svg/);
    assert.match(wild,/speed\.svg/);
-   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,8);
+   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,9);
    assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,17);
  } finally { await vite.close(); }
 });
