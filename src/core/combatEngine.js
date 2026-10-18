@@ -16,7 +16,7 @@ export function startBattle(state,id) {
       name:p.name,imageUrl:spriteUrl(p.number),
       hp:{current:p.hp,max:p.hp},
       stats:{HP:p.hp,공격:p.attack,스피드:p.speed},
-      rewards:{...p.rewards},
+      rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,value*rewardMultiplier(state.killCounts[id]||0)])),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack
     },
