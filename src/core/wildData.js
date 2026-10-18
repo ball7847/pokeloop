@@ -1,15 +1,15 @@
 import {resolveStats} from './dittoStats.js';
 export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',capacity:20,defaultKillLimit:10,rewardDecay:1});
 const entries=[
-{id:'rattata',number:19,name:'꼬렛',hp:3,attack:2,speed:2100,rewards:{attack:1}},
-{id:'pidgey',number:16,name:'구구',hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
-{id:'mankey',number:56,name:'망키',hp:20,attack:4,speed:1800,rewards:{hp:5.6,attack:2}},
-{id:'spearow',number:21,name:'깨비참',hp:12,attack:2.1,speed:1800,rewards:{hp:2.1,attack:1}},
-{id:'zubat',number:41,name:'주뱃',hp:10,attack:1.45,speed:1100,rewards:{attack:1,speed:-20}}
+{id:'rattata',number:19,name:'꼬렛',types:['노말'],essenceReward:0,hp:3,attack:2,speed:2100,rewards:{attack:1}},
+{id:'pidgey',number:16,name:'구구',types:['노말','비행'],essenceReward:0,hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
+{id:'mankey',number:56,name:'망키',types:['격투'],essenceReward:0,hp:20,attack:4,speed:1800,rewards:{hp:5.6,attack:2}},
+{id:'spearow',number:21,name:'깨비참',types:['노말','비행'],essenceReward:0,hp:12,attack:2.1,speed:1800,rewards:{hp:2.1,attack:1}},
+{id:'zubat',number:41,name:'주뱃',types:['독','비행'],essenceReward:0,hp:10,attack:1.45,speed:1100,rewards:{attack:1,speed:-20}}
 ];
 export const WILD_POKEMON=Object.freeze(entries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const UNCOMMON_BASE_CHANCE=0;
-export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨'},{id:'charmander',number:4,name:'파이리'},{id:'squirtle',number:7,name:'꼬부기'}].map(p=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
+export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],essenceReward:0},{id:'charmander',number:4,name:'파이리',types:['불꽃'],essenceReward:0},{id:'squirtle',number:7,name:'꼬부기',types:['물'],essenceReward:0}].map(p=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 // Call at a future reincarnation event, once per cycle; do not reroll on page visits.
 export function rollUncommonStarter(chance=UNCOMMON_BASE_CHANCE,random=Math.random){
