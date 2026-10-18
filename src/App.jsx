@@ -5,12 +5,13 @@ import {TopBar} from './components/TopBar.jsx';
 import {DittoPage} from './pages/DittoPage.jsx';
 import {WildPage} from './pages/WildPage.jsx';
 import {CombatBarAnimator} from './components/CombatBarAnimator.jsx';
+import {TYPES,LAYERS,FIRST_MILESTONE,energyRates,energyMilestoneThreshold} from './core/energySystem.js';
+import {formatAmount,compareAmount,divideAmount} from './core/bigNumber.js';
 const TABS=[['settings','설정'],['ditto','메타몽'],['wild','야생'],['dex','도감'],['energy','에너지']];
-const ENERGY_IDS=Array.from({length:18},(_,i)=>'energy-'+String(i+1).padStart(2,'0'));
 export function discoveredEnergyItems(game){
-  const discovered=Array.isArray(game?.discoveredEnergies)?game.discoveredEnergies:[];
-  const amounts=game?.energyBalances??{};
-  return ENERGY_IDS.filter(id=>discovered.includes(id)).map(id=>({id,name:'에너지 '+Number(id.slice(-2)),amount:amounts[id]??0}));
+  const amounts=game?.energyBalances??{},earned=game?.energyEarned??{};
+  return TYPES.filter(type=>compareAmount(earned[type]??0,0)>0)
+    .map(type=>({id:type,name:type+' 에너지',amount:amounts[type]??0}));
 }
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
   const game=useGameStore(s=>s.game);
@@ -20,7 +21,7 @@ export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
       type="button" aria-current={activeTab===id?'page':undefined}
       onClick={()=>onTabChange(id)}>{label}<span>›</span></button>)}
     <section className="sidebar-energies" aria-label="보유 에너지"><div className="sidebar-energy-title"><strong>보유 에너지</strong><small>{items.length}/18</small></div>
-      {items.length? <div className="sidebar-energy-list">{items.map(item=><div className="sidebar-energy-item" key={item.id}><span>{item.name}</span><strong>{String(item.amount)}</strong></div>)}</div>:
+      {items.length? <div className="sidebar-energy-list">{items.map(item=><div className="sidebar-energy-item" key={item.id}><span>{item.name}</span><strong>{formatAmount(item.amount)}</strong></div>)}</div>:
         <p className="sidebar-energy-empty">발견한 에너지가 없습니다.</p>}
     </section>
   </nav>;
@@ -43,15 +44,52 @@ function DexPage(){return <><div className="intro"><span>COLLECTION</span><h2>�
 function EnergyPage(){
   const [purchaseTab,setPurchaseTab]=useState('stats');
   const game=useGameStore(s=>s.game);
+  const dispatch=useGameStore(s=>s.dispatch);
+  const rates=energyRates(game);
   const items=discoveredEnergyItems(game);
-  return <><div className="intro"><span>ENERGY</span><h2>에너지</h2><p>발견한 에너지를 확인하고 강화 및 자동화를 관리합니다.</p></div>
-    <section className="panel energy-page-balances"><h3>보유 에너지 <small>{items.length}/18종 발견</small></h3>
-      {items.length?<div className="energy-balance-grid">{items.map(item=><div key={item.id} className="energy-balance-item"><span>{item.name}</span><strong>{String(item.amount)}</strong></div>)}</div>:<p>아직 발견한 에너지가 없습니다.</p>}</section>
+  return <div className="energy-overview">
+    <div className="intro"><span>PLANETARY ENERGY</span><h2>에너지</h2>
+      <p>상위 계층의 에너지가 하위 계층을 생산합니다. 타입별 첫 이정표는 누적 1,025입니다.</p></div>
+    <section className="panel"><h3>보유 타입 정수</h3>
+      <div className="energy-balance-grid">{TYPES.filter(t=>compareAmount(game.essences[t]??0,0)>0).map(t=>
+        <div className="energy-balance-item" key={t}><span>{t} 정수</span><strong>{formatAmount(game.essences[t])}</strong></div>)}
+      {!TYPES.some(t=>compareAmount(game.essences[t]??0,0)>0)&&<p>아직 획득한 정수가 없습니다.</p>}</div>
+      <small>정수는 해당 행성에서 메타몽 강화와 QoL 해금에 사용됩니다. 구매 항목은 추후 추가됩니다.</small>
+    </section>
+    <section className="panel energy-page-balances"><h3>10계층 생산 현황 <small>{game.unlockedLayer}/10계층 해금</small></h3>
+      <div className="energy-layer-list">
+        {[...LAYERS].reverse().map(layer=>{
+          const unlocked=layer.level<=game.unlockedLayer;
+          return <div key={layer.level} className={'energy-layer '+(!unlocked?'is-locked':'')}>
+            <header><strong>{layer.level}계층 · {layer.name}</strong><small>{unlocked?'해금됨':'잠김'}</small></header>
+            {layer.types.map(t=><div className="energy-layer-type" key={t}>
+              <span>{t}</span>
+              <strong>{unlocked?formatAmount(game.energyBalances[t]??0):'—'}</strong>
+              <small>{unlocked?formatAmount(rates[t]??0)+'/s':'보관 '+formatAmount(game.energyBank[t]??0)}</small>
+              <small>누적 {unlocked?formatAmount(game.energyEarned[t]??0):'—'} · 이정표 {game.energyMilestones[t]??0}</small>
+              {unlocked&&<small>다음 {formatAmount(energyMilestoneThreshold(game.energyMilestones[t]??0))}</small>}
+            </div>)}
+          </div>;
+        })}
+      </div>
+      <p>미해금 계층의 타입 정수는 지급되지 않으며, 해당 타입 에너지는 100% 보관 후 해금 시 지급됩니다.</p>
+    </section>
+    <section className="panel"><h3>성층권 · 대기 스텔라에너지</h3>
+      <div className="energy-balance-grid">
+        <div className="energy-balance-item"><span>대기 스텔라에너지</span><strong>{formatAmount(game.pendingStellar??0)}</strong></div>
+        <div className="energy-balance-item"><span>보유 스텔라에너지</span><strong>{formatAmount(game.stellar??0)}</strong></div>
+        <div className="energy-balance-item"><span>행성 이동 횟수</span><strong>{game.planetMoves??0}</strong></div>
+      </div>
+      <p>메타몽이 행성을 이동하면 성층권의 대기 스텔라에너지를 흡수합니다. 행성 내 진행은 초기화됩니다.</p>
+      <button type="button" disabled={game.combat.active||game.phase==='paused'||compareAmount(game.pendingStellar??0,0)<=0}
+        onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 정수·에너지·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
+    </section>
     <section className="panel energy-purchase-panel"><div className="energy-purchase-tabs" role="tablist" aria-label="에너지 구매 분류">
       <button type="button" role="tab" aria-selected={purchaseTab==='stats'} className={purchaseTab==='stats'?'selected':''} onClick={()=>setPurchaseTab('stats')}>능력치 강화</button>
       <button type="button" role="tab" aria-selected={purchaseTab==='automation'} className={purchaseTab==='automation'?'selected':''} onClick={()=>setPurchaseTab('automation')}>자동화</button></div>
-      <div role="tabpanel" className="energy-purchase-placeholder">{purchaseTab==='stats'?'능력치 강화':'자동화'} 구매 항목은 추후 추가됩니다.</div></section>
-  </>;
+      <div role="tabpanel" className="energy-purchase-placeholder">{purchaseTab==='stats'?'능력치 강화':'자동화'} 구매 항목은 추후 추가됩니다.</div>
+    </section>
+  </div>;
 }
 function SettingsPage(){
   return <><div className="intro"><span>OPTIONS</span><h2>설정</h2><p>저장 데이터를 관리합니다.</p></div>
@@ -147,7 +185,10 @@ export function CombatClock(){
       const now=performance.now(),deltaMs=Math.max(0,now-last);
       last=now;
       const {game,dispatch}=useGameStore.getState();
-      if(game.combat.active&&game.phase==='running')dispatch({type:'COMBAT_TICK',deltaMs});
+      if(game.phase==='running'){
+        dispatch({type:'ECONOMY_TICK',deltaMs});
+        if(game.combat.active)dispatch({type:'COMBAT_TICK',deltaMs});
+      }
     },100);
     return ()=>clearInterval(id);
   },[]);
