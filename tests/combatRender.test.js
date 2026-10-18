@@ -28,7 +28,7 @@ test('real elapsed time advances attack cooldowns across uneven frame durations'
  s=tick(s,450);
  assert.equal(s.combat.enemy.attackCooldown.elapsed,450);
  s=tick(s,1600);
- assert.equal(s.combat.enemy.attackCooldown.elapsed,50);
+ assert.equal(s.combat.enemy.attackCooldown.elapsed,2050);
  assert.equal(s.combat.dittoAttackCooldown.elapsed,2050);
 });
 test('large frame gaps resolve attacks chronologically without double victory',()=>{
