@@ -5,12 +5,12 @@ import {TopBar} from './components/TopBar.jsx';
 import {DittoPage} from './pages/DittoPage.jsx';
 import {WildPage} from './pages/WildPage.jsx';
 import {CombatBarAnimator} from './components/CombatBarAnimator.jsx';
-import {TYPES,LAYERS,FIRST_MILESTONE,energyRates,energyMilestoneThreshold} from './core/energySystem.js';
+import {TYPES,LAYERS,FIRST_MILESTONE,particleRates,particleMilestoneThreshold} from './core/energySystem.js';
 import {formatAmount,compareAmount,divideAmount} from './core/bigNumber.js';
 const TABS=[['settings','설정'],['ditto','메타몽'],['wild','야생'],['dex','도감'],['energy','에너지']];
 export function discoveredEnergyItems(game){
   const amounts=game?.energyBalances??{};
-  return TYPES.filter(type=>compareAmount(amounts[type]??0,0)>0)
+  return TYPES.filter(type=>compareAmount(amounts[type]??0,0)>0||compareAmount(game?.particleBalances?.[type]??0,0)>0||compareAmount(game?.particleEarned?.[type]??0,0)>0)
     .map(type=>({id:type,name:type+' 에너지',amount:amounts[type]??0}));
 }
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
@@ -45,7 +45,7 @@ function EnergyPage(){
   const [purchaseTab,setPurchaseTab]=useState('stats');
   const game=useGameStore(s=>s.game);
   const dispatch=useGameStore(s=>s.dispatch);
-  const rates=energyRates(game);
+  const rates=particleRates(game);
   const items=discoveredEnergyItems(game);
   return <div className="energy-overview">
     <div className="intro"><span>PLANETARY ENERGY</span><h2>에너지</h2>
@@ -67,7 +67,7 @@ function EnergyPage(){
               <strong>{unlocked?formatAmount(game.particleBalances[t]??0):'—'}</strong>
               <small>{unlocked?formatAmount(rates[t]??0)+'/s':'보관 '+formatAmount(game.particleBank[t]??0)}</small>
               <small>누적 {unlocked?formatAmount(game.particleEarned[t]??0):'—'} · 이정표 {game.particleMilestones[t]??0}</small>
-              {unlocked&&<small>다음 {formatAmount(energyMilestoneThreshold(game.particleMilestones[t]??0))}</small>}
+              {unlocked&&<small>다음 {formatAmount(particleMilestoneThreshold(game.particleMilestones[t]??0))}</small>}
             </div>)}
           </div>;
         })}
