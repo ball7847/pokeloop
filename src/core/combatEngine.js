@@ -1,6 +1,6 @@
 import {REGION,WILD_POKEMON,getWildPokemon,isPokemonUnlocked,spriteUrl,scaledReward} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
-import {grantBattleEssence} from './energySystem.js';
+import {grantBattleEnergy} from './energySystem.js';
 import {addAmount,subtractAmount,multiplyAmount,divideAmount,compareAmount} from './bigNumber.js';
 export const emptyCombat = hp=>({
   active:false, enemy:null, currentHp:hp, maxHp:hp,
@@ -38,7 +38,7 @@ function finish(state,c,type) {
       const value=scaledReward(key,base,count);
       stats[key]=key==='speed'?Math.max(1,stats.speed+value):addAmount(stats[key],value);
     }
-    const rewarded=grantBattleEssence(state,p.types,p.essenceReward??0);
+    const rewarded=grantBattleEnergy(state,p.types,p.energyReward??0);
     return {...rewarded,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,encounterIndex:state.encounterIndex+1,
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
