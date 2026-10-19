@@ -205,6 +205,6 @@ test('energy navigation has approved order and reveals discovered balances only'
    assert.ok(html.indexOf('야생')<html.indexOf('도감'));
    assert.ok(html.indexOf('도감')<html.indexOf('에너지'));
    assert.match(html,/발견한 에너지가 없습니다/);
-   assert.deepEqual(discoveredEnergyItems({discoveredEnergies:['energy-02'],energyBalances:{'energy-02':42}}),[{id:'energy-02',name:'에너지 2',amount:42}]);
+   assert.deepEqual(discoveredEnergyItems({energyBalances:{비행:42}}),[{id:'비행',name:'비행 에너지',amount:42}]);
  }finally{await vite.close();}
 });
