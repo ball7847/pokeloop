@@ -49,14 +49,14 @@ test('invalid or malicious saves are rejected without changing state',()=>{
  assert.throws(()=>decodeSave(mutate(obj=>obj.game.floor=0)));
 });
 
-test('energy discovery and balances round-trip while old saves default to undiscovered',()=>{
+test('type energy and particles round-trip as separate 18-type ledgers',()=>{
  const game=initialState();
- game.discoveredEnergies=['energy-01','energy-18'];game.energyBalances={'energy-01':12,'energy-18':7};
+ game.energyBalances.노말=12;game.energyBalances.페어리=7;
+ game.particleBalances.노말=5;game.particleBank.페어리=3;
  const restored=decodeSave(encodeSave(game)).game;
- assert.deepEqual(restored.discoveredEnergies,['energy-01','energy-18']);
- assert.deepEqual(restored.energyBalances,{'energy-01':12,'energy-18':7});
- const old=initialState();delete old.discoveredEnergies;delete old.energyBalances;
- const legacy=decodeSave(encodeSave(old)).game;
- assert.deepEqual(legacy.discoveredEnergies,[]);
- assert.deepEqual(legacy.energyBalances,{});
+ assert.equal(restored.energyBalances.노말,12);
+ assert.equal(restored.energyBalances.페어리,7);
+ assert.equal(restored.particleBalances.노말,5);
+ assert.equal(restored.particleBank.페어리,3);
+ assert.equal(restored.energyBalances.비행,0);
 });
