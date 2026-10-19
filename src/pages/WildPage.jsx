@@ -56,7 +56,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
       {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}><StatLabel stat={stat} label={label} compact/> {rewardText(stat,value)}</span>)}
-      {pokemon.types?.map(type=><span className="wild-reward" key={'energy-'+type}>{type} 에너지 +{formatAmount(pokemon.energyReward??0)}</span>)}
+      {pokemon.types?.map(type=><span className="wild-reward" key={'energy-'+type}>{type} 에너지 +{formatAmount(scaledReward('energy',pokemon.energyReward??0,count))}</span>)}
     </div>
     <div className="wild-card-footer">
       <span className="wild-kills">{count} / {REGION.defaultKillLimit}회</span>
