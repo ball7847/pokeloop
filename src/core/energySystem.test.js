@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialEconomy,grantBattleEnergy,purchaseWithEnergy,tickEconomy,movePlanet,
-  LAYERS,TYPES,energyRates} from './energySystem.js';
+  LAYERS,TYPES,particleRates} from './energySystem.js';
 import {initialState,transition} from './gameState.js';
 import {encodeSave,decodeSave} from './saveSystem.js';
 
@@ -57,7 +57,7 @@ test('upper layer particles produce lower layer particles with even splitting',(
   s.unlockedLayer=3;
   s.particleBalances['전기']=300;
   s.particleMilestones['전기']=1;
-  const rates=energyRates(s);
+  const rates=particleRates(s);
   assert.equal(rates['불꽃'],100);
   assert.equal(rates['물'],100);
   assert.equal(rates['풀'],100);
