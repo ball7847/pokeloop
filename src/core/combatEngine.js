@@ -51,7 +51,11 @@ function finish(state,c,type) {
     if(updated.automation?.hunger&&count+1<REGION.defaultKillLimit&&compareAmount(c.currentHp,0)>0){
       // Reward applies before next encounter. Current HP carries over without healing.
       // A follow-up attack starts a fresh enemy and cooldown, not a new run.
-      return startBattle(updated,p.id,c.currentHp);
+      const continued=startBattle(updated,p.id,c.currentHp);
+      // Keep the victory notification while entering the next encounter;
+      // the UI should log every kill rather than hiding chained rewards.
+      return {...continued,combat:{...continued.combat,
+        lastEvent:{...updated.combat.lastEvent,id:continued.eventSerial}}};
     }
     return updated;
   }
