@@ -1,4 +1,4 @@
-import {WILD_POKEMON,UNCOMMON_BASE_CHANCE} from './wildData.js';
+import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy} from './energySystem.js';
@@ -7,7 +7,8 @@ export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'p
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
   dittoStats:{...DEFAULT_DITTO_STATS},
-  killCounts:Object.fromEntries(WILD_POKEMON.map(p=>[p.id,0])),
+  killCounts:Object.fromEntries(ALL_POKEMON.map(p=>[p.id,0])),
+  activeRegionId:REGION.id,berryRareAppeared:false,
   uncommonChance:UNCOMMON_BASE_CHANCE,uncommonStarterId:null,dexDiscovered:[],
   ...initialEconomy(),
   automation:{...DEFAULT_AUTOMATION},recoveryMs:0,retryPokemonId:null,
@@ -39,6 +40,7 @@ export function transition(state, action) {
       const preserved=movePlanet(state);
       return {...initialState(),...preserved,phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};
     }
+    case 'SELECT_REGION': return !state.combat.active&&isRegionUnlocked(state,action.regionId)?{...state,activeRegionId:action.regionId}:state;
     case 'SELECT_WILD': return startBattle(state,action.pokemonId);
     case 'COMBAT_TICK': return advanceBattle(state,action.deltaMs,action.random);
     case 'FLEE': return fleeBattle(state);
