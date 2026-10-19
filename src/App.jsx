@@ -7,6 +7,7 @@ import {WildPage} from './pages/WildPage.jsx';
 import {CombatBarAnimator} from './components/CombatBarAnimator.jsx';
 import {TYPES,LAYERS,FIRST_MILESTONE,particleRates,particleMilestoneThreshold} from './core/energySystem.js';
 import {formatAmount,compareAmount,divideAmount} from './core/bigNumber.js';
+import {UPGRADES,AUTOMATIONS,upgradeCost,effectiveDittoStats} from './core/shopSystem.js';
 const TABS=[['settings','설정'],['ditto','메타몽'],['wild','야생'],['dex','도감'],['energy','에너지']];
 export function discoveredEnergyItems(game){
   const amounts=game?.energyBalances??{};
@@ -87,7 +88,29 @@ function EnergyPage(){
     <section className="panel energy-purchase-panel"><div className="energy-purchase-tabs" role="tablist" aria-label="에너지 구매 분류">
       <button type="button" role="tab" aria-selected={purchaseTab==='stats'} className={purchaseTab==='stats'?'selected':''} onClick={()=>setPurchaseTab('stats')}>능력치 강화</button>
       <button type="button" role="tab" aria-selected={purchaseTab==='automation'} className={purchaseTab==='automation'?'selected':''} onClick={()=>setPurchaseTab('automation')}>자동화</button></div>
-      <div role="tabpanel" className="energy-purchase-placeholder">{purchaseTab==='stats'?'능력치 강화':'자동화'} 구매 항목은 추후 추가됩니다.</div>
+      <div role="tabpanel" className="energy-shop-list">
+        {purchaseTab==='stats'?UPGRADES.map(item=>{
+          const level=game.energyUpgrades?.[item.id]??0;
+          const cost=upgradeCost(item.id,level);
+          const affordable=compareAmount(game.energyBalances[item.type]??0,cost)>=0;
+          return <div className="energy-shop-item" key={item.id}>
+            <div><strong>{item.name}</strong><small>Lv. {level} · 레벨당 +{item.bonus*100}% 기본 {item.id==='hp'?'HP':item.id==='attack'?'공격':'공격속도 배율'}</small></div>
+            <button type="button" disabled={!affordable||game.combat.active||game.phase==='paused'}
+              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{item.type} 에너지 {formatAmount(cost)} 구매</button>
+          </div>;
+        }):AUTOMATIONS.map(item=>{
+          const owned=game.qolUnlocks?.includes(item.id);
+          const active=game.automation?.[item.id]??false;
+          return <div className="energy-shop-item" key={item.id}>
+            <div><strong>{item.name}</strong><small>{item.description}</small></div>
+            {owned?<button type="button" aria-pressed={active} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:item.id})}>
+              {active?'활성화 · 끄기':'비활성화 · 켜기'}</button>:
+              <button type="button" disabled={compareAmount(game.energyBalances[item.type]??0,item.cost)<0||game.phase==='paused'}
+                onClick={()=>dispatch({type:'BUY_AUTOMATION',id:item.id})}>{item.type} 에너지 {item.cost} 해금</button>}
+          </div>;
+        })}
+        <small>구매 시 소비한 타입 에너지와 동일한 수량의 입자가 생성됩니다. 미해금 계층의 입자는 보관됩니다.</small>
+      </div>
     </section>
   </div>;
 }
@@ -187,6 +210,7 @@ export function CombatClock(){
       const {game,dispatch}=useGameStore.getState();
       if(game.phase==='running'){
         dispatch({type:'ECONOMY_TICK',deltaMs});
+        if(game.recoveryMs>0)dispatch({type:'RECOVERY_TICK',deltaMs});
         if(game.combat.active)dispatch({type:'COMBAT_TICK',deltaMs});
       }
     },100);
@@ -197,6 +221,13 @@ export function CombatClock(){
 export function App(){
   const [activeTab,setActiveTab]=useState('ditto');
   const [infoTab,setInfoTab]=useState('basic');
+  const combatActive=useGameStore(s=>s.game.combat.active);
+  const lastCombat=useRef(false);
+  useEffect(()=>{
+    if(combatActive&&!lastCombat.current)setActiveTab('ditto');
+    if(!combatActive&&lastCombat.current)setActiveTab('wild');
+    lastCombat.current=combatActive;
+  },[combatActive]);
   return <div className="shell"><CombatClock/><CombatBarAnimator/><AutoSaveClock/><TopBar/>
     <div className="workspace">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab}/>

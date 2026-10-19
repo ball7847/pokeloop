@@ -250,3 +250,15 @@
 .energy-balance-item{min-width:0;flex-wrap:wrap}
 .energy-balance-item strong{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 @media(max-width:700px){.energy-layer-type{grid-template-columns:minmax(50px,.6fr) minmax(70px,1fr) minmax(65px,1fr)}.energy-balance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.energy-shop-list{display:flex;flex-direction:column;gap:9px;padding:12px 0}
+.energy-shop-item{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e1dacf;border-radius:6px;background:#faf8f3;padding:11px}
+.energy-shop-item>div{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1}
+.energy-shop-item small{font-size:11px;color:#746b60;line-height:1.4}
+.energy-shop-item button,.ditto-automation-row button{padding:9px 11px;background:#e3eade;border:1px solid #8ca68a;border-radius:6px;cursor:pointer;font-size:12px}
+.energy-shop-item button:disabled,.ditto-automation-row button:disabled{cursor:not-allowed;opacity:.5}
+.ditto-automation-options{display:flex;flex-direction:column;gap:10px;padding:12px}
+.ditto-automation-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;border:1px solid #ddd4c8;padding:10px;border-radius:6px}
+.ditto-automation-row strong{white-space:nowrap}
+.ditto-automation-row small{flex:1;min-width:160px;line-height:1.5}
+.wild-recovery{margin:10px 0;padding:10px 14px;background:#fff4dc;border:1px solid #d8ba7a;border-radius:6px;font-size:13px}
