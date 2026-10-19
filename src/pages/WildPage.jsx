@@ -12,14 +12,10 @@ export const WILD_BASIC_FIELDS=Object.freeze([
   {key:'attack',label:'공격'},
   {key:'defense',label:'방어'},
   {key:'specialAttack',label:'특수공격'},
-  {key:'specialDefense',label:'특수방어'},
-  {key:'paralysis',label:'마비'},
-  {key:'poison',label:'독'},
-  {key:'accuracy',label:'명중'},
-  {key:'dodge',label:'회피'}
+  {key:'specialDefense',label:'특수방어'}
 ]);
 const EXTRA_LABELS=Object.freeze({
-  minDamagePercent:'최소 피해량'
+  minDamagePercent:'최소 피해량',paralysis:'마비',poison:'독',accuracy:'명중',dodge:'회피'
 });
 const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',paralysis:'마비',poison:'독'});
 const rewardText=(stat,value)=>(value<0?'−':'+')+(stat==='speed'?Number(Math.abs(value).toFixed(3)).toLocaleString('en-US',{maximumFractionDigits:3}):formatAmount(Math.abs(value)))+(stat==='speed'?'ms':'');
@@ -29,7 +25,9 @@ export function visibleWildBasicStats(pokemon){
   return WILD_BASIC_FIELDS.filter(({key})=>!isDefaultStat(key,resolveStats(pokemon)[key]));
 }
 export function visibleWildExtraStats(pokemon){
-  const extras={minDamagePercent:resolveStats(pokemon).minDamagePercent,...(pokemon.extraStats??{})};
+  const resolved=resolveStats(pokemon);
+  const extras={minDamagePercent:resolved.minDamagePercent,paralysis:resolved.paralysis,poison:resolved.poison,
+    accuracy:resolved.accuracy,dodge:resolved.dodge,...(pokemon.extraStats??{})};
   return Object.entries(extras).filter(([key,value])=>!isDefaultStat(key,value));
 }
 function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
@@ -55,7 +53,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
     <div className="wild-extra-stats" aria-label="추가 능력치">
       {extras.map(([key,value])=><div key={key} className="wild-stat-box">
-        <span>{EXTRA_LABELS[key]??key}</span><strong>{key==='minDamagePercent'?value+'%':format(value)}</strong>
+        <span>{EXTRA_LABELS[key]??key}</span><strong>{['minDamagePercent','accuracy','dodge'].includes(key)?value+'%':format(value)}</strong>
       </div>)}
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
