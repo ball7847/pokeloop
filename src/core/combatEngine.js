@@ -9,9 +9,9 @@ export const emptyCombat = hp=>({
   playerStatus:{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0},
   lastEvent:null
 });
-export function startBattle(state,id,carryHp=null) {
+export function startBattle(state,id,carryHp=null,carryStatus=null) {
   const p=getWildPokemon(id);
-  if(!p || (p.rarity==='uncommon'&&p.id!==state.uncommonStarterId) || state.combat.active || (state.recoveryMs??0)>0 || state.phase==='paused'||state.phase==='finished' ||
+  if(!p || (p.rarity==='uncommon'&&!(p.id==='pikachu'?state.berryRareAppeared:p.id===state.uncommonStarterId)) || state.combat.active || (state.recoveryMs??0)>0 || state.phase==='paused'||state.phase==='finished' ||
     (state.killCounts[id]||0)>=REGION.defaultKillLimit || !isPokemonUnlockedInState(state,id))return state;
   const effective=effectiveDittoStats(state);
   const hp=effective.hp;
@@ -20,6 +20,7 @@ export function startBattle(state,id,carryHp=null) {
   return {...state,phase:'running',eventSerial:state.eventSerial+1,
     dexDiscovered:state.dexDiscovered.includes(id)?state.dexDiscovered:[...state.dexDiscovered,id],combat:{
     ...emptyCombat(hp),currentHp,dittoHp:{current:currentHp,max:hp},active:true,pokemonId:id,
+    playerStatus:carryStatus??{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0},
     enemy:{
       name:p.name,imageUrl:spriteUrl(p.number),
       hp:{current:p.hp,max:p.hp},
@@ -53,7 +54,7 @@ function finish(state,c,type) {
     if(updated.automation?.hunger&&count+1<REGION.defaultKillLimit&&compareAmount(c.currentHp,0)>0){
       // Reward applies before next encounter. Current HP carries over without healing.
       // A follow-up attack starts a fresh enemy and cooldown, not a new run.
-      const continued=startBattle(updated,p.id,c.currentHp);
+      const continued=startBattle(updated,p.id,c.currentHp,c.playerStatus);
       // Keep the victory notification while entering the next encounter;
       // the UI should log every kill rather than hiding chained rewards.
       return {...continued,combat:{...continued.combat,
