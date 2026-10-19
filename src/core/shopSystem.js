@@ -28,7 +28,7 @@ export function effectiveDittoStats(state){
 }
 export function buyUpgrade(state,id){
   const item=UPGRADES.find(x=>x.id===id);
-  if(!item||state.combat.active||state.recoveryMs>0)return state;
+  if(!item||state.combat.active)return state;
   const current=state.energyUpgrades?.[id]??0,cost=upgradeCost(id,current);
   if(cost===null||compareAmount(state.energyBalances[item.type],cost)<0)return state;
   const spent=purchaseWithEnergy(state,{[item.type]:cost});
