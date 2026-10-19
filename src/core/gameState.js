@@ -1,7 +1,7 @@
 import {WILD_POKEMON,UNCOMMON_BASE_CHANCE} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
-import {initialEconomy,tickEconomy,movePlanet} from './energySystem.js';
+import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy} from './energySystem.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
@@ -17,6 +17,7 @@ export function transition(state, action) {
     case 'PAUSE': return state.phase===PHASE.RUNNING ? {...state,phase:PHASE.PAUSED}:state;
     case 'RESUME': return state.phase===PHASE.PAUSED ? {...state,phase:PHASE.RUNNING}:state;
     case 'RESET': return {...initialState(),runId:state.runId+1};
+    case 'PURCHASE_WITH_ENERGY': return state.phase===PHASE.RUNNING&&!state.combat.active?purchaseWithEnergy(state,action.costs):state;
     case 'ECONOMY_TICK': return state.phase===PHASE.RUNNING?tickEconomy(state,action.deltaMs/1000):state;
     case 'MOVE_PLANET': {
       if(state.combat.active||state.phase===PHASE.PAUSED||state.phase===PHASE.FINISHED)return state;
