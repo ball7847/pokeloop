@@ -1,5 +1,7 @@
 import {resolveStats} from './dittoStats.js';
 export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',capacity:20,defaultKillLimit:10,rewardDecay:1});
+export const BERRY_REGION=Object.freeze({id:'berry-forest',name:'베리숲',capacity:20,defaultKillLimit:10,rewardDecay:1});
+export const REGIONS=Object.freeze([REGION,BERRY_REGION]);
 const entries=[
 {id:'rattata',number:19,name:'꼬렛',types:['노말'],energyReward:1,hp:3,attack:2,speed:2100,rewards:{attack:1}},
 {id:'pidgey',number:16,name:'구구',types:['노말','비행'],energyReward:2,hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
@@ -11,6 +13,39 @@ export const WILD_POKEMON=Object.freeze(entries.map(p=>Object.freeze({...p,...re
 export const UNCOMMON_BASE_CHANCE=0;
 export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map(p=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
+const berryEntries=[
+{id:'caterpie',number:10,name:'캐터피',types:['벌레'],hp:90,attack:6,speed:3000,rewards:{hp:7}},
+{id:'weedle',number:13,name:'뿔충이',types:['벌레','독'],hp:80,attack:7,speed:3500,rewards:{hp:7}},
+{id:'kakuna',number:14,name:'딱충이',types:['벌레','독'],hp:90,attack:5,defense:5,speed:5000,rewards:{hp:10,defense:1}},
+{id:'metapod',number:11,name:'단데기',types:['벌레'],hp:100,attack:4,defense:5.5,speed:4500,rewards:{hp:10,defense:1}},
+{id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',hp:350,attack:55,speed:1000,paralysis:43,rewards:{attack:25,paralysis:3.2}},
+{id:'jigglypuff',number:39,name:'푸린',types:['노말','페어리'],hp:345,specialAttack:15,speed:3900,rewards:{specialAttack:4.5}},
+{id:'nidoran-m',number:32,name:'니드런♂',types:['독'],hp:460,attack:57,speed:2730,accuracy:80,rewards:{attack:14.25}},
+{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],hp:550,attack:47,speed:2750,poison:40,rewards:{hp:29,poison:1}}
+];
+// Region 2 currency payouts are deliberately undefined until balanced.
+export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
+export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
+export const regionForPokemon=id=>BERRY_POKEMON.some(p=>p.id===id)?BERRY_REGION.id:REGION.id;
+export const appearedInRegion=(state,regionId)=>regionId===BERRY_REGION.id?
+ BERRY_POKEMON.filter(p=>p.id!=='pikachu'||state?.berryRareAppeared===true):
+ [...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId)];
+export const regionUnlockRequirement=state=>Math.ceil(appearedInRegion(state,REGION.id).length*.7);
+export const isRegionUnlocked=(state,regionId)=>regionId===REGION.id||
+ (regionId===BERRY_REGION.id&&appearedInRegion(state,REGION.id)
+  .filter(p=>(state.killCounts?.[p.id]??0)>0).length>=regionUnlockRequirement(state));
+export function unlockedCountInRegion(state,regionId){
+ const lineup=appearedInRegion(state,regionId);
+ const distinct=lineup.filter(p=>(state.killCounts?.[p.id]??0)>0).length;
+ return Math.min(lineup.length,INITIAL_UNLOCK_COUNT+distinct);
+}
+export function isPokemonUnlockedInState(state,id){
+ const region=regionForPokemon(id);
+ if(!isRegionUnlocked(state,region))return false;
+ const lineup=appearedInRegion(state,region);
+ const index=lineup.findIndex(p=>p.id===id);
+ return index>=0&&index<unlockedCountInRegion(state,region);
+}
 // Call at a future reincarnation event, once per cycle; do not reroll on page visits.
 export function rollUncommonStarter(chance=UNCOMMON_BASE_CHANCE,random=Math.random){
  if(!Number.isFinite(chance)||chance<0||chance>1)throw new RangeError('Invalid uncommon chance');
@@ -22,7 +57,7 @@ export function getActiveWildPokemon(state){
  return [...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId)];
 }
 export const spriteUrl=number=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+number+'.png';
-export const getWildPokemon=id=>[...WILD_POKEMON,...UNCOMMON_STARTERS].find(p=>p.id===id)||null;
+export const getWildPokemon=id=>ALL_POKEMON.find(p=>p.id===id)||null;
 export const INITIAL_UNLOCK_COUNT=3;
 // The number of available encounters depends on UNIQUE first victories,
 // not total victories and not the identity of a specific starter Pokemon.
