@@ -38,7 +38,7 @@ function finish(state,c,type) {
       const value=scaledReward(key,base,count);
       stats[key]=key==='speed'?Math.max(1,stats.speed+value):addAmount(stats[key],value);
     }
-    const rewarded=grantBattleEnergy(state,p.types,p.energyReward??0);
+    const rewarded=grantBattleEnergy(state,p.types,scaledReward('energy',p.energyReward??0,count));
     return {...rewarded,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,encounterIndex:state.encounterIndex+1,
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
