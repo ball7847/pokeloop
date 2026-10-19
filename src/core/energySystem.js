@@ -22,9 +22,9 @@ export function initialEconomy(){
     unlockedLayer:1,normalFirstMilestonePermanent:false,pendingStellar:0,stellar:0,totalStellarEarned:0,planetMoves:0,
     energyUpgrades:{},qolUnlocks:[],permanentUpgrades:{}};
 }
-export function energyMilestoneThreshold(level){
+export function particleMilestoneThreshold(level){
   if(level<=0)return FIRST_MILESTONE;
-  // Next milestone scaling is data-driven; first 1025 threshold is canonical.
+  // First particle milestone is 1025; later thresholds currently use the provisional existing progression.
   return storedAmount(decimal(FIRST_MILESTONE).mul(decimal(1e3).pow(level)));
 }
 export function productionMultiplier(milestones){
@@ -40,7 +40,7 @@ function processMilestones(economy){
     for(const type of TYPES){
       if(typeLayer(type)>e.unlockedLayer)continue;
       const level=e.particleMilestones[type];
-      if(level<10&&compareAmount(e.particleEarned[type],energyMilestoneThreshold(level))>=0){
+      if(level<10&&compareAmount(e.particleEarned[type],particleMilestoneThreshold(level))>=0){
         e.particleMilestones[type]=level+1;changed=true;
       }
     }
@@ -89,13 +89,14 @@ export function purchaseWithEnergy(state,costs){
   }
   return processMilestones({...state,energyBalances:energy,particleBalances:particles,particleEarned:earned,particleBank:bank});
 }
-export function energyRates(state){
+export function particleRates(state){
   const rates=zeros();
   for(let layer=2;layer<=state.unlockedLayer;layer++){
     const upper=LAYERS[layer-1],lower=LAYERS[layer-2];
     // A multi-type upper layer uses the arithmetic mean of its type outputs.
     let sum=decimal(0);
     for(const type of upper.types){
+      if(state.particleMilestones[type]<=0)continue;
       const amount=state.particleBalances[type];
       const mult=productionMultiplier(state.particleMilestones[type]);
       sum=sum.add(decimal(amount).mul(mult));
@@ -119,13 +120,13 @@ export function tickEconomy(state,seconds){
   if(!Number.isFinite(seconds)||seconds<=0||seconds>5)return state;
   if(!state.particleBalances)return state;
   const particles={...state.particleBalances},earned={...state.particleEarned};
-  // Analytic integrated chain: simultaneous continuous production with constant multipliers.
+  // Time-stepped cascading particle production with fixed milestone multipliers.
   // Dividing into short steps captures cascading output without tying gains to UI frame rate.
   const steps=Math.max(1,Math.ceil(seconds/0.05)),dt=seconds/steps;
   let pending=state.pendingStellar;
   for(let step=0;step<steps;step++){
     const current={...state,particleBalances:particles};
-    const currentRates=energyRates(current);
+    const currentRates=particleRates(current);
     const normal=decimal(particles['노말']).mul(productionMultiplier(state.particleMilestones['노말']));
     if(state.particleMilestones['노말']>0){
       pending=addAmount(pending,storedAmount(normal.mul(dt).mul(originalSoftcapMultiplier(pending,state.totalStellarEarned,state.planetMoves))));
