@@ -8,6 +8,10 @@ export const DEFAULT_STATS = Object.freeze({
   defense: 0,
   specialAttack: 0,
   specialDefense: 0,
+  paralysis:0,
+  poison:0,
+  accuracy:100,
+  dodge:0,
   speed: 0,
   minDamagePercent: DEFAULT_MIN_DAMAGE_PERCENT
 });
@@ -29,6 +33,10 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'defense', label:'방어', description:'받는 물리 피해를 방어 수치만큼 감소시킵니다.' },
   { key:'specialAttack', label:'특수공격', description:'특수 기술의 피해량을 결정합니다.' },
   { key:'specialDefense', label:'특수방어', description:'받는 특수 피해를 특수방어 수치만큼 감소시킵니다.' },
+  { key:'paralysis',label:'마비',description:'명중할 때 상대에게 누적 마비를 부여합니다.' },
+  { key:'poison',label:'독',description:'명중할 때 상대에게 누적 독을 부여합니다.' },
+  { key:'accuracy',label:'명중',description:'명중 확률(%)입니다. 100% 초과분은 상대의 회피를 감소시킵니다.' },
+  { key:'dodge',label:'회피',description:'공격을 피할 확률(%)입니다.' },
   { key:'speed', label:'스피드', description:'공격 간 대기시간(ms)입니다.' },
   { key:'minDamagePercent', label:'최소 피해량', description:'최종 피해 배율의 하한입니다. 1% 단위로 최대 100%까지 무작위 선택합니다.' }
 ]);
@@ -44,6 +52,7 @@ export function visibleBasicStats(stats = {}) {
 }
 export function formatBasicStat(key, value) {
   if (key === 'speed') return Number.isFinite(value)?value.toLocaleString('en-US') + 'ms':'—';
+  if (key === 'accuracy'||key==='dodge')return Number.isFinite(value)?value+'%':'—';
   if (key === 'minDamagePercent') return Number.isFinite(value)?value + '%':'—';
   return formatAmount(value);
 }
