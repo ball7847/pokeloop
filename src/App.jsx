@@ -51,9 +51,9 @@ function EnergyPage(){
     <div className="intro"><span>PLANETARY ENERGY</span><h2>에너지</h2>
       <p>상위 계층의 입자가 하위 계층의 입자를 생산합니다. 타입 입자별 첫 이정표는 누적 1,025입니다.</p></div>
     <section className="panel"><h3>보유 타입 에너지</h3>
-      <div className="energy-balance-grid">{TYPES.filter(t=>compareAmount(game.particleBalances[t]??0,0)>0).map(t=>
-        <div className="energy-balance-item" key={t}><span>{t} 에너지</span><strong>{formatAmount(game.particleBalances[t])}</strong></div>)}
-      {!TYPES.some(t=>compareAmount(game.particleBalances[t]??0,0)>0)&&<p>아직 획득한 에너지가 없습니다.</p>}</div>
+      <div className="energy-balance-grid">{TYPES.filter(t=>compareAmount(game.energyBalances[t]??0,0)>0).map(t=>
+        <div className="energy-balance-item" key={t}><span>{t} 에너지</span><strong>{formatAmount(game.energyBalances[t])}</strong></div>)}
+      {!TYPES.some(t=>compareAmount(game.energyBalances[t]??0,0)>0)&&<p>아직 획득한 에너지가 없습니다.</p>}</div>
       <small>타입 에너지는 해당 행성에서 메타몽 강화·자동화 구매에 사용됩니다. 구매 시 소비량만큼 해당 타입 입자가 생성됩니다. 구매 항목은 추후 추가됩니다.</small>
     </section>
     <section className="panel energy-page-balances"><h3>10계층 입자 생산 현황 <small>{game.unlockedLayer}/10계층 해금</small></h3>
@@ -82,7 +82,7 @@ function EnergyPage(){
       </div>
       <p>노말 입자가 성층권에 스텔라 입자를 생산합니다. 메타몽이 행성 이동 시 이를 흡수해 스텔라에너지를 획득합니다.</p>
       <button type="button" disabled={game.combat.active||game.phase==='paused'||compareAmount(game.pendingStellar??0,0)<=0}
-        onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 에너지·에너지·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
+        onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 타입 에너지·입자·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
     </section>
     <section className="panel energy-purchase-panel"><div className="energy-purchase-tabs" role="tablist" aria-label="에너지 구매 분류">
       <button type="button" role="tab" aria-selected={purchaseTab==='stats'} className={purchaseTab==='stats'?'selected':''} onClick={()=>setPurchaseTab('stats')}>능력치 강화</button>
