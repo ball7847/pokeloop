@@ -222,7 +222,6 @@ export function App(){
   const [activeTab,setActiveTab]=useState('ditto');
   const [infoTab,setInfoTab]=useState('basic');
   const combatActive=useGameStore(s=>s.game.combat.active);
-  const recoverMs=useGameStore(s=>s.game.recoveryMs);
   const lastCombat=useRef(false);
   useEffect(()=>{
     if(combatActive&&!lastCombat.current)setActiveTab('ditto');
