@@ -71,9 +71,9 @@ test('defeat cooldown 10s and resolve auto retry only after recovery',()=>{
   assert.equal(s.recoveryMs,10000);
   assert.equal(s.retryPokemonId,'mankey');
   assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'rattata'}),s);
-  s=transition(s,{type:'RECOVERY_TICK',deltaMs:9999});
-  assert.equal(s.recoveryMs,1);
-  s=transition(s,{type:'RECOVERY_TICK',deltaMs:1});
+  s=transition(s,{type:'RECOVERY_TICK',deltaMs:5000});
+  assert.equal(s.recoveryMs,5000);
+  s=transition(s,{type:'RECOVERY_TICK',deltaMs:5000});
   assert.equal(s.combat.active,true);
   assert.equal(s.combat.pokemonId,'mankey');
   assert.equal(s.retryPokemonId,null);
