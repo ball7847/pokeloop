@@ -37,7 +37,7 @@ test('new save and legacy version 1 are both readable',()=>{
  const encoded=encodeSave(s,Date.UTC(2026,9,18));
  assert.equal(decodeSave(encoded).game.dittoStats.attack,'1e1025');
  const raw=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded),c=>c.charCodeAt(0))));
- assert.equal(raw.version,2);
+ assert.equal(raw.version,4);
  raw.version=1;raw.game.dittoStats.attack=12.5;raw.game.dittoStats.hp=10;
  const text=JSON.stringify(raw);const bytes=new TextEncoder().encode(text);
  const legacy=btoa(String.fromCharCode(...bytes));
