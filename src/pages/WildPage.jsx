@@ -97,12 +97,14 @@ export function WildPage(){
         const capped=count>=REGION.defaultKillLimit;
         const fighting=combatActive&&fightingId===p.id;
         const disabled=!unlocked||capped||combatActive||recoveryMs>0||phase==='paused'||phase==='finished';
-        return <WildCard key={p.id} pokemon={p} count={count} unlocked={unlocked}
-          capped={capped} fighting={fighting} disabled={disabled}
-          onSelect={()=>dispatch({type:'SELECT_WILD',pokemonId:p.id})}/>;
+        return <React.Fragment key={p.id}>
+          {region.id===BERRY_REGION.id&&!game.berryRareAppeared&&p.id==='jigglypuff'&&
+            <div className="wild-empty-cell wild-rare-empty" aria-label="5번 슬롯 피카츄: 안흔함 포켓몬 미등장"><strong>피카츄 · 안흔함</strong><small>이번 환생 미등장</small></div>}
+          <WildCard pokemon={p} count={count} unlocked={unlocked} capped={capped}
+            fighting={fighting} disabled={disabled} onSelect={()=>dispatch({type:'SELECT_WILD',pokemonId:p.id})}/>
+        </React.Fragment>;
       })}
       {region.id===REGION.id&&!game.uncommonStarterId&&<div className="wild-empty-cell wild-rare-empty" aria-label="6번 슬롯: 안흔함 포켓몬 미등장"><strong>안흔함</strong><small>미등장</small></div>}
-      {region.id===BERRY_REGION.id&&!game.berryRareAppeared&&<div className="wild-empty-cell wild-rare-empty" aria-label="피카츄: 안흔함 포켓몬 미등장"><strong>피카츄 · 안흔함</strong><small>이번 환생 미등장</small></div>}
       {Array.from({length:Math.max(0,region.capacity-pokemon.length-(region.id===REGION.id&&!game.uncommonStarterId?1:0)-(region.id===BERRY_REGION.id&&!game.berryRareAppeared?1:0))},(_,i)=>
         <div key={'empty-'+i} className="wild-empty-cell" aria-hidden="true"/>)}
     </div>
