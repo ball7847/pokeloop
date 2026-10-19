@@ -69,6 +69,7 @@ export function WildPage(){
   const combatActive=useGameStore(s=>s.game.combat.active);
   const fightingId=useGameStore(s=>s.game.combat.pokemonId);
   const phase=useGameStore(s=>s.game.phase);
+  const recoveryMs=useGameStore(s=>s.game.recoveryMs);
   const dispatch=useGameStore(s=>s.dispatch);
   const uncommonStarterId=useGameStore(s=>s.game.uncommonStarterId);
   const pokemon=getActiveWildPokemon({uncommonStarterId});
@@ -76,13 +77,14 @@ export function WildPage(){
   return <section className="wild-page">
     <div className="wild-header"><div><small>REGION 01</small><h2>{REGION.name}</h2></div>
       <div className="wild-progress">{total} / {pokemon.length*REGION.defaultKillLimit}회 처치</div></div>
+    {recoveryMs>0&&<p className="wild-recovery" role="status">메타몽 회복 중 · {(recoveryMs/1000).toFixed(1)}초</p>}
     <div className="wild-grid">
       {pokemon.map(p=>{
         const count=killCounts[p.id]||0;
         const unlocked=isPokemonUnlocked(killCounts,p.id,uncommonStarterId);
         const capped=count>=REGION.defaultKillLimit;
         const fighting=combatActive&&fightingId===p.id;
-        const disabled=!unlocked||capped||combatActive||phase==='paused'||phase==='finished';
+        const disabled=!unlocked||capped||combatActive||recoveryMs>0||phase==='paused'||phase==='finished';
         return <WildCard key={p.id} pokemon={p} count={count} unlocked={unlocked}
           capped={capped} fighting={fighting} disabled={disabled}
           onSelect={()=>dispatch({type:'SELECT_WILD',pokemonId:p.id})}/>;
