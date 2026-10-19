@@ -120,3 +120,31 @@ test('configured species payouts remain unchanged after renaming to energy',asyn
   ]);
   assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.energyReward),[132,132,132]);
 });
+
+test('energy uses the same 1/(1+previous kills) decay as stat rewards',async()=>{
+  const {getWildPokemon,scaledReward}=await import('./wildData.js');
+  for(const [id,base] of [['rattata',1],['pidgey',2],['mankey',10],
+    ['spearow',3],['zubat',3],['bulbasaur',132],['charmander',132],['squirtle',132]]){
+    const pokemon=getWildPokemon(id);
+    assert.equal(pokemon.energyReward,base);
+    assert.equal(scaledReward('energy',base,0),base);
+    assert.equal(scaledReward('energy',base,1),base/2);
+    assert.equal(scaledReward('energy',base,9),base/10);
+  }
+});
+
+test('actual repeated battles grant decaying type energy, not fixed payouts',()=>{
+  let state=initialState();
+  state={...state,dittoStats:{...state.dittoStats,attack:10000,speed:1}};
+  let expected=0;
+  for(let killed=0;killed<10;killed++){
+    state=transition(state,{type:'SELECT_WILD',pokemonId:'rattata'});
+    assert.equal(state.combat.active,true);
+    state=transition(state,{type:'COMBAT_TICK',deltaMs:5,random:()=>0.5});
+    assert.equal(state.killCounts.rattata,killed+1);
+    expected+=1/(killed+1);
+    assert.ok(Math.abs(Number(state.energyBalances['노말'])-expected)<1e-8);
+  }
+  assert.equal(state.particleBalances['노말'],0);
+  assert.equal(transition(state,{type:'SELECT_WILD',pokemonId:'rattata'}),state);
+});
