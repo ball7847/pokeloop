@@ -37,8 +37,12 @@ export function DittoBattle(){
         {enemy.imageUrl?<img src={enemy.imageUrl} alt={enemy.name}/>:<div className="battle-image-placeholder" aria-hidden="true">?</div>}</div>
       <div className="battle-side-panel"><div className="battle-rewards"><h3>보상</h3><div className="battle-reward-items">
         {Object.entries(enemy.rewards||{}).map(([key,value])=>
-          <span key={key}><b>{({attack:'공격',hp:'HP',speed:'스피드'})[key]??key}</b> {value<0?'−':'+'}{fmt(Math.abs(value))}{key==='speed'?'ms':''}</span>)}</div></div>
+          <span key={key}><b>{({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',paralysis:'마비',poison:'독'})[key]??key}</b> {value<0?'−':'+'}{fmt(Math.abs(value))}{key==='speed'?'ms':''}</span>)}</div></div>
         <button type="button" className="battle-escape" onClick={()=>dispatch({type:'FLEE'})}>도망가기</button></div>
+    </div>
+    <div className="combat-debuffs" aria-label="전투 상태이상">
+      <span>적: 마비 {fmt(combat.enemyStatus?.paralysis??0)} · 독 {fmt(combat.enemyStatus?.poison??0)}</span>
+      <span>메타몽: 마비 {fmt(combat.playerStatus?.paralysis??0)} · 독 {fmt(combat.playerStatus?.poison??0)}</span>
     </div>
     <div className="battle-vitals">
       <Cooldown name="적 공격" value={enemy.attackCooldown} kind="enemy"/>
