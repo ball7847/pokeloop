@@ -2,7 +2,7 @@ import {StatLabel} from '../components/StatIcon.jsx';
 import {formatAmount,divideAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
-import {REGION,WILD_POKEMON,getActiveWildPokemon,spriteUrl,isPokemonUnlocked,scaledReward} from '../core/wildData.js';
+import {REGION,BERRY_REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward} from '../core/wildData.js';
 import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
 
 // Row-major positions in a 2-column, 3-row grid: HP/Speed, Attack/Defense, Sp.Atk/Sp.Def.
@@ -12,12 +12,16 @@ export const WILD_BASIC_FIELDS=Object.freeze([
   {key:'attack',label:'공격'},
   {key:'defense',label:'방어'},
   {key:'specialAttack',label:'특수공격'},
-  {key:'specialDefense',label:'특수방어'}
+  {key:'specialDefense',label:'특수방어'},
+  {key:'paralysis',label:'마비'},
+  {key:'poison',label:'독'},
+  {key:'accuracy',label:'명중'},
+  {key:'dodge',label:'회피'}
 ]);
 const EXTRA_LABELS=Object.freeze({
   minDamagePercent:'최소 피해량'
 });
-const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드'});
+const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',paralysis:'마비',poison:'독'});
 const rewardText=(stat,value)=>(value<0?'−':'+')+(stat==='speed'?Number(Math.abs(value).toFixed(3)).toLocaleString('en-US',{maximumFractionDigits:3}):formatAmount(Math.abs(value)))+(stat==='speed'?'ms':'');
 const format=formatAmount;
 
@@ -56,7 +60,8 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
       {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}><StatLabel stat={stat} label={label} compact/> {rewardText(stat,value)}</span>)}
-      {pokemon.types?.map(type=><span className="wild-reward" key={'energy-'+type}>{type} 에너지 +{formatAmount(scaledReward('energy',pokemon.energyReward??0,count))}</span>)}
+      {pokemon.energyReward===undefined?<span className="wild-reward">타입 에너지 보상 미설정</span>:
+       pokemon.types?.map(type=><span className="wild-reward" key={'energy-'+type}>{type} 에너지 +{formatAmount(scaledReward('energy',pokemon.energyReward,count))}</span>)}
     </div>
     <div className="wild-card-footer">
       <span className="wild-kills">{count} / {REGION.defaultKillLimit}회</span>
@@ -65,23 +70,32 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
   </button>;
 }
 export function WildPage(){
-  const killCounts=useGameStore(s=>s.game.killCounts);
+  const game=useGameStore(s=>s.game);
+  const killCounts=game.killCounts;
   const combatActive=useGameStore(s=>s.game.combat.active);
   const fightingId=useGameStore(s=>s.game.combat.pokemonId);
   const phase=useGameStore(s=>s.game.phase);
   const recoveryMs=useGameStore(s=>s.game.recoveryMs);
   const dispatch=useGameStore(s=>s.dispatch);
-  const uncommonStarterId=useGameStore(s=>s.game.uncommonStarterId);
-  const pokemon=getActiveWildPokemon({uncommonStarterId});
+  const region=REGIONS.find(r=>r.id===game.activeRegionId)??REGION;
+  const pokemon=appearedInRegion(game,region.id);
+  const cleared=appearedInRegion(game,REGION.id).filter(p=>(killCounts[p.id]??0)>0).length;
+  const need=regionUnlockRequirement(game);
   const total=pokemon.reduce((sum,p)=>sum+(killCounts[p.id]||0),0);
   return <section className="wild-page">
-    <div className="wild-header"><div><small>REGION 01</small><h2>{REGION.name}</h2></div>
+    <div className="wild-region-tabs" role="tablist" aria-label="지역 선택">
+      {REGIONS.map((r,i)=><button key={r.id} role="tab" type="button" aria-selected={region.id===r.id}
+        disabled={!isRegionUnlocked(game,r.id)||combatActive} onClick={()=>dispatch({type:'SELECT_REGION',regionId:r.id})}>
+        {i+1}지역 · {r.name}{isRegionUnlocked(game,r.id)?'':' (잠김)'}</button>)}
+    </div>
+    {!isRegionUnlocked(game,BERRY_REGION.id)&&<p className="wild-region-progress">베리숲 해금: 1지역 서로 다른 포켓몬 {cleared}/{need}종 첫 처치 (등장 종의 70%)</p>}
+    <div className="wild-header"><div><small>REGION {String(REGIONS.indexOf(region)+1).padStart(2,'0')}</small><h2>{region.name}</h2></div>
       <div className="wild-progress">{total} / {pokemon.length*REGION.defaultKillLimit}회 처치</div></div>
     {recoveryMs>0&&<p className="wild-recovery" role="status">메타몽 회복 중 · {(recoveryMs/1000).toFixed(1)}초</p>}
     <div className="wild-grid">
       {pokemon.map(p=>{
         const count=killCounts[p.id]||0;
-        const unlocked=isPokemonUnlocked(killCounts,p.id,uncommonStarterId);
+        const unlocked=isPokemonUnlockedInState(game,p.id);
         const capped=count>=REGION.defaultKillLimit;
         const fighting=combatActive&&fightingId===p.id;
         const disabled=!unlocked||capped||combatActive||recoveryMs>0||phase==='paused'||phase==='finished';
@@ -89,8 +103,9 @@ export function WildPage(){
           capped={capped} fighting={fighting} disabled={disabled}
           onSelect={()=>dispatch({type:'SELECT_WILD',pokemonId:p.id})}/>;
       })}
-      {!uncommonStarterId&&<div className="wild-empty-cell wild-rare-empty" aria-label="6번 슬롯: 안흔함 포켓몬 미등장"><strong>안흔함</strong><small>미등장</small></div>}
-      {Array.from({length:REGION.capacity-pokemon.length-(uncommonStarterId?0:1)},(_,i)=>
+      {region.id===REGION.id&&!game.uncommonStarterId&&<div className="wild-empty-cell wild-rare-empty" aria-label="6번 슬롯: 안흔함 포켓몬 미등장"><strong>안흔함</strong><small>미등장</small></div>}
+      {region.id===BERRY_REGION.id&&!game.berryRareAppeared&&<div className="wild-empty-cell wild-rare-empty" aria-label="피카츄: 안흔함 포켓몬 미등장"><strong>피카츄 · 안흔함</strong><small>이번 환생 미등장</small></div>}
+      {Array.from({length:Math.max(0,region.capacity-pokemon.length-(region.id===REGION.id&&!game.uncommonStarterId?1:0)-(region.id===BERRY_REGION.id&&!game.berryRareAppeared?1:0))},(_,i)=>
         <div key={'empty-'+i} className="wild-empty-cell" aria-hidden="true"/>)}
     </div>
     <p className="wild-footnote">포켓몬을 선택하면 자동 전투가 시작됩니다. 처음 3마리가 해금되며, 서로 다른 포켓몬을 처음 처치할 때마다 다음 포켓몬이 1마리씩 해금됩니다. 반복 처치는 추가 해금되지 않습니다. 보상은 처치 횟수에 따라 감소합니다.</p>
