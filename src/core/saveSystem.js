@@ -7,7 +7,7 @@ import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=3;
+export const SAVE_VERSION=4;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -24,8 +24,8 @@ export function gameSnapshot(game){
     uncommonChance:game.uncommonChance??0,
     uncommonStarterId:game.uncommonStarterId??null,
     dexDiscovered:game.dexDiscovered??[],
-    ...Object.fromEntries(['essences','energyBalances','energyEarned','energyBank','energyMilestones','unlockedLayer',
-      'normalFirstMilestonePermanent','pendingStellar','stellar','totalStellarEarned','planetMoves','essenceUpgrades',
+    ...Object.fromEntries(['energyBalances','particleBalances','particleEarned','particleBank','particleMilestones','unlockedLayer',
+      'normalFirstMilestonePermanent','pendingStellar','stellar','totalStellarEarned','planetMoves','energyUpgrades',
       'qolUnlocks','permanentUpgrades'].map(key=>[key,game[key]]))
   };
 }
@@ -46,7 +46,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -84,25 +84,30 @@ export function decodeSave(encoded){
   if(typeof chance!=='number'||!Number.isFinite(chance)||chance<0||chance>1)throw new Error('안흔함 확률이 올바르지 않습니다.');
   const found=original.dexDiscovered??[];
   if(!Array.isArray(found)||found.length>8||found.some(id=>typeof id!=='string'||!getWildPokemon(id))||new Set(found).size!==found.length)throw new Error('도감 정보가 올바르지 않습니다.');
-  // v1/v2 saves used nonfunctional energy-01 placeholders. Start the new economy
-  // from zero while preserving battle records; never reinterpret a placeholder as a type.
+  // v3 stored battle essence and freely minted layer energy separately.
+  // Preserve both quantities but map them to the new energy and particle roles.
   if(data.version>=3){
     const eco=initialEconomy();
-    const amountRecords=['essences','energyBalances','energyEarned','energyBank'];
-    for(const key of amountRecords){
-      const record=original[key]??{};
+    const previous=data.version===3;
+    const records=previous?
+      [['energyBalances','essences'],['particleBalances','energyBalances'],
+       ['particleEarned','energyEarned'],['particleBank','energyBank']]:
+      [['energyBalances','energyBalances'],['particleBalances','particleBalances'],
+       ['particleEarned','particleEarned'],['particleBank','particleBank']];
+    for(const [target,source] of records){
+      const record=original[source]??{};
       if(!record||typeof record!=='object'||Array.isArray(record)||Object.keys(record).some(t=>!TYPES.includes(t)))
-        throw new Error('재화 데이터가 올바르지 않습니다: '+key);
-      eco[key]=Object.fromEntries(TYPES.map(t=>{
+        throw new Error('재화 데이터가 올바르지 않습니다: '+source);
+      eco[target]=Object.fromEntries(TYPES.map(t=>{
         const value=record[t]??0;
-        if(!isAmount(value))throw new Error('재화 값이 올바르지 않습니다: '+key+'/'+t);
+        if(!isAmount(value))throw new Error('재화 값이 올바르지 않습니다: '+source+'/'+t);
         return [t,storedAmount(value)];
       }));
     }
-    const milestones=original.energyMilestones??{};
+    const milestones=original[previous?'energyMilestones':'particleMilestones']??{};
     if(!milestones||typeof milestones!=='object'||Array.isArray(milestones)||Object.keys(milestones).some(t=>!TYPES.includes(t)))
       throw new Error('이정표 데이터가 올바르지 않습니다.');
-    eco.energyMilestones=Object.fromEntries(TYPES.map(t=>{
+    eco.particleMilestones=Object.fromEntries(TYPES.map(t=>{
       const value=milestones[t]??0;
       if(!validInteger(value,10))throw new Error('이정표 단계가 올바르지 않습니다.');
       return [t,value];
@@ -119,10 +124,10 @@ export function decodeSave(encoded){
     }
     if(!validInteger(original.planetMoves??0,MAX_COUNTER))throw new Error('행성 이동 횟수가 올바르지 않습니다.');
     eco.planetMoves=original.planetMoves??0;
-    for(const key of ['essenceUpgrades','permanentUpgrades']){
-      const value=original[key]??{};
+    for(const [target,source] of [['energyUpgrades',previous?'essenceUpgrades':'energyUpgrades'],['permanentUpgrades','permanentUpgrades']]){
+      const value=original[source]??{};
       if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>100)throw new Error('강화 기록이 올바르지 않습니다.');
-      eco[key]={...value};
+      eco[target]={...value};
     }
     const qol=original.qolUnlocks??[];
     if(!Array.isArray(qol)||qol.length>100||qol.some(v=>typeof v!=='string'||v.length>100))throw new Error('QoL 기록이 올바르지 않습니다.');
