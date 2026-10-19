@@ -65,7 +65,7 @@ test('defeat cooldown 10s and resolve auto retry only after recovery',()=>{
   let s=funded();
   s=buy(s,'BUY_AUTOMATION','resolve');
   s=transition(s,{type:'SELECT_WILD',pokemonId:'mankey'});
-  s={...s,dittoStats:{...s.dittoStats,hp:1,attack:0}};
+  s={...s,dittoStats:{...s.dittoStats,hp:1,attack:0},combat:{...s.combat,currentHp:1,dittoHp:{current:1,max:1}}};
   s=transition(s,{type:'COMBAT_TICK',deltaMs:1900,random:()=>0.5});
   assert.equal(s.combat.active,false);
   assert.equal(s.recoveryMs,10000);
