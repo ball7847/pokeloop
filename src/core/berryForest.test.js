@@ -103,3 +103,20 @@ test('v6 region, new stat rewards, and berry first victories survive save',()=>{
  assert.equal(restored.dittoStats.paralysis,3.2);
  assert.equal(restored.dittoStats.specialAttack,4.5);
 });
+
+test('berry forest battles pay stat rewards, but no unconfigured type energy',()=>{
+ let s=state();
+ s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},
+  killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}};
+ s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'caterpie'});
+ assert.equal(s.combat.active,true);
+ assert.equal(s.combat.enemy.hp.max,90);
+ const beforeHp=s.dittoStats.hp;
+ const beforeEnergy={...s.energyBalances};
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
+ assert.equal(s.killCounts.caterpie,1);
+ assert.equal(s.dittoStats.hp,beforeHp+7);
+ assert.deepEqual(s.energyBalances,beforeEnergy);
+ assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
+});
