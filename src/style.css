@@ -262,3 +262,10 @@
 .ditto-automation-row strong{white-space:nowrap}
 .ditto-automation-row small{flex:1;min-width:160px;line-height:1.5}
 .wild-recovery{margin:10px 0;padding:10px 14px;background:#fff4dc;border:1px solid #d8ba7a;border-radius:6px;font-size:13px}
+
+.wild-region-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.wild-region-tabs button{padding:9px 13px;border-radius:7px;background:#f0ebe2;border:1px solid #d3cbbd;cursor:pointer;font-size:12px}
+.wild-region-tabs button[aria-selected="true"]{background:#dde9d9;border-color:#91ad86;font-weight:700}
+.wild-region-tabs button:disabled{opacity:.48;cursor:not-allowed}
+.wild-region-progress{font-size:12px;padding:10px 12px;background:#fbf5e4;border-radius:6px;border:1px solid #e5d4ad}
+.combat-debuffs{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px;font-size:12px;background:#f6f0e5;border-radius:5px}
