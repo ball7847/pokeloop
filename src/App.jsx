@@ -10,7 +10,7 @@ import {formatAmount,compareAmount,divideAmount} from './core/bigNumber.js';
 const TABS=[['settings','설정'],['ditto','메타몽'],['wild','야생'],['dex','도감'],['energy','에너지']];
 export function discoveredEnergyItems(game){
   const amounts=game?.energyBalances??{};
-  return TYPES.filter(type=>compareAmount(amounts[type]??0,0)>0||compareAmount(game?.particleBalances?.[type]??0,0)>0||compareAmount(game?.particleEarned?.[type]??0,0)>0)
+  return TYPES.filter(type=>compareAmount(amounts[type]??0,0)>0||compareAmount(game?.particleBalances?.[type]??0,0)>0||compareAmount(game?.particleEarned?.[type]??0,0)>0||compareAmount(game?.particleBank?.[type]??0,0)>0)
     .map(type=>({id:type,name:type+' 에너지',amount:amounts[type]??0}));
 }
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
