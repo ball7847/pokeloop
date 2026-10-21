@@ -5,6 +5,7 @@ export const HOME_STAT_FILES = Object.freeze({
   hp:'hp.svg', attack:'attack.svg', defense:'defense.svg',
   specialAttack:'specialAttack.svg', specialDefense:'specialDefense.svg', speed:'speed.svg'
 });
+const EXTRA_ICONS=Object.freeze({poison:'☣',paralysis:'ϟ',antidote:'✚',accuracy:'◎',dodge:'↝',minDamagePercent:'◈'});
 const SHORT_LABELS=Object.freeze({
   hp:'HP',attack:'공격',defense:'방어',
   specialAttack:'특공',specialDefense:'특방',speed:'스피드'
@@ -15,14 +16,14 @@ export function homeStatIconUrl(stat) {
 }
 export function StatIcon({stat,className=''}) {
   const src=homeStatIconUrl(stat);
-  return src?<img className={'home-stat-icon '+className} src={src} alt="" width="18" height="18" loading="eager"/>:null;
+  return src?<img className={'home-stat-icon '+className} src={src} alt="" width="18" height="18" loading="eager"/>:EXTRA_ICONS[stat]?<span className={'extra-stat-icon '+className} aria-hidden="true">{EXTRA_ICONS[stat]}</span>:null;
 }
 export function StatLabel({stat,label,compact=false}) {
   const name=label??SHORT_LABELS[stat]??stat;
   const src=homeStatIconUrl(stat);
   return <span className="stat-label" title={name}>
-    {src?<StatIcon stat={stat}/>:null}
+    {(src||EXTRA_ICONS[stat])?<StatIcon stat={stat}/>:null}
     {!compact&&<span className="stat-label-text">{name}</span>}
-    {compact&&!src&&<span className="stat-label-text">{SHORT_LABELS[stat]??name}</span>}
+    {compact&&!src&&!EXTRA_ICONS[stat]&&<span className="stat-label-text">{SHORT_LABELS[stat]??name}</span>}
   </span>;
 }

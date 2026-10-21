@@ -57,18 +57,20 @@ function EnergyPage(){
     </div>
     {energyTab==='world'?<div className="energy-world-content" role="tabpanel">
     <section className="panel energy-page-balances"><h3>10계층 입자 생산 현황 <small>{game.unlockedLayer}/10계층 해금</small></h3>
-      <div className="energy-layer-list">
-        {[...LAYERS].reverse().map(layer=>{
+      <div className="world-layer-table" role="table" aria-label="10계층 입자 생산 현황">
+        <div className="world-layer-head" role="row"><span>계층</span><span>타입별 입자 · 보유량</span><span>생산량/초</span><span>누적 · 이정표</span></div>
+        {LAYERS.map(layer=>{
           const unlocked=layer.level<=game.unlockedLayer;
-          return <div key={layer.level} className={'energy-layer '+(!unlocked?'is-locked':'')}>
-            <header><strong>{layer.level}계층 · {layer.name}</strong><small>{unlocked?'해금됨':'잠김'}</small></header>
-            {layer.types.map(t=><div className="energy-layer-type" key={t}>
-              <span>{t}</span>
-              <strong>{unlocked?formatAmount(game.particleBalances[t]??0):'—'}</strong>
-              <small>{unlocked?formatAmount(rates[t]??0)+'/s':'보관 '+formatAmount(game.particleBank[t]??0)}</small>
-              <small>누적 {unlocked?formatAmount(game.particleEarned[t]??0):'—'} · 이정표 {game.particleMilestones[t]??0}</small>
-              {unlocked&&<small>다음 {formatAmount(particleMilestoneThreshold(game.particleMilestones[t]??0))}</small>}
-            </div>)}
+          return <div key={layer.level} className={'world-layer-row '+(!unlocked?'is-locked':'')} role="row">
+            <div className="world-layer-title"><strong>{layer.level}계층 · {layer.name}</strong><small>{unlocked?'해금':'잠김'}</small></div>
+            <div className="world-layer-types">
+              {layer.types.map(t=><div className="world-type-line" key={t}>
+                <span className="world-type-name">{t}</span>
+                <strong>{unlocked?formatAmount(game.particleBalances[t]??0):'보관 '+formatAmount(game.particleBank[t]??0)}</strong>
+                <span>{unlocked?formatAmount(rates[t]??0)+'/s':'잠김'}</span>
+                <small>누적 {unlocked?formatAmount(game.particleEarned[t]??0):'—'} · 이정표 {game.particleMilestones[t]??0}{unlocked?' · 다음 '+formatAmount(particleMilestoneThreshold(game.particleMilestones[t]??0)):''}</small>
+              </div>)}
+            </div>
           </div>;
         })}
       </div>
@@ -91,7 +93,8 @@ function EnergyPage(){
           const cost=upgradeCost(item.id,level);
           const affordable=compareAmount(game.energyBalances[item.type]??0,cost)>=0;
           return <div className="energy-shop-item" key={item.id}>
-            <div><strong>{item.name}</strong><small>Lv. {level} · 레벨당 +{item.unit==='flat'?item.bonus:item.bonus*100}{item.unit==='flat'?'':'%'} {item.stat}</small></div>
+            <div><strong>{item.name}</strong><small>Lv. {level} · 레벨당 +{item.unit==='flat'?item.bonus:item.bonus*100}{item.unit==='flat'?'':'%'} {item.stat}</small>
+              <span className="energy-upgrade-effect">현재 적용: {item.stat} +{formatAmount(level*item.bonus*(item.unit==='flat'?1:100))}{item.unit==='flat'?'':'%'}</span></div>
             <button type="button" disabled={!affordable||game.combat.active||game.phase==='paused'}
               onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{item.type} 에너지 {formatAmount(cost)} 구매</button>
           </div>;
