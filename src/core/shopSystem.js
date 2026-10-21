@@ -34,12 +34,24 @@ export function effectiveDittoStats(state){
 }
 export function buyUpgrade(state,id){
   const item=UPGRADES.find(x=>x.id===id);
-  if(!item||state.combat.active)return state;
+  if(!item)return state;
   const current=state.energyUpgrades?.[id]??0,cost=upgradeCost(id,current);
   if(cost===null||compareAmount(state.energyBalances[item.type],cost)<0)return state;
   const spent=purchaseWithEnergy(state,{[item.type]:cost});
   if(spent===state)return state;
-  return {...spent,energyUpgrades:{...state.energyUpgrades,[id]:current+1}};
+  const updated={...spent,energyUpgrades:{...state.energyUpgrades,[id]:current+1}};
+  if(!state.combat.active)return updated;
+  // Combat reads effective stats anew on each tick. Preserve current HP when max HP rises.
+  const before=effectiveDittoStats(state),after=effectiveDittoStats(updated);
+  const combat={...state.combat,maxHp:after.hp,
+    dittoHp:{...state.combat.dittoHp,max:after.hp}};
+  if(state.combat.dittoAttackCooldown&&before.speed!==after.speed){
+    const old=state.combat.dittoAttackCooldown;
+    const duration=Math.max(1,after.speed);
+    const progress=Math.max(0,Math.min(1,old.elapsed/Math.max(1,old.duration)));
+    combat.dittoAttackCooldown={...old,duration,elapsed:progress*duration};
+  }
+  return {...updated,combat};
 }
 export function buyAutomation(state,id){
   const item=AUTOMATIONS.find(x=>x.id===id);
