@@ -13,7 +13,7 @@ export const UPGRADES=Object.freeze([
 ]);
 export const AUTOMATIONS=Object.freeze([
   {id:'hunger',name:'끝없는 허기',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
-  {id:'resolve',name:'불굴의 의지',type:'격투',cost:10,description:'패배 후 10초 회복을 마치면 같은 적에게 자동 재도전'}
+  {id:'resolve',name:'불굴의 의지',type:'노말',cost:5,description:'패배 후 10초 회복을 마치면 같은 적에게 자동 재도전'}
 ]);
 export const DEFAULT_AUTOMATION=Object.freeze({hunger:false,resolve:false});
 export function upgradeCost(id,level){
