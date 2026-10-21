@@ -19,11 +19,11 @@ const berryEntries=[
 {id:'kakuna',number:14,name:'딱충이',types:['벌레','독'],hp:90,attack:5,defense:5,speed:5000,rewards:{hp:10,defense:1}},
 {id:'metapod',number:11,name:'단데기',types:['벌레'],hp:100,attack:4,defense:5.5,speed:4500,rewards:{hp:10,defense:1}},
 {id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',hp:350,attack:55,speed:1000,paralysis:43,rewards:{attack:25,paralysis:3.2}},
-{id:'jigglypuff',number:39,name:'푸린',types:['노말','페어리'],hp:345,specialAttack:15,speed:3900,rewards:{specialAttack:4.5}},
+{id:'jigglypuff',number:39,name:'푸린',types:['노말','페어리'],hp:230,specialAttack:15,speed:3900,energyRewards:{노말:10},rewards:{specialAttack:4.5}},
 {id:'nidoran-m',number:32,name:'니드런♂',types:['독'],hp:460,attack:57,speed:2730,accuracy:80,rewards:{attack:14.25}},
 {id:'nidoran-f',number:29,name:'니드런♀',types:['독'],hp:550,attack:47,speed:2750,poison:40,rewards:{hp:29,poison:1}}
 ];
-// Region 2 currency payouts are deliberately undefined until balanced.
+// Region 2 energy remains unset except for explicitly configured per-type payouts.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
 export const regionForPokemon=id=>BERRY_POKEMON.some(p=>p.id===id)?BERRY_REGION.id:REGION.id;
@@ -55,6 +55,13 @@ export function rollUncommonStarter(chance=UNCOMMON_BASE_CHANCE,random=Math.rand
 }
 export function getActiveWildPokemon(state){
  return [...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId)];
+}
+// Existing battles award the same base to each Pokémon type. Explicit per-type
+// overrides allow partial regional rewards without silently awarding all types.
+export function battleEnergyRewards(pokemon,count=0){
+  const rewards=pokemon.energyRewards??(pokemon.energyReward===undefined?{}:
+    Object.fromEntries(pokemon.types.map(type=>[type,pokemon.energyReward])));
+  return Object.fromEntries(Object.entries(rewards).map(([type,amount])=>[type,scaledReward('energy',amount,count)]));
 }
 export const spriteUrl=number=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+number+'.png';
 export const getWildPokemon=id=>ALL_POKEMON.find(p=>p.id===id)||null;

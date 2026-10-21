@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,transition} from './gameState.js';
-import {BERRY_REGION,REGION,BERRY_POKEMON,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
+import {BERRY_REGION,REGION,BERRY_POKEMON,battleEnergyRewards,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
 import {resolveAttack,hitChance} from './combatEngine.js';
 import {encodeSave,decodeSave} from './saveSystem.js';
 
@@ -13,7 +13,7 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  ['kakuna',90,5,0,5,5000,0,0,100],
  ['metapod',100,4,0,5.5,4500,0,0,100],
  ['pikachu',350,55,0,0,1000,43,0,100],
- ['jigglypuff',345,0,15,0,3900,0,0,100],
+ ['jigglypuff',230,0,15,0,3900,0,0,100],
  ['nidoran-m',460,57,0,0,2730,0,0,80],
  ['nidoran-f',550,47,0,0,2750,0,40,100]
  ]);
@@ -22,6 +22,8 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:14.25},{hp:29,poison:1}
  ]);
  assert.ok(BERRY_POKEMON.every(p=>p.energyReward===undefined));
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),0),{노말:10});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),1),{노말:5});
 });
 test('region 2 unlocks after 70% of appeared unique regional species and first three only',()=>{
  let s=state();
@@ -119,4 +121,26 @@ test('berry forest battles pay stat rewards, but no unconfigured type energy',()
  assert.equal(s.dittoStats.hp,beforeHp+7);
  assert.deepEqual(s.energyBalances,beforeEnergy);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
+});
+
+test('Jigglypuff grants normal energy only with repetition decay, alongside existing special attack reward',()=>{
+ let s=state();
+ s={...s,activeRegionId:BERRY_REGION.id,
+   killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1},
+   dittoStats:{...s.dittoStats,attack:10000,speed:1}};
+ const before={...s.energyBalances};
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'jigglypuff'});
+ assert.equal(s.combat.active,true);
+ assert.equal(s.combat.enemy.hp.max,230);
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
+ assert.equal(s.killCounts.jigglypuff,1);
+ assert.equal(s.energyBalances.노말,before.노말+10);
+ assert.equal(s.energyBalances.페어리,before.페어리);
+ assert.equal(s.dittoStats.specialAttack,4.5);
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'jigglypuff'});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
+ assert.equal(s.killCounts.jigglypuff,2);
+ assert.equal(s.energyBalances.노말,before.노말+15);
+ assert.equal(s.energyBalances.페어리,before.페어리);
+ assert.equal(s.dittoStats.specialAttack,6.75);
 });
