@@ -18,7 +18,7 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  ['nidoran-f',440,4.7,0,0,2750,0,4.7,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
- {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},
+ {hp:7,attack:1.7},{hp:7,attack:1.7},{hp:10,defense:1},{hp:10,defense:1},
  {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:3.2},{hp:12.9,poison:1}
  ]);
  assert.ok(BERRY_POKEMON.filter(p=>!['jigglypuff','nidoran-m','nidoran-f'].includes(p.id)).every(p=>p.energyReward===undefined));
@@ -120,10 +120,12 @@ test('berry forest battles pay stat rewards, but no unconfigured type energy',()
  assert.equal(s.combat.active,true);
  assert.equal(s.combat.enemy.hp.max,90);
  const beforeHp=s.dittoStats.hp;
+ const beforeAttack=s.dittoStats.attack;
  const beforeEnergy={...s.energyBalances};
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
  assert.equal(s.killCounts.caterpie,1);
  assert.equal(s.dittoStats.hp,beforeHp+7);
+ assert.equal(s.dittoStats.attack,beforeAttack+1.7);
  assert.deepEqual(s.energyBalances,beforeEnergy);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
 });
