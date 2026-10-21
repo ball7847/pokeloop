@@ -34,7 +34,7 @@ export function DittoBattle(){
     <div className="battle-opponent">
       <div className="battle-stats-panel"><h3>적 능력치</h3><div className="battle-enemy-stats">
         {Object.entries(enemy.stats||{}).filter(([,v])=>isAmount(v)).map(([key,value])=>
-          <div key={key}><StatLabel stat={COMBAT_STAT_KEYS[key]??key} label={key}/><strong>{fmt(value)}</strong></div>)}
+          <div key={key}><StatLabel stat={COMBAT_STAT_KEYS[key]??key} label={key}/><strong>{fmt(value)}{COMBAT_STAT_KEYS[key]==='speed'?'ms':''}</strong></div>)}
       </div></div>
       <div className="battle-enemy-image"><strong>{enemy.name}</strong>
         {enemy.imageUrl?<img src={enemy.imageUrl} alt={enemy.name}/>:<div className="battle-image-placeholder" aria-hidden="true">?</div>}</div>

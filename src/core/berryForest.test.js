@@ -4,6 +4,7 @@ import {initialState,transition} from './gameState.js';
 import {BERRY_REGION,REGION,BERRY_POKEMON,battleEnergyRewards,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
 import {resolveAttack,hitChance} from './combatEngine.js';
 import {encodeSave,decodeSave} from './saveSystem.js';
+import {eventMessage} from '../store/useGameStore.js';
 
 const state=()=>({...initialState(),phase:'running'});
 test('berry forest exact roster and no invented currency payouts',()=>{
@@ -18,7 +19,7 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  ['nidoran-f',440,4.7,0,0,2750,0,4.7,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
- {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},
+ {hp:7,attack:1.7},{hp:7,attack:1.7},{hp:10,defense:1},{hp:10,defense:1},
  {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:3.2},{hp:12.9,poison:1}
  ]);
  assert.ok(BERRY_POKEMON.filter(p=>!['jigglypuff','nidoran-m','nidoran-f'].includes(p.id)).every(p=>p.energyReward===undefined));
@@ -120,10 +121,12 @@ test('berry forest battles pay stat rewards, but no unconfigured type energy',()
  assert.equal(s.combat.active,true);
  assert.equal(s.combat.enemy.hp.max,90);
  const beforeHp=s.dittoStats.hp;
+ const beforeAttack=s.dittoStats.attack;
  const beforeEnergy={...s.energyBalances};
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
  assert.equal(s.killCounts.caterpie,1);
  assert.equal(s.dittoStats.hp,beforeHp+7);
+ assert.equal(s.dittoStats.attack,beforeAttack+1.7);
  assert.deepEqual(s.energyBalances,beforeEnergy);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
 });
@@ -213,4 +216,27 @@ test('antidote is saved and older v7 saves default to 0',()=>{
  const migrated=decodeSave(old).game;
  assert.equal(migrated.dittoStats.antidote,0);
  assert.equal(migrated.energyUpgrades.antidote??0,0);
+});
+
+
+test('Caterpie and Weedle each grant HP +7 and attack +1.7 with diminishing returns',()=>{
+ for(const id of ['caterpie','weedle']){
+  let s=state();
+  s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}};
+  s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
+  const initialHp=s.dittoStats.hp,initialAttack=s.dittoStats.attack;
+  for(let i=0;i<2;i++){
+   s=transition(s,{type:'SELECT_WILD',pokemonId:id});
+   assert.equal(s.combat.active,true,id+' unlock/encounter');
+   s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
+   assert.equal(s.killCounts[id],i+1);
+  }
+  assert.ok(Math.abs(s.dittoStats.hp-initialHp-10.5)<1e-8);
+  assert.ok(Math.abs(s.dittoStats.attack-initialAttack-2.55)<1e-8);
+ }
+});
+
+test('victory log labels defense rather than undefined and speed uses milliseconds',()=>{
+ assert.equal(eventMessage({type:'victory',name:'딱충이',count:5,rewards:{hp:2,defense:0.2}}),'딱충이 5회 처치 · HP +2, 방어 +0.2');
+ assert.equal(eventMessage({type:'victory',name:'주뱃',count:1,rewards:{speed:-20}}),'주뱃 1회 처치 · 스피드 −20ms');
 });
