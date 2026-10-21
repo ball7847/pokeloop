@@ -269,3 +269,5 @@
 .wild-region-tabs button:disabled{opacity:.48;cursor:not-allowed}
 .wild-region-progress{font-size:12px;padding:10px 12px;background:#fbf5e4;border-radius:6px;border:1px solid #e5d4ad}
 .combat-debuffs{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px;font-size:12px;background:#f6f0e5;border-radius:5px}
+
+.energy-section-tabs{margin-bottom:14px;border:1px solid #e1dacf;border-radius:8px 8px 0 0}.energy-world-content{display:flex;flex-direction:column;gap:14px}.energy-section-tabs+.energy-purchase-panel{margin-top:0}
