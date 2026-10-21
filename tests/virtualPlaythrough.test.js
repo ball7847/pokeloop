@@ -363,3 +363,61 @@ test('female Nidoran ATK/poison 4.7: single encounter, ordinary repeats, and rea
  }
  console.log('FEMALE_NIDORAN_47_CHAIN_TEST '+JSON.stringify({preparation,beforeFemale,options}));
 });
+
+
+test('endless hunger full-route audit: per-species chain length with actual HP and poison carry',()=>{
+ const seeded=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
+ let game=transition(initialState(),{type:'START'});
+ const history={};
+ const purchase=()=>{
+   if(!game.automation.hunger){
+     const next=transition(game,{type:'BUY_AUTOMATION',id:'hunger'});
+     if(next!==game)game=next;
+   }
+   for(let i=0;i<35;i++){
+     const order=(game.energyUpgrades.hp??0)<=(game.energyUpgrades.attack??0)?
+       ['hp','attack','attackMultiplier']:['attack','hp','attackMultiplier'];
+     let next=game;
+     for(const id of order){
+       const candidate=transition(game,{type:'BUY_UPGRADE',id});
+       if(candidate!==game){next=candidate;break;}
+     }
+     if(next===game)break;
+     game=next;
+   }
+ };
+ const enter=id=>{
+   let attempted=0,chainMax=0,chainResults=[],losses=0,finished=0;
+   while((game.killCounts[id]??0)<10&&attempted<35){
+     while(game.recoveryMs>0)game=transition(game,{type:'RECOVERY_TICK',deltaMs:5000});
+     purchase();
+     const before=game.killCounts[id]??0;
+     game=transition(game,{type:'SELECT_WILD',pokemonId:id});
+     if(!game.combat.active)break;
+     const r=seeded(701+id.split('').reduce((v,c)=>v+c.charCodeAt(0),0)*3001+attempted*1613);
+     let ticks=0,peak=before;
+     while(game.combat.active&&ticks++<1000){
+       game=transition(game,{type:'COMBAT_TICK',deltaMs:500,random:r});
+       peak=Math.max(peak,game.killCounts[id]??0);
+     }
+     assert.ok(ticks<1000,'endless hunger timeout for '+id);
+     const chain=peak-before;
+     chainMax=Math.max(chainMax,chain);
+     chainResults.push(chain);
+     if(game.combat.lastEvent?.type==='defeat')losses++;
+     else if(game.combat.lastEvent?.type==='victory')finished++;
+     attempted++;
+   }
+   history[id]={kills:game.killCounts[id]??0,attempts:attempted,maximumUnbrokenKills:chainMax,
+     chainLengths:chainResults,defeats:losses,normalEnergy:game.energyBalances['노말'],
+     stats:effectiveDittoStats(game)};
+ };
+ for(const id of first)if(isPokemonUnlockedInState(game,id))enter(id);
+ if(isRegionUnlocked(game,BERRY_REGION.id)){
+   game=transition(game,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
+   for(const id of second)if(isPokemonUnlockedInState(game,id))enter(id);
+ }
+ console.log('ENDLESS_HUNGER_FULL_ROUTE '+JSON.stringify({purchased:game.automation.hunger,
+   totalWins:game.victories,history}));
+ assert.equal(game.automation.hunger,true);
+});
