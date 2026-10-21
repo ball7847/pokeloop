@@ -2,7 +2,7 @@ import {StatLabel} from '../components/StatIcon.jsx';
 import {formatAmount,divideAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
-import {REGION,BERRY_REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward} from '../core/wildData.js';
+import {REGION,BERRY_REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
 import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
 
 // Row-major positions in a 2-column, 3-row grid: HP/Speed, Attack/Defense, Sp.Atk/Sp.Def.
@@ -58,8 +58,9 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
       {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}><StatLabel stat={stat} label={label} compact/> {rewardText(stat,value)}</span>)}
-      {pokemon.energyReward===undefined?<span className="wild-reward">타입 에너지 보상 미설정</span>:
-       pokemon.types?.map(type=><span className="wild-reward" key={'energy-'+type}>{type} 에너지 +{formatAmount(scaledReward('energy',pokemon.energyReward,count))}</span>)}
+      {Object.keys(battleEnergyRewards(pokemon,count)).length===0?<span className="wild-reward">타입 에너지 보상 미설정</span>:
+       Object.entries(battleEnergyRewards(pokemon,count)).map(([type,amount])=>
+         <span className="wild-reward" key={'energy-'+type}>{type} 에너지 +{formatAmount(amount)}</span>)}
     </div>
     <div className="wild-card-footer">
       <span className="wild-kills">{count} / {REGION.defaultKillLimit}회</span>
