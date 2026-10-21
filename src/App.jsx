@@ -43,20 +43,19 @@ function DexPage(){return <><div className="intro"><span>COLLECTION</span><h2>�
   <div className="panel empty"><div className="symbol">▤</div><h3>도감 준비 중</h3>
     <p>도감 데이터는 이후 추가합니다.</p></div></>}
 function EnergyPage(){
-  const [purchaseTab,setPurchaseTab]=useState('stats');
+  const [energyTab,setEnergyTab]=useState('stats');
   const game=useGameStore(s=>s.game);
   const dispatch=useGameStore(s=>s.dispatch);
   const rates=particleRates(game);
-  const items=discoveredEnergyItems(game);
   return <div className="energy-overview">
     <div className="intro"><span>PLANETARY ENERGY</span><h2>에너지</h2>
-      <p>상위 계층의 입자가 하위 계층의 입자를 생산합니다. 타입 입자별 첫 이정표는 누적 1,025입니다.</p></div>
-    <section className="panel"><h3>보유 타입 에너지</h3>
-      <div className="energy-balance-grid">{TYPES.filter(t=>compareAmount(game.energyBalances[t]??0,0)>0).map(t=>
-        <div className="energy-balance-item" key={t}><span>{t} 에너지</span><strong>{formatAmount(game.energyBalances[t])}</strong></div>)}
-      {!TYPES.some(t=>compareAmount(game.energyBalances[t]??0,0)>0)&&<p>아직 획득한 에너지가 없습니다.</p>}</div>
-      <small>타입 에너지는 해당 행성에서 메타몽 강화·자동화 구매에 사용됩니다. 구매 시 소비량만큼 해당 타입 입자가 생성됩니다. 구매 항목은 추후 추가됩니다.</small>
-    </section>
+      <p>강화와 자동화를 구매하거나 내부세계의 계층과 입자 생산 현황을 확인합니다.</p></div>
+    <div className="ditto-info-tabs energy-section-tabs" role="tablist" aria-label="에너지 분류">
+      {[['stats','강화'],['automation','자동화'],['world','내부세계']].map(([id,label])=><button key={id} type="button" role="tab"
+        aria-selected={energyTab===id} className={'ditto-info-tab '+(energyTab===id?'is-active':'')}
+        onClick={()=>setEnergyTab(id)}>{label}</button>)}
+    </div>
+    {energyTab==='world'?<div className="energy-world-content" role="tabpanel">
     <section className="panel energy-page-balances"><h3>10계층 입자 생산 현황 <small>{game.unlockedLayer}/10계층 해금</small></h3>
       <div className="energy-layer-list">
         {[...LAYERS].reverse().map(layer=>{
@@ -85,11 +84,9 @@ function EnergyPage(){
       <button type="button" disabled={game.combat.active||game.phase==='paused'||compareAmount(game.pendingStellar??0,0)<=0}
         onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 타입 에너지·입자·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
     </section>
-    <section className="panel energy-purchase-panel"><div className="energy-purchase-tabs" role="tablist" aria-label="에너지 구매 분류">
-      <button type="button" role="tab" aria-selected={purchaseTab==='stats'} className={purchaseTab==='stats'?'selected':''} onClick={()=>setPurchaseTab('stats')}>능력치 강화</button>
-      <button type="button" role="tab" aria-selected={purchaseTab==='automation'} className={purchaseTab==='automation'?'selected':''} onClick={()=>setPurchaseTab('automation')}>자동화</button></div>
-      <div role="tabpanel" className="energy-shop-list">
-        {purchaseTab==='stats'?UPGRADES.map(item=>{
+    </div>:<section className="panel energy-purchase-panel" role="tabpanel">
+      <div className="energy-shop-list">
+        {energyTab==='stats'?UPGRADES.map(item=>{
           const level=game.energyUpgrades?.[item.id]??0;
           const cost=upgradeCost(item.id,level);
           const affordable=compareAmount(game.energyBalances[item.type]??0,cost)>=0;
@@ -111,7 +108,7 @@ function EnergyPage(){
         })}
         <small>구매 시 소비한 타입 에너지와 동일한 수량의 입자가 생성됩니다. 미해금 계층의 입자는 보관됩니다.</small>
       </div>
-    </section>
+    </section>}
   </div>;
 }
 function SettingsPage(){
@@ -225,7 +222,7 @@ export function App(){
   const lastCombat=useRef(false);
   useEffect(()=>{
     if(combatActive&&!lastCombat.current)setActiveTab('ditto');
-    if(!combatActive&&lastCombat.current)setActiveTab('wild');
+    if(!combatActive&&lastCombat.current)setActiveTab(tab=>tab==='ditto'?'wild':tab);
     lastCombat.current=combatActive;
   },[combatActive]);
   return <div className="shell"><CombatClock/><CombatBarAnimator/><AutoSaveClock/><TopBar/>

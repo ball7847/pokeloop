@@ -45,8 +45,8 @@ test('automation purchases cost confirmed energy and unlock controls',()=>{
   s=buy(s,'BUY_AUTOMATION','hunger');
   s=buy(s,'BUY_AUTOMATION','resolve');
   assert.deepEqual(s.qolUnlocks,['hunger','resolve']);
-  assert.equal(s.energyBalances.노말,999);
-  assert.equal(s.energyBalances.격투,990);
+  assert.equal(s.energyBalances.노말,994);
+  assert.equal(s.energyBalances.격투,1000);
   assert.equal(s.automation.hunger,true);
   assert.equal(s.automation.resolve,true);
   assert.equal(buy(s,'BUY_AUTOMATION','hunger'),s);
@@ -167,4 +167,16 @@ test('poison +3% is additive-per-level multiplicative to earned base poison, nev
  assert.equal(sharedEnergy.energyBalances.독,15);
  assert.ok(Math.abs(effectiveDittoStats(sharedEnergy).poison-2.65)<1e-10);
  assert.equal(effectiveDittoStats(sharedEnergy).antidote,1);
+});
+
+test('resolve costs five normal energy and rejects insufficient normal funds',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,노말:4,격투:1000}};
+ assert.equal(buy(s,'BUY_AUTOMATION','resolve'),s);
+ s={...s,energyBalances:{...s.energyBalances,노말:5}};
+ const purchased=buy(s,'BUY_AUTOMATION','resolve');
+ assert.ok(purchased!==s);
+ assert.equal(purchased.energyBalances.노말,0);
+ assert.equal(purchased.energyBalances.격투,1000);
+ assert.equal(purchased.particleBalances.노말,5);
+ assert.equal(purchased.automation.resolve,true);
 });
