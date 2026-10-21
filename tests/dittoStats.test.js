@@ -4,7 +4,7 @@ import { DEFAULT_STATS, DEFAULT_DITTO_STATS, resolveStats, isDefaultStat, visibl
 import { initialState, transition } from '../src/core/gameState.js';
 
 test('initial Ditto stats use approved seven defaults', () => {
-  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,paralysis:0,poison:0,accuracy:100,dodge:0});
+  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
   assert.deepEqual(DEFAULT_DITTO_STATS, initialState().dittoStats);
 });
 test('zero-valued ability is retained in state but hidden from UI', () => {
