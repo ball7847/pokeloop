@@ -94,7 +94,7 @@ function EnergyPage(){
           const cost=upgradeCost(item.id,level);
           const affordable=compareAmount(game.energyBalances[item.type]??0,cost)>=0;
           return <div className="energy-shop-item" key={item.id}>
-            <div><strong>{item.name}</strong><small>Lv. {level} · 레벨당 +{item.bonus*100}% 기본 {item.id==='hp'?'HP':item.id==='attack'?'공격':'공격속도 배율'}</small></div>
+            <div><strong>{item.name}</strong><small>Lv. {level} · 레벨당 +{item.unit==='flat'?item.bonus:item.bonus*100}{item.unit==='flat'?'':'%'} {item.stat}</small></div>
             <button type="button" disabled={!affordable||game.combat.active||game.phase==='paused'}
               onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{item.type} 에너지 {formatAmount(cost)} 구매</button>
           </div>;

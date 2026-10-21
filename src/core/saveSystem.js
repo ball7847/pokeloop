@@ -8,7 +8,7 @@ import {DEFAULT_AUTOMATION} from './shopSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=6;
+export const SAVE_VERSION=7;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -50,7 +50,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -141,7 +141,7 @@ export function decodeSave(encoded){
   // v4 and earlier did not implement these features; new runs default to no cooldown and no purchases.
   if(data.version>=5){
     const levels=original.energyUpgrades??{};
-    if(!levels||typeof levels!=='object'||Array.isArray(levels)||Object.keys(levels).some(k=>!['hp','attack','speed'].includes(k))||
+    if(!levels||typeof levels!=='object'||Array.isArray(levels)||Object.keys(levels).some(k=>!['hp','attack','attackMultiplier','speed'].includes(k))||
       Object.values(levels).some(v=>!validInteger(v,1000000)))throw new Error('강화 레벨이 올바르지 않습니다.');
     const owned=original.qolUnlocks??[];
     if(owned.some(k=>!['hunger','resolve'].includes(k)))throw new Error('자동화 해금 데이터가 올바르지 않습니다.');
@@ -159,6 +159,15 @@ export function decodeSave(encoded){
     if(retry!==null&&(!getWildPokemon(retry)||!cleanGame.automation.resolve||remaining===0))
       throw new Error('재도전 대상이 올바르지 않습니다.');
     cleanGame.retryPokemonId=retry;
+  }
+  // Before v7, "attack" was the fighting-energy +4% multiplier.
+  // Carry its purchased level (and next-price progression) into attackMultiplier.
+  // The new normal-energy flat attack upgrade starts at level 0.
+  if(data.version>=5&&data.version<7){
+    const old=cleanGame.energyUpgrades;
+    if(Object.hasOwn(old,'attack')){
+      cleanGame.energyUpgrades={...old,attackMultiplier:old.attack,attack:0};
+    }
   }
   if(data.version>=6){
     if(typeof original.berryRareAppeared!=='boolean')throw new Error('베리숲 안흔함 등장 정보가 올바르지 않습니다.');

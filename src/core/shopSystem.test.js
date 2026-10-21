@@ -7,29 +7,37 @@ import {encodeSave,decodeSave} from './saveSystem.js';
 
 const buy=(state,type,id)=>transition(state,{type,id});
 const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,비행:1000}});
-test('confirmed upgrade costs and base multipliers',()=>{
-  assert.deepEqual(UPGRADES.map(x=>[x.id,x.base,x.growth,x.bonus]),[
-    ['hp',1,1.5,.05],['attack',1,1.5,.04],['speed',20,1000,.01]
+test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
+  assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
+    ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
+    ['attackMultiplier','격투',1,1.5,.04],['speed','비행',20,1000,.01]
   ]);
   assert.equal(upgradeCost('hp',1),1.5);
   assert.equal(upgradeCost('attack',2),2.25);
+  assert.equal(upgradeCost('attackMultiplier',1),1.5);
   assert.equal(upgradeCost('speed',1),20000);
   let s=funded();
-  s=buy(s,'BUY_UPGRADE','hp');
-  s=buy(s,'BUY_UPGRADE','hp');
-  s=buy(s,'BUY_UPGRADE','attack');
-  s=buy(s,'BUY_UPGRADE','speed');
+  for(const id of ['hp','hp','attack','attackMultiplier','speed'])s=buy(s,'BUY_UPGRADE',id);
   const stats=effectiveDittoStats(s);
-  assert.equal(stats.hp,11);
-  assert.equal(stats.attack,1.04);
+  assert.equal(stats.hp,18);
+  assert.equal(stats.attack,2.08);
   assert.ok(Math.abs(stats.speed-(3000/1.01))<1e-8);
-  assert.equal(s.energyBalances.노말,997.5);
+  assert.equal(s.energyBalances.노말,996.5);
   assert.equal(s.energyBalances.격투,999);
   assert.equal(s.energyBalances.비행,980);
-  assert.equal(s.particleBalances.노말,2.5);
+  assert.equal(s.particleBalances.노말,3.5);
   assert.equal(s.particleBank.격투,1);
   assert.equal(s.particleBank.비행,20);
+  assert.equal(s.energyUpgrades.hp,2);
+  assert.equal(s.energyUpgrades.attack,1);
+  assert.equal(s.energyUpgrades.attackMultiplier,1);
   assert.equal(buy(s,'BUY_UPGRADE','speed'),s);
+});
+test('flat upgrades also apply to earned kill rewards before fighting multiplier',()=>{
+ const s=funded();
+ const withRewards={...s,dittoStats:{...s.dittoStats,hp:31,attack:7.5},energyUpgrades:{hp:3,attack:2,attackMultiplier:4}};
+ assert.equal(effectiveDittoStats(withRewards).hp,43);
+ assert.equal(effectiveDittoStats(withRewards).attack,11.02);
 });
 test('automation purchases cost confirmed energy and unlock controls',()=>{
   let s=funded();
@@ -105,4 +113,21 @@ test('v5 persists upgrades, automation and recovery and v4 defaults',()=>{
   const old=decodeSave(v4).game;
   assert.equal(old.recoveryMs,0);
   assert.equal(old.automation.resolve,false);
+});
+
+test('legacy v6 fighting attack upgrade levels migrate without becoming flat attack levels',()=>{
+ let s=funded();
+ s=buy(s,'BUY_UPGRADE','attackMultiplier');
+ s=buy(s,'BUY_UPGRADE','attackMultiplier');
+ s=buy(s,'BUY_UPGRADE','hp');
+ const raw=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(s)),x=>x.charCodeAt(0))));
+ raw.version=6;
+ raw.game.energyUpgrades={hp:1,attack:2,speed:0};
+ const old=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(raw))));
+ const loaded=decodeSave(old).game;
+ assert.equal(loaded.energyUpgrades.hp,1);
+ assert.equal(loaded.energyUpgrades.attack,0);
+ assert.equal(loaded.energyUpgrades.attackMultiplier,2);
+ assert.equal(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier),2.25);
+ assert.equal(effectiveDittoStats(loaded).attack,1.08);
 });

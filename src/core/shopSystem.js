@@ -4,9 +4,10 @@ import {purchaseWithEnergy} from './energySystem.js';
 // Rejected Draft shop pattern: base cost * growth^currentLevel,
 // additive per-level bonuses to the base stat.
 export const UPGRADES=Object.freeze([
-  {id:'hp',name:'HP 강화',type:'노말',base:1,growth:1.5,bonus:0.05},
-  {id:'attack',name:'공격 강화',type:'격투',base:1,growth:1.5,bonus:0.04},
-  {id:'speed',name:'공격속도 강화',type:'비행',base:20,growth:1000,bonus:0.01}
+  {id:'hp',name:'HP 강화',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
+  {id:'attack',name:'공격 강화',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
+  {id:'attackMultiplier',name:'공격 증폭',type:'격투',base:1,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
+  {id:'speed',name:'공격속도 강화',type:'비행',base:20,growth:1000,bonus:0.01,unit:'percent',stat:'공격속도 배율'}
 ]);
 export const AUTOMATIONS=Object.freeze([
   {id:'hunger',name:'끝없는 허기',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
@@ -21,9 +22,10 @@ export function upgradeCost(id,level){
 export function effectiveDittoStats(state){
   const stats=state.dittoStats;
   const levels=state.energyUpgrades??{};
-  const hp=1+(levels.hp??0)*0.05,attack=1+(levels.attack??0)*0.04,speed=1+(levels.speed??0)*0.01;
-  return {...stats,hp:storedAmount(decimal(stats.hp).mul(hp)),
-    attack:storedAmount(decimal(stats.attack).mul(attack)),
+  const hpFlat=decimal(levels.hp??0).mul(4),attackFlat=decimal(levels.attack??0);
+  const attackMultiplier=1+(levels.attackMultiplier??0)*0.04,speed=1+(levels.speed??0)*0.01;
+  return {...stats,hp:storedAmount(decimal(stats.hp).add(hpFlat)),
+    attack:storedAmount(decimal(stats.attack).add(attackFlat).mul(attackMultiplier)),
     speed:Math.max(1,stats.speed/speed)};
 }
 export function buyUpgrade(state,id){
