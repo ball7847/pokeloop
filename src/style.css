@@ -310,3 +310,36 @@
 .world-type-line{grid-template-columns:32px minmax(0,1fr) minmax(52px,.8fr)}
 .world-type-line small{grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:600px){.world-type-line{grid-template-columns:29px minmax(0,1fr) minmax(52px,1fr)}.world-type-line small{grid-column:1/-1}}
+
+
+/* Inner-world desktop split: ten layers on left, stellar economy on right. */
+.energy-world-content{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;align-items:start}
+.energy-world-layers,.energy-world-stellar{min-width:0}
+.energy-world-content .panel{padding:12px;min-width:0}
+.energy-world-content .panel h3{font-size:15px;line-height:1.35}
+.energy-page-balances h3 small{font-size:10px;white-space:nowrap}
+.energy-world-stellar .energy-balance-grid{grid-template-columns:1fr;gap:7px;margin-top:12px}
+.energy-world-stellar .energy-balance-item{min-width:0}
+.energy-world-stellar .panel p{font-size:12px;line-height:1.55}
+.energy-world-stellar .panel button{padding:9px 12px;border:1px solid #99876d;border-radius:6px;background:#e8e4d9;cursor:pointer}
+.energy-world-stellar .panel button:disabled{opacity:.45;cursor:not-allowed}
+.world-layer-head{grid-template-columns:100px minmax(0,1fr)}
+.world-layer-row{grid-template-columns:100px minmax(0,1fr);align-items:start;min-height:0;padding:5px 7px;gap:5px}
+.world-layer-types{display:flex;flex-direction:column;gap:3px;min-width:0}
+.world-type-line{grid-template-columns:31px minmax(0,1fr) minmax(46px,.8fr);gap:2px 4px;font-size:10px;line-height:1.25}
+.world-type-line small{grid-column:1/-1;white-space:normal;overflow-wrap:anywhere;line-height:1.2;font-size:9px}
+.world-layer-title strong{font-size:10px}
+.world-layer-title small{font-size:9px}
+.world-layer-head>span:nth-child(n+3){display:none}
+.wild-region-summary{display:flex;justify-content:flex-end;align-items:center;min-height:16px;margin:-3px 0 8px}
+@media(max-width:900px){
+ .energy-world-content{grid-template-columns:minmax(0,1fr)}
+ .energy-world-stellar .energy-balance-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:600px){
+ .energy-world-content{gap:8px}
+ .world-layer-head{grid-template-columns:77px minmax(0,1fr)}
+ .world-layer-row{grid-template-columns:77px minmax(0,1fr)}
+ .world-type-line{grid-template-columns:29px minmax(0,1fr) minmax(47px,1fr)}
+ .energy-world-stellar .energy-balance-grid{grid-template-columns:1fr}
+}
