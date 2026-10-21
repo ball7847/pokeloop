@@ -10,7 +10,8 @@ const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialS
 test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
-    ['attackMultiplier','격투',1,1.5,.04],['speed','비행',20,1000,.01]
+    ['attackMultiplier','격투',1,1.5,.04],['speed','비행',20,1000,.01],
+    ['antidote','독',10,1.5,1]
   ]);
   assert.equal(upgradeCost('hp',1),1.5);
   assert.equal(upgradeCost('attack',2),2.25);
