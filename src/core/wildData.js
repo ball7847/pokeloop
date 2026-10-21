@@ -21,7 +21,7 @@ const berryEntries=[
 {id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',hp:350,attack:55,speed:1000,paralysis:43,rewards:{attack:25,paralysis:3.2}},
 {id:'jigglypuff',number:39,name:'푸린',types:['노말','페어리'],hp:230,specialAttack:15,speed:3900,energyReward:10,rewards:{specialAttack:4.5}},
 {id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:368,attack:28.5,speed:2730,accuracy:80,rewards:{attack:3.2}},
-{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:550,attack:14.7,speed:2750,poison:8,rewards:{hp:29,poison:1}}
+{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:550,attack:14.7,speed:2750,poison:5,rewards:{hp:29,poison:1}}
 ];
 // Region 2 energy remains unset except for explicitly configured per-type payouts.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
