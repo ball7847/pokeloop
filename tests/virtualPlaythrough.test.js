@@ -13,7 +13,7 @@ function battle(s,id,seed=0.5){
  let elapsed=0;
  while(s.combat.active&&elapsed<180000){
    const before=s;
-   s=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>seed});
+   s=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:typeof seed==='function'?seed:()=>seed});
    elapsed+=500;
    if(s===before)throw new Error('combat tick stalled '+id);
  }
@@ -94,4 +94,21 @@ test('economic and rare encounter reachability, game default rules',()=>{
  assert.ok(maxNormal<1025);
  console.log('VIRTUAL_ECONOMY '+JSON.stringify({maxNormalFromRegion1:maxNormal,normalMilestone:1025,
   berriesAwardEnergy:false,secondRegionRareAppearsWithoutExplicitStateChange:false}));
+});
+
+test('region 2 late encounters: Monte Carlo first-win viability after all accessible stat farming',()=>{
+ const {s}=run('hp');
+ assert.equal(s.activeRegionId,BERRY_REGION.id);
+ function seeded(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+ const sample=500;
+ const wins={};
+ for(const id of ['jigglypuff','nidoran-m','nidoran-f']){
+   let count=0;
+   for(let i=1;i<=sample;i++){
+     const {kind}=battle({...s,recoveryMs:0,retryPokemonId:null},id,seeded(i*1009+17));
+     if(kind==='victory')count++;
+   }
+   wins[id]=count;
+ }
+ console.log('VIRTUAL_LATE_BERRY_MONTE_CARLO '+JSON.stringify({samplesPerEnemy:sample,wins,finalPlayerStats:effectiveDittoStats(s)}));
 });
