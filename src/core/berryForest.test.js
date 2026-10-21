@@ -216,3 +216,21 @@ test('antidote is saved and older v7 saves default to 0',()=>{
  assert.equal(migrated.dittoStats.antidote,0);
  assert.equal(migrated.energyUpgrades.antidote??0,0);
 });
+
+
+test('Caterpie and Weedle each grant HP +7 and attack +1.7 with diminishing returns',()=>{
+ for(const id of ['caterpie','weedle']){
+  let s=state();
+  s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}};
+  s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
+  const initialHp=s.dittoStats.hp,initialAttack=s.dittoStats.attack;
+  for(let i=0;i<2;i++){
+   s=transition(s,{type:'SELECT_WILD',pokemonId:id});
+   assert.equal(s.combat.active,true,id+' unlock/encounter');
+   s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
+   assert.equal(s.killCounts[id],i+1);
+  }
+  assert.ok(Math.abs(s.dittoStats.hp-initialHp-10.5)<1e-8);
+  assert.ok(Math.abs(s.dittoStats.attack-initialAttack-2.55)<1e-8);
+ }
+});
