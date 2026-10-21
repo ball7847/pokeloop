@@ -423,7 +423,7 @@ test('endless hunger full-route audit: per-species chain length with actual HP a
 });
 
 
-test('Nidoran female defeat: report exact remaining HP distribution after poison 4.7 patch',()=>{
+test('Nidoran female battle: report remaining HP distribution after poison 4.7 patch',()=>{
  const rng=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
  let {s}=run('balanced');
  for(let i=0;i<500&&(s.killCounts['nidoran-m']??0)<10;i++){
@@ -459,7 +459,7 @@ test('Nidoran female defeat: report exact remaining HP distribution after poison
    const percentile=p=>hp[Math.floor((hp.length-1)*p)];
    data.samples['antidote'+level]={outcomes,remainingHp:{min:hp[0],p10:percentile(.1),p25:percentile(.25),median:percentile(.5),
      average:mean(hp),p75:percentile(.75),p90:percentile(.9),max:hp.at(-1)},
-     averageEnemyHpLost:550-mean(hp),averageFightSeconds:mean(times)/1000};
+     averageEnemyHpLost:440-mean(hp),averageFightSeconds:mean(times)/1000};
  }
  console.log('NIDORAN_F_DEFEAT_REMAINING_HP '+JSON.stringify(data));
 });
