@@ -165,3 +165,50 @@ test('controlled allocation comparison: HP only, attack only, balanced with same
  }
  console.log('VIRTUAL_ALLOCATION_CONTROLLED '+JSON.stringify(results));
 });
+
+test('post-Nidoran rebalance: reachable route, rewards, and late battle odds',()=>{
+ const seeded=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
+ const routes={};
+ for(const strategy of ['hp','attack','balanced','none']){
+   const {s,results}=run(strategy);
+   const finalStats=effectiveDittoStats(s);
+   const wins={};
+   for(const id of ['jigglypuff','nidoran-m','nidoran-f']){
+     let victories=0;
+     for(let i=1;i<=200;i++){
+       const probe=battle({...s,recoveryMs:0,retryPokemonId:null},id,seeded(i*1013+33));
+       if(probe.kind==='victory')victories++;
+     }
+     wins[id]=victories;
+   }
+   routes[strategy]={kills:results.region2,victories:s.victories,levels:s.energyUpgrades,
+     stats:finalStats,energy:{normal:s.energyBalances['노말'],fairy:s.energyBalances['페어리'],poison:s.energyBalances['독']},
+     winProbesPerEnemy:200,wins};
+ }
+ console.log('NIDORAN_REBALANCE_ROUTE '+JSON.stringify(routes));
+ assert.ok(Object.values(routes).every(route=>route.victories>=90));
+});
+
+test('Nidoran male first-win snowball check: 2000 seeded attempts plus subsequent catches',()=>{
+ const seeded=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
+ let {s}=run('balanced');
+ let firstWin=null;
+ for(let i=1;i<=2000;i++){
+   const outcome=battle({...s,recoveryMs:0,retryPokemonId:null},'nidoran-m',seeded(30001+i*109));
+   if(outcome.kind==='victory'){firstWin={attempt:i,elapsed:outcome.elapsed};s=outcome.state;break;}
+ }
+ if(firstWin){
+   for(const id of ['nidoran-m','nidoran-f']){
+     let wins=0,attempts=0;
+     while((s.killCounts[id]??0)<10&&attempts<150){
+       if(s.recoveryMs>0) s=transition(s,{type:'RECOVERY_TICK',deltaMs:5000});
+       if(s.recoveryMs>0) s=transition(s,{type:'RECOVERY_TICK',deltaMs:5000});
+       const outcome=battle(s,id,seeded(950001+attempts*193+(id==='nidoran-f'?100000:0)));
+       s=outcome.state;
+       if(outcome.kind==='victory')wins++;
+       attempts++;
+     }
+   }
+ }
+ console.log('NIDORAN_LUCKY_PROGRESSION '+JSON.stringify({firstWin,counts:{male:s.killCounts['nidoran-m'],female:s.killCounts['nidoran-f']},victories:s.victories,stats:effectiveDittoStats(s),energy:{poison:s.energyBalances['독']}}));
+});
