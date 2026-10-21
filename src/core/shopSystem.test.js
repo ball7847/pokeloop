@@ -156,15 +156,15 @@ test('poison +3% is additive-per-level multiplicative to earned base poison, nev
  s=buy(s,'BUY_UPGRADE','poisonMultiplier');
  assert.equal(effectiveDittoStats(s).poison,2.575);
  s=buy(s,'BUY_UPGRADE','poisonMultiplier');
- assert.equal(effectiveDittoStats(s).poison,2.65);
+ assert.ok(Math.abs(effectiveDittoStats(s).poison-2.65)<1e-10);
  assert.equal(s.energyBalances.독,25);
  assert.equal(s.energyUpgrades.poisonMultiplier,2);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.poisonMultiplier,2);
  assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,poison:0}}).poison,0);
  const saved=decodeSave(encodeSave(s)).game;
- assert.equal(effectiveDittoStats(saved).poison,2.65);
+ assert.ok(Math.abs(effectiveDittoStats(saved).poison-2.65)<1e-10);
  const sharedEnergy=buy(s,'BUY_UPGRADE','antidote');
  assert.equal(sharedEnergy.energyBalances.독,15);
- assert.equal(effectiveDittoStats(sharedEnergy).poison,2.65);
+ assert.ok(Math.abs(effectiveDittoStats(sharedEnergy).poison-2.65)<1e-10);
  assert.equal(effectiveDittoStats(sharedEnergy).antidote,1);
 });
