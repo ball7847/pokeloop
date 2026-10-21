@@ -212,3 +212,65 @@ test('Nidoran male first-win snowball check: 2000 seeded attempts plus subsequen
  }
  console.log('NIDORAN_LUCKY_PROGRESSION '+JSON.stringify({firstWin,counts:{male:s.killCounts['nidoran-m'],female:s.killCounts['nidoran-f']},victories:s.victories,stats:effectiveDittoStats(s),energy:{poison:s.energyBalances['독']}}));
 });
+
+test('antidote and new Nidoran rebalance: full virtual route plus controlled poison mitigation',()=>{
+ function seeded(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+ const {s:afterCommon,results:base}=run('balanced');
+ const observed={first:base.region1,berryBeforeRare:base.region2,commonStats:effectiveDittoStats(afterCommon),
+   balanceAtStart:{poison:afterCommon.energyBalances['독'],normal:afterCommon.energyBalances['노말']}};
+ let s=afterCommon;
+ let firstMale=null;
+ for(let i=1;i<=1000;i++){
+   const probe=battle({...s,recoveryMs:0,retryPokemonId:null},'nidoran-m',seeded(i*1009+191));
+   if(probe.kind==='victory'){firstMale={attempt:i,elapsed:probe.elapsed};s=probe.state;break;}
+ }
+ observed.firstMale=firstMale;
+ if(!firstMale){console.log('ANTIDOTE_BALANCE_VIRTUAL '+JSON.stringify(observed));return;}
+ let maleAttempts=0;
+ while(s.killCounts['nidoran-m']<10&&maleAttempts<200){
+   if(s.recoveryMs>0)s=transition(s,{type:'RECOVERY_TICK',deltaMs:5000});
+   if(s.recoveryMs>0)s=transition(s,{type:'RECOVERY_TICK',deltaMs:5000});
+   const trial=battle(s,'nidoran-m',seeded(maleAttempts*971+20003));
+   s=trial.state;maleAttempts++;
+ }
+ observed.afterMale={count:s.killCounts['nidoran-m'],attempts:maleAttempts+firstMale.attempt,
+  stats:effectiveDittoStats(s),poisonEnergy:s.energyBalances['독']};
+ const trials=500,variants={};
+ for(const variant of ['noAntidote','buyAntidote']){
+   let v=s;
+   if(variant==='buyAntidote'){
+     for(let t=0;t<20;t++){
+       const next=transition(v,{type:'BUY_UPGRADE',id:'antidote'});
+       if(next===v)break;
+       v=next;
+     }
+   }
+   let wins=0,firstSuccess=null;
+   for(let i=1;i<=trials;i++){
+     const fight=battle({...v,recoveryMs:0,retryPokemonId:null},'nidoran-f',seeded(i*1307+701));
+     if(fight.kind==='victory'){wins++;firstSuccess??=i;}
+   }
+   variants[variant]={levels:v.energyUpgrades,stats:effectiveDittoStats(v),
+     poisonEnergy:v.energyBalances['독'],wins,trials,firstSuccess};
+ }
+ observed.femaleProbes=variants;
+ // Continue the actual run with antidote and real rewards/recovery.
+ let v=s;
+ for(let n=0;n<20;n++){
+   const bought=transition(v,{type:'BUY_UPGRADE',id:'antidote'});
+   if(bought===v)break;
+   v=bought;
+ }
+ let femaleAttempts=0;
+ while(v.killCounts['nidoran-f']<10&&femaleAttempts<300){
+   if(v.recoveryMs>0)v=transition(v,{type:'RECOVERY_TICK',deltaMs:5000});
+   if(v.recoveryMs>0)v=transition(v,{type:'RECOVERY_TICK',deltaMs:5000});
+   const fight=battle(v,'nidoran-f',seeded(femaleAttempts*2017+13031));
+   v=fight.state;femaleAttempts++;
+ }
+ observed.final={male:v.killCounts['nidoran-m'],female:v.killCounts['nidoran-f'],femaleAttempts,
+  totalWins:v.victories,upgrades:v.energyUpgrades,stats:effectiveDittoStats(v),
+  poisonEnergy:v.energyBalances['독'],saved:decodeSave(encodeSave(v)).game.energyUpgrades.antidote===v.energyUpgrades.antidote};
+ console.log('ANTIDOTE_BALANCE_VIRTUAL '+JSON.stringify(observed));
+ assert.ok(observed.final.saved);
+});
