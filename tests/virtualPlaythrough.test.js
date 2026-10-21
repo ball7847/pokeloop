@@ -26,7 +26,7 @@ function run(strategy){
  const results={strategy,region1:{},region2:{},events:[],warnings:[]};
  const upgrade=()=>{
    for(let loop=0;loop<40;loop++){
-     const types=strategy==='hp'?['hp','attack']:strategy==='attack'?['attack','hp']:['hp','attack','speed'];
+     const types=strategy==='hp'?['hp','attack','attackMultiplier']:strategy==='attack'?['attack','hp','attackMultiplier']:strategy==='balanced'?[(s.energyUpgrades.hp??0)<=(s.energyUpgrades.attack??0)?'hp':'attack',(s.energyUpgrades.hp??0)<=(s.energyUpgrades.attack??0)?'attack':'hp','attackMultiplier']:['hp','attack','attackMultiplier','speed'];
      let changed=false;
      for(const id of types){
        const next=transition(s,{type:'BUY_UPGRADE',id});
@@ -73,9 +73,9 @@ function run(strategy){
  console.log('VIRTUAL_PLAYTRACE '+JSON.stringify(results));
  return {s,results};
 }
-test('complete progression simulation from empty save with three manual purchase strategies',()=>{
+test('complete progression simulation from empty save with four manual purchase strategies',()=>{
  let unlocked=0;
- for(const policy of ['hp','attack','none']){
+ for(const policy of ['hp','attack','balanced','none']){
    const {s,results}=run(policy);
    assert.ok(s.victories>0,'no victories for '+policy);
    assert.equal(results.saves,true);
@@ -111,4 +111,56 @@ test('region 2 late encounters: Monte Carlo first-win viability after all access
    wins[id]=count;
  }
  console.log('VIRTUAL_LATE_BERRY_MONTE_CARLO '+JSON.stringify({samplesPerEnemy:sample,wins,finalPlayerStats:effectiveDittoStats(s)}));
+});
+
+test('post-change balance: all available enemies and stat/economy state across strategies',()=>{
+ const traces={};
+ for(const policy of ['hp','attack','balanced','none']){
+  const {s,results}=run(policy);
+  traces[policy]={
+   killsFirst:results.region1,killsBerry:results.region2,
+   base:{hp:s.dittoStats.hp,attack:s.dittoStats.attack},
+   effective:effectiveDittoStats(s),
+   upgrades:s.energyUpgrades,
+   spentNormal:s.particleEarned['노말'],
+   fightingSpent:s.particleBank['격투'],
+   totalWins:s.victories
+  };
+ }
+ console.log('VIRTUAL_FLAT_UPGRADE_COMPARISON '+JSON.stringify(traces));
+ assert.ok(traces.hp.effective.hp>=traces.none.effective.hp);
+ assert.ok(traces.attack.effective.attack>=traces.none.effective.attack);
+});
+
+test('controlled allocation comparison: HP only, attack only, balanced with same earned energy',()=>{
+ const baseline=run('none').s;
+ const names=['hpOnly','attackOnly','balanced'];
+ const results={};
+ function seeded(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+ for(const strategy of names){
+  let s=baseline;
+  for(let n=0;n<100;n++){
+   const chosen=strategy==='hpOnly'?'hp':strategy==='attackOnly'?'attack':
+    (s.energyUpgrades.hp??0)<=(s.energyUpgrades.attack??0)?'hp':'attack';
+   const next=transition(s,{type:'BUY_UPGRADE',id:chosen});
+   if(next===s)break;
+   s=next;
+  }
+  for(let n=0;n<100;n++){
+   const next=transition(s,{type:'BUY_UPGRADE',id:'attackMultiplier'});
+   if(next===s)break;
+   s=next;
+  }
+  const wins={},trials=300;
+  for(const id of ['jigglypuff','nidoran-m','nidoran-f']){
+   let victories=0;
+   for(let i=0;i<trials;i++){
+    const v=battle({...s,recoveryMs:0,retryPokemonId:null},id,seeded(i*983+42));
+    if(v.kind==='victory')victories++;
+   }
+   wins[id]=victories;
+  }
+  results[strategy]={levels:s.energyUpgrades,stats:effectiveDittoStats(s),unspentNormal:s.energyBalances['노말'],wins,trials};
+ }
+ console.log('VIRTUAL_ALLOCATION_CONTROLLED '+JSON.stringify(results));
 });
