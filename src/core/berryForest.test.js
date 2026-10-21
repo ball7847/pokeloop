@@ -14,16 +14,21 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  ['metapod',100,4,0,5.5,4500,0,0,100],
  ['pikachu',350,55,0,0,1000,43,0,100],
  ['jigglypuff',230,0,15,0,3900,0,0,100],
- ['nidoran-m',460,57,0,0,2730,0,0,80],
- ['nidoran-f',550,47,0,0,2750,0,40,100]
+ ['nidoran-m',460,29.5,0,0,2730,0,0,80],
+ ['nidoran-f',550,14.7,0,0,2750,0,40,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},
  {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:14.25},{hp:29,poison:1}
  ]);
- assert.ok(BERRY_POKEMON.filter(p=>p.id!=='jigglypuff').every(p=>p.energyReward===undefined));
+ assert.ok(BERRY_POKEMON.filter(p=>!['jigglypuff','nidoran-m','nidoran-f'].includes(p.id)).every(p=>p.energyReward===undefined));
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),0),{노말:10,페어리:10});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),1),{노말:5,페어리:5});
+ for(const id of ['nidoran-m','nidoran-f']){
+   const p=BERRY_POKEMON.find(p=>p.id===id);
+   assert.deepEqual(battleEnergyRewards(p,0),{독:6.9});
+   assert.deepEqual(battleEnergyRewards(p,1),{독:3.45});
+ }
 });
 test('region 2 unlocks after 70% of appeared unique regional species and first three only',()=>{
  let s=state();
@@ -143,4 +148,26 @@ test('Jigglypuff grants normal energy only with repetition decay, alongside exis
  assert.equal(s.energyBalances.노말,before.노말+15);
  assert.equal(s.energyBalances.페어리,before.페어리+15);
  assert.equal(s.dittoStats.specialAttack,6.75);
+});
+
+test('Nidoran males and females grant poison energy with normal diminishing returns and keep stat rewards',()=>{
+ for(const [id,rewardField,rewardValue] of [['nidoran-m','attack',14.25],['nidoran-f','hp',29]]){
+   let s=state();
+   s={...s,activeRegionId:BERRY_REGION.id,
+     killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1,jigglypuff:1},
+     dittoStats:{...s.dittoStats,hp:10000,attack:10000,speed:1}};
+   const initialEnergy={...s.energyBalances};
+   const initialReward=s.dittoStats[rewardField];
+   for(let count=1;count<=2;count++){
+     s=transition(s,{type:'SELECT_WILD',pokemonId:id});
+     assert.equal(s.combat.active,true);
+     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?29.5:14.7);
+     s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
+     assert.equal(s.killCounts[id],count);
+     assert.equal(s.combat.active,false);
+   }
+   assert.ok(Math.abs(s.energyBalances.독-(initialEnergy.독+10.35))<1e-8);
+   assert.equal(s.energyBalances.노말,initialEnergy.노말);
+   assert.equal(s.dittoStats[rewardField],initialReward+rewardValue+rewardValue/2);
+ }
 });
