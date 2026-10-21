@@ -456,10 +456,10 @@ test('Nidoran female battle: report remaining HP distribution after poison 4.7 p
    }
    hp.sort((a,b)=>a-b);
    const mean=v=>v.reduce((a,b)=>a+b,0)/v.length;
-   const percentile=p=>hp[Math.floor((hp.length-1)*p)];
-   data.samples['antidote'+level]={outcomes,remainingHp:{min:hp[0],p10:percentile(.1),p25:percentile(.25),median:percentile(.5),
-     average:mean(hp),p75:percentile(.75),p90:percentile(.9),max:hp.at(-1)},
-     averageEnemyHpLost:440-mean(hp),averageFightSeconds:mean(times)/1000};
+   const percentile=p=>hp.length?hp[Math.floor((hp.length-1)*p)]:null;
+   data.samples['antidote'+level]={outcomes,remainingHp:{min:hp.length?hp[0]:null,p10:percentile(.1),p25:percentile(.25),median:percentile(.5),
+     average:hp.length?mean(hp):null,p75:percentile(.75),p90:percentile(.9),max:hp.length?hp.at(-1):null},
+     averageEnemyHpLost:hp.length?440-mean(hp):null,averageFightSeconds:times.length?mean(times)/1000:null};
  }
  console.log('NIDORAN_F_DEFEAT_REMAINING_HP '+JSON.stringify(data));
 });
