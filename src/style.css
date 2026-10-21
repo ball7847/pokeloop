@@ -305,3 +305,8 @@
 .wild-card.is-exhausted .wild-state{font-weight:800;color:#646464}
 @media(max-width:1150px){.world-type-line{grid-template-columns:30px minmax(0,1fr) minmax(48px,1fr)}.world-type-line small{grid-column:2/-1}}
 @media(max-width:600px){.energy-shop-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.energy-shop-list>.energy-shop-item{padding:7px;gap:6px}.energy-shop-item>div{min-width:0}.energy-shop-item button{font-size:11px;padding:7px 5px}.world-layer-head{grid-template-columns:76px minmax(0,1fr);padding:5px}.world-layer-row{grid-template-columns:76px minmax(0,1fr);padding:5px;gap:4px}.world-layer-types{grid-template-columns:1fr;gap:3px}.world-type-line{grid-template-columns:29px minmax(0,1fr) minmax(52px,1fr);font-size:10px}.world-type-line small{grid-column:2/-1;font-size:9px}.world-layer-title strong{font-size:10px}}
+
+/* Preserve readable compact type rows even when the center column is narrow. */
+.world-type-line{grid-template-columns:32px minmax(0,1fr) minmax(52px,.8fr)}
+.world-type-line small{grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){.world-type-line{grid-template-columns:29px minmax(0,1fr) minmax(52px,1fr)}.world-type-line small{grid-column:1/-1}}
