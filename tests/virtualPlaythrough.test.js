@@ -463,3 +463,84 @@ test('Nidoran female battle: report remaining HP distribution after poison 4.7 p
  }
  console.log('NIDORAN_F_DEFEAT_REMAINING_HP '+JSON.stringify(data));
 });
+
+
+test('poison amplification 3 percent progression: affordable timing, payoff, repeat and actual carry-HP chains',async()=>{
+ const seeded=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
+ let {s:baseline,results}=run('balanced');
+ let maleAttempts=0;
+ while(baseline.killCounts['nidoran-m']<10&&maleAttempts<300){
+   while(baseline.recoveryMs>0)baseline=transition(baseline,{type:'RECOVERY_TICK',deltaMs:5000});
+   baseline=battle(baseline,'nidoran-m',seeded(11003+maleAttempts*1193)).state;
+   maleAttempts++;
+ }
+ assert.equal(baseline.killCounts['nidoran-m'],10);
+ const beforeFemale={maleAttempts,stats:effectiveDittoStats(baseline),poisonEnergy:baseline.energyBalances['독']};
+ const options={};
+ for(const policy of ['antidote2','antidote1Poison1','poison2','antidote2ThenPoison1']){
+   let s=baseline;
+   const choices=policy==='antidote2'||policy==='antidote2ThenPoison1'?
+     ['antidote','antidote']:policy==='antidote1Poison1'?['antidote','poisonMultiplier']:['poisonMultiplier','poisonMultiplier'];
+   for(const id of choices){
+     const next=transition(s,{type:'BUY_UPGRADE',id});
+     assert.notEqual(next,s,policy+' cannot buy '+id);
+     s=next;
+   }
+   const firstStage={levels:s.energyUpgrades,stats:effectiveDittoStats(s),poisonEnergy:s.energyBalances['독']};
+   let wins=0;
+   for(let i=0;i<150;i++){
+     const outcome=battle({...s,recoveryMs:0,retryPokemonId:null},'nidoran-f',seeded(311311+i*1571));
+     if(outcome.kind==='victory')wins++;
+   }
+   let ordinary=s,ordinaryTries=0,firstWin=null;
+   while(ordinary.killCounts['nidoran-f']<10&&ordinaryTries<120){
+     while(ordinary.recoveryMs>0)ordinary=transition(ordinary,{type:'RECOVERY_TICK',deltaMs:5000});
+     const result=battle(ordinary,'nidoran-f',seeded(410021+ordinaryTries*1733));
+     ordinary=result.state;ordinaryTries++;
+     if(firstWin===null&&ordinary.killCounts['nidoran-f']>0)firstWin=ordinaryTries;
+   }
+   let after=ordinary;
+   if(policy==='antidote2ThenPoison1'&&after.killCounts['nidoran-f']>0){
+     const next=transition(after,{type:'BUY_UPGRADE',id:'poisonMultiplier'});
+     if(next!==after)after=next;
+   }
+   // Independently test hunger auto-continuation with actual HP/poison carry.
+   let hunger=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
+   assert.equal(hunger.automation.hunger,true);
+   let histogram=Array(11).fill(0);
+   for(let i=0;i<150;i++){
+     let q=transition({...hunger,recoveryMs:0,retryPokemonId:null},{type:'SELECT_WILD',pokemonId:'nidoran-f'});
+     const random=seeded(611031+i*1997);
+     let steps=0;
+     while(q.combat.active&&steps++<1000)q=transition(q,{type:'COMBAT_TICK',deltaMs:500,random});
+     assert.ok(steps<1000);
+     histogram[q.killCounts['nidoran-f']??0]++;
+   }
+   options[policy]={firstStage,firstBattleWins:wins,firstBattleAttempts:150,
+     ordinary:{firstWin,attempts:ordinaryTries,kills:ordinary.killCounts['nidoran-f'],basePoison:ordinary.dittoStats.poison,
+       finalEffective:effectiveDittoStats(ordinary),poisonEnergy:ordinary.energyBalances['독']},
+     afterOptionalPoisonPurchase:{levels:after.energyUpgrades,poison:effectiveDittoStats(after).poison,poisonEnergy:after.energyBalances['독']},
+     hunger:{samples:150,histogram,maxChain:histogram.reduce((mx,n,i)=>n>0?Math.max(mx,i):mx,0)}};
+ }
+ // Isolate the poison-amplification effect on a repeatable target at an actual attainable post-female state.
+ const grown=options.antidote2ThenPoison1.afterOptionalPoisonPurchase;
+ const bought=options.antidote2ThenPoison1.afterOptionalPoisonPurchase.levels.poisonMultiplier??0;
+ const basePoison=options.antidote2ThenPoison1.ordinary.basePoison;
+ const rawPoison=options.antidote2.ordinary.basePoison;
+ assert.ok(bought>=1,'a poison level should be affordable after 10 female kills');
+ const {resolveAttack}=await import('../src/core/combatEngine.js');
+ const combatCase=(poison)=>{
+   const c={currentHp:100000,dittoHp:{current:100000,max:100000},playerStatus:{poison:0,paralysis:0},
+     enemyStatus:{poison:0,paralysis:0},enemy:{hp:{current:100000,max:100000}}};
+   const attacking={attack:0,specialAttack:0,poison,accuracy:100,minDamagePercent:100};
+   const defending={defense:0,specialDefense:0,dodge:0};
+   for(let i=0;i<10;i++){
+     resolveAttack(c,'player',attacking,defending,()=>0.5);
+     resolveAttack(c,'enemy',{attack:0,specialAttack:0,poison:0,accuracy:100,minDamagePercent:100},defending,()=>0.5);
+   }
+   return {stack:c.enemyStatus.poison,damage:100000-c.enemy.hp.current};
+ };
+ const damageComparison={raw:combatCase(rawPoison),amplified:combatCase(basePoison*(1+bought*.03))};
+ console.log('POISON_3_PERCENT_VIRTUAL '+JSON.stringify({initialRegionalKills:results.region2,beforeFemale,options,damageComparison}));
+ assert.ok(damageComparison.amplified.damage>damageComparison.raw.damage);
+});
