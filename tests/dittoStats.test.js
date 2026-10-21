@@ -4,7 +4,7 @@ import { DEFAULT_STATS, DEFAULT_DITTO_STATS, resolveStats, isDefaultStat, visibl
 import { initialState, transition } from '../src/core/gameState.js';
 
 test('initial Ditto stats use approved seven defaults', () => {
-  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,paralysis:0,poison:0,accuracy:100,dodge:0});
+  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
   assert.deepEqual(DEFAULT_DITTO_STATS, initialState().dittoStats);
 });
 test('zero-valued ability is retained in state but hidden from UI', () => {
@@ -40,7 +40,7 @@ test('default minimum damage is shared and hidden; modified values remain visibl
 });
 
 test('common stats default independently of Ditto starting overrides',()=>{
- assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,paralysis:0,poison:0,accuracy:100,dodge:0});
+ assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
  assert.deepEqual(resolveStats({hp:6,attack:2.5}),{...DEFAULT_STATS,hp:6,attack:2.5});
  assert.equal(isDefaultStat('speed',0),true);
  assert.equal(isDefaultStat('speed',3000),false);

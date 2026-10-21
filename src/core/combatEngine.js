@@ -107,9 +107,16 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
     targetStatus.paralysis=Math.min(250,targetStatus.paralysis+(attackerStats.paralysis??0));
     targetStatus.poison=addAmount(targetStatus.poison,attackerStats.poison??0);
   }
-  // Poison is always paid by the acting unit at the END of its action,
-  // even when paralysis cancels the attack or accuracy misses.
-  if(compareAmount(actingStatus.poison,0)>0)setActingHp(subtractAmount(actingHp(),actingStatus.poison));
+  // Detoxify before paying poison damage at the end of EVERY attack action,
+  // including attacks that are cancelled by paralysis or miss.
+  if(compareAmount(actingStatus.poison,0)>0){
+    const antidote=attackerStats.antidote??0;
+    if(compareAmount(antidote,0)>0){
+      const remaining=subtractAmount(actingStatus.poison,antidote);
+      actingStatus.poison=compareAmount(remaining,0)>0?remaining:0;
+    }
+    if(compareAmount(actingStatus.poison,0)>0)setActingHp(subtractAmount(actingHp(),actingStatus.poison));
+  }
   return {hit,cancelled};
 }
 export function advanceBattle(state,deltaMs,random=Math.random) {

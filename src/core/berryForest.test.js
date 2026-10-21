@@ -14,12 +14,12 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  ['metapod',100,4,0,5.5,4500,0,0,100],
  ['pikachu',350,55,0,0,1000,43,0,100],
  ['jigglypuff',230,0,15,0,3900,0,0,100],
- ['nidoran-m',460,29.5,0,0,2730,0,0,80],
- ['nidoran-f',550,14.7,0,0,2750,0,40,100]
+ ['nidoran-m',368,28.5,0,0,2730,0,0,80],
+ ['nidoran-f',550,14.7,0,0,2750,0,14,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},
- {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:14.25},{hp:29,poison:1}
+ {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:3.2},{hp:29,poison:1}
  ]);
  assert.ok(BERRY_POKEMON.filter(p=>!['jigglypuff','nidoran-m','nidoran-f'].includes(p.id)).every(p=>p.energyReward===undefined));
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),0),{노말:10,페어리:10});
@@ -151,7 +151,7 @@ test('Jigglypuff grants normal energy only with repetition decay, alongside exis
 });
 
 test('Nidoran males and females grant poison energy with normal diminishing returns and keep stat rewards',()=>{
- for(const [id,rewardField,rewardValue] of [['nidoran-m','attack',14.25],['nidoran-f','hp',29]]){
+ for(const [id,rewardField,rewardValue] of [['nidoran-m','attack',3.2],['nidoran-f','hp',29]]){
    let s=state();
    s={...s,activeRegionId:BERRY_REGION.id,
      killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1,jigglypuff:1},
@@ -161,7 +161,7 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
    for(let count=1;count<=2;count++){
      s=transition(s,{type:'SELECT_WILD',pokemonId:id});
      assert.equal(s.combat.active,true);
-     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?29.5:14.7);
+     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?28.5:14.7);
      s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
      assert.equal(s.killCounts[id],count);
      assert.equal(s.combat.active,false);
@@ -170,4 +170,47 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
    assert.equal(s.energyBalances.노말,initialEnergy.노말);
    assert.equal(s.dittoStats[rewardField],initialReward+rewardValue+rewardValue/2);
  }
+});
+
+
+test('antidote reduces poison before end-of-action damage, never below zero',()=>{
+ const c=combat();
+ c.playerStatus.poison=14;
+ resolveAttack(c,'player',unit({attack:0,antidote:3}),unit(),()=>.5);
+ assert.equal(c.playerStatus.poison,11);
+ assert.equal(c.currentHp,489);
+ resolveAttack(c,'player',unit({attack:0,antidote:20}),unit(),()=>.5);
+ assert.equal(c.playerStatus.poison,0);
+ assert.equal(c.currentHp,489);
+});
+test('antidote works even on misses and paralysis-cancelled actions, for both sides',()=>{
+ const c=combat();
+ c.playerStatus.poison=10;
+ resolveAttack(c,'player',unit({accuracy:0,antidote:2}),unit(),()=>.9);
+ assert.equal(c.playerStatus.poison,8);
+ assert.equal(c.currentHp,492);
+ c.playerStatus.paralysis=250;
+ resolveAttack(c,'player',unit({attack:20,antidote:3}),unit(),()=>0);
+ assert.equal(c.playerStatus.poison,5);
+ assert.equal(c.currentHp,487);
+ c.enemyStatus.poison=14;
+ resolveAttack(c,'enemy',unit({attack:0,antidote:4}),unit(),()=>.5);
+ assert.equal(c.enemyStatus.poison,10);
+ assert.equal(c.enemy.hp.current,490);
+});
+test('antidote is saved and older v7 saves default to 0',()=>{
+ let s=state();
+ s={...s,energyBalances:{...s.energyBalances,독:100}};
+ s=transition(s,{type:'BUY_UPGRADE',id:'antidote'});
+ const restored=decodeSave(encodeSave(s)).game;
+ assert.equal(restored.energyUpgrades.antidote,1);
+ assert.equal(restored.dittoStats.antidote,0);
+ const json=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(s)),x=>x.charCodeAt(0))));
+ json.version=7;
+ delete json.game.dittoStats.antidote;
+ delete json.game.energyUpgrades.antidote;
+ const old=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(json))));
+ const migrated=decodeSave(old).game;
+ assert.equal(migrated.dittoStats.antidote,0);
+ assert.equal(migrated.energyUpgrades.antidote??0,0);
 });

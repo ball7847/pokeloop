@@ -10,7 +10,8 @@ const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialS
 test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
-    ['attackMultiplier','격투',1,1.5,.04],['speed','비행',20,1000,.01]
+    ['attackMultiplier','격투',1,1.5,.04],['speed','비행',20,1000,.01],
+    ['antidote','독',10,1.5,1]
   ]);
   assert.equal(upgradeCost('hp',1),1.5);
   assert.equal(upgradeCost('attack',2),2.25);
@@ -130,4 +131,19 @@ test('legacy v6 fighting attack upgrade levels migrate without becoming flat att
  assert.equal(loaded.energyUpgrades.attackMultiplier,2);
  assert.equal(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier),2.25);
  assert.equal(effectiveDittoStats(loaded).attack,1.08);
+});
+
+
+test('antidote costs poison energy 10 then 15 and increases detox by one each',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,독:30}};
+ assert.equal(upgradeCost('antidote',0),10);
+ assert.equal(upgradeCost('antidote',1),15);
+ s=buy(s,'BUY_UPGRADE','antidote');
+ assert.equal(s.energyBalances.독,20);
+ assert.equal(effectiveDittoStats(s).antidote,1);
+ s=buy(s,'BUY_UPGRADE','antidote');
+ assert.equal(s.energyBalances.독,5);
+ assert.equal(effectiveDittoStats(s).antidote,2);
+ assert.equal(s.particleBank.독,25);
+ assert.equal(buy(s,'BUY_UPGRADE','antidote'),s);
 });
