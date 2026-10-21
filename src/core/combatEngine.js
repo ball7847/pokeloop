@@ -1,4 +1,4 @@
-import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward} from './wildData.js';
+import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
 import {effectiveDittoStats} from './shopSystem.js';
@@ -44,7 +44,9 @@ function finish(state,c,type) {
       const value=scaledReward(key,base,count);
       stats[key]=key==='speed'?Math.max(1,stats.speed+value):addAmount(stats[key],value);
     }
-    const rewarded=p.energyReward===undefined?state:grantBattleEnergy(state,p.types,scaledReward('energy',p.energyReward,count));
+    let rewarded=state;
+    for(const [type,amount] of Object.entries(battleEnergyRewards(p,count)))
+      rewarded=grantBattleEnergy(rewarded,[type],amount);
     const updated={...rewarded,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,
       encounterIndex:state.encounterIndex+1,
       killCounts:{...state.killCounts,[p.id]:count+1},
