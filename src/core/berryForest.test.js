@@ -15,7 +15,7 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  ['pikachu',350,55,0,0,1000,43,0,100],
  ['jigglypuff',230,0,15,0,3900,0,0,100],
  ['nidoran-m',368,28.5,0,0,2730,0,0,80],
- ['nidoran-f',550,14.7,0,0,2750,0,14,100]
+ ['nidoran-f',550,14.7,0,0,2750,0,8,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},
