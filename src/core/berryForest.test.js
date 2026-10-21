@@ -21,9 +21,9 @@ test('berry forest exact roster and no invented currency payouts',()=>{
  {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},
  {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:14.25},{hp:29,poison:1}
  ]);
- assert.ok(BERRY_POKEMON.every(p=>p.energyReward===undefined));
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),0),{노말:10});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),1),{노말:5});
+ assert.ok(BERRY_POKEMON.filter(p=>p.id!=='jigglypuff').every(p=>p.energyReward===undefined));
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),0),{노말:10,페어리:10});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),1),{노말:5,페어리:5});
 });
 test('region 2 unlocks after 70% of appeared unique regional species and first three only',()=>{
  let s=state();
@@ -135,12 +135,12 @@ test('Jigglypuff grants normal energy only with repetition decay, alongside exis
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
  assert.equal(s.killCounts.jigglypuff,1);
  assert.equal(s.energyBalances.노말,before.노말+10);
- assert.equal(s.energyBalances.페어리,before.페어리);
+ assert.equal(s.energyBalances.페어리,before.페어리+10);
  assert.equal(s.dittoStats.specialAttack,4.5);
  s=transition(s,{type:'SELECT_WILD',pokemonId:'jigglypuff'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
  assert.equal(s.killCounts.jigglypuff,2);
  assert.equal(s.energyBalances.노말,before.노말+15);
- assert.equal(s.energyBalances.페어리,before.페어리);
+ assert.equal(s.energyBalances.페어리,before.페어리+15);
  assert.equal(s.dittoStats.specialAttack,6.75);
 });
