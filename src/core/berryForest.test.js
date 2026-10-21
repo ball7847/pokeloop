@@ -171,3 +171,46 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
    assert.equal(s.dittoStats[rewardField],initialReward+rewardValue+rewardValue/2);
  }
 });
+
+
+test('antidote reduces poison before end-of-action damage, never below zero',()=>{
+ const c=combat();
+ c.playerStatus.poison=14;
+ resolveAttack(c,'player',unit({attack:0,antidote:3}),unit(),()=>.5);
+ assert.equal(c.playerStatus.poison,11);
+ assert.equal(c.currentHp,489);
+ resolveAttack(c,'player',unit({attack:0,antidote:20}),unit(),()=>.5);
+ assert.equal(c.playerStatus.poison,0);
+ assert.equal(c.currentHp,489);
+});
+test('antidote works even on misses and paralysis-cancelled actions, for both sides',()=>{
+ const c=combat();
+ c.playerStatus.poison=10;
+ resolveAttack(c,'player',unit({accuracy:0,antidote:2}),unit(),()=>.9);
+ assert.equal(c.playerStatus.poison,8);
+ assert.equal(c.currentHp,492);
+ c.playerStatus.paralysis=250;
+ resolveAttack(c,'player',unit({attack:20,antidote:3}),unit(),()=>0);
+ assert.equal(c.playerStatus.poison,5);
+ assert.equal(c.currentHp,487);
+ c.enemyStatus.poison=14;
+ resolveAttack(c,'enemy',unit({attack:0,antidote:4}),unit(),()=>.5);
+ assert.equal(c.enemyStatus.poison,10);
+ assert.equal(c.enemy.hp.current,490);
+});
+test('antidote is saved and older v7 saves default to 0',()=>{
+ let s=state();
+ s={...s,energyBalances:{...s.energyBalances,독:100}};
+ s=transition(s,{type:'BUY_UPGRADE',id:'antidote'});
+ const restored=decodeSave(encodeSave(s)).game;
+ assert.equal(restored.energyUpgrades.antidote,1);
+ assert.equal(restored.dittoStats.antidote,0);
+ const json=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(s)),x=>x.charCodeAt(0))));
+ json.version=7;
+ delete json.game.dittoStats.antidote;
+ delete json.game.energyUpgrades.antidote;
+ const old=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(json))));
+ const migrated=decodeSave(old).game;
+ assert.equal(migrated.dittoStats.antidote,0);
+ assert.equal(migrated.energyUpgrades.antidote??0,0);
+});
