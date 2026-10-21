@@ -127,8 +127,9 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   const playerStats=effectiveDittoStats(state),enemyStats=c.enemy.statistics??getWildPokemon(c.pokemonId);
   let remaining=Math.min(deltaMs,5000);
   const my=c.dittoAttackCooldown,foe=c.enemy.attackCooldown;
-  const myPeriod=Math.max(1,my.duration),foePeriod=Math.max(1,foe.duration);
+  const foePeriod=Math.max(1,foe.duration);
   for(let steps=0;remaining>0&&steps<1000;steps++){
+    const myPeriod=Math.max(1,my.duration);
     const toMine=Math.max(0,myPeriod-my.elapsed),toFoe=Math.max(0,foePeriod-foe.elapsed);
     const next=Math.min(toMine,toFoe,remaining);
     my.elapsed+=next;foe.elapsed+=next;remaining-=next;
@@ -136,6 +137,7 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
       resolveAttack(c,'player',playerStats,enemyStats,random);
+      my.duration=Math.max(1,playerStats.speed);
       if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat');
       if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory');
     }

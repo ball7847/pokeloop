@@ -207,21 +207,41 @@ test('combat upgrades apply immediately without restoring current HP or restarti
  assert.equal(s.combat.currentHp,6);
  assert.equal(s.combat.active,true);
 });
-test('speed purchase during combat preserves fractional attack gauge progress',()=>{
+test('speed purchased during combat takes effect only after the next player attack',()=>{
  let s=funded();
  s={...s,dittoStats:{...s.dittoStats,attack:0}};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'rattata'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:1200,random:()=>0.5});
- const before=s.combat.dittoAttackCooldown;
- assert.equal(before.duration,3000);
- assert.equal(before.elapsed,1200);
  const oldEnemyElapsed=s.combat.enemy.attackCooldown.elapsed;
  s=buy(s,'BUY_UPGRADE','speed');
- const after=s.combat.dittoAttackCooldown;
- assert.ok(Math.abs(after.duration-3000/1.01)<1e-7);
- assert.ok(Math.abs(after.elapsed/after.duration-.4)<1e-10);
+ assert.equal(s.combat.dittoAttackCooldown.duration,3000);
+ assert.equal(s.combat.dittoAttackCooldown.elapsed,1200);
  assert.equal(s.combat.enemy.attackCooldown.elapsed,oldEnemyElapsed);
+ assert.ok(Math.abs(effectiveDittoStats(s).speed-3000/1.01)<1e-8);
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:1700,random:()=>0.5});
+ assert.equal(s.combat.dittoAttackCooldown.duration,3000);
+ assert.equal(s.combat.dittoAttackCooldown.elapsed,2900);
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>0.5});
+ assert.ok(Math.abs(s.combat.dittoAttackCooldown.duration-3000/1.01)<1e-8);
+ assert.equal(s.combat.dittoAttackCooldown.elapsed,0);
  assert.equal(s.combat.active,true);
+});
+test('speed upgrades bought repeatedly wait until attack and use latest level',()=>{
+ let s=funded();
+ s={...s,dittoStats:{...s.dittoStats,hp:1000,attack:0}};
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'rattata'});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:1500,random:()=>0.5});
+ s=buy(s,'BUY_UPGRADE','speed');
+ // Supplement real flying energy for the rapidly increasing second level cost.
+ s={...s,energyBalances:{...s.energyBalances,비행:30000}};
+ s=buy(s,'BUY_UPGRADE','speed');
+ assert.equal(s.energyUpgrades.speed,2);
+ assert.equal(s.combat.dittoAttackCooldown.duration,3000);
+ assert.equal(s.combat.dittoAttackCooldown.elapsed,1500);
+ const newPeriod=3000/1.02;
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:5000,random:()=>0.5});
+ assert.ok(Math.abs(s.combat.dittoAttackCooldown.duration-newPeriod)<1e-8);
+ assert.ok(Math.abs(s.combat.dittoAttackCooldown.elapsed-(5000-1500-newPeriod))<1e-7);
 });
 test('cannot buy unaffordable upgrades mid-combat',()=>{
  let s={...initialState(),phase:'running'};
