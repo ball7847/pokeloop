@@ -88,8 +88,7 @@ export function WildPage(){
         {r.name}{isRegionUnlocked(game,r.id)?'':' (잠김)'}</button>)}
     </div>
     {!isRegionUnlocked(game,BERRY_REGION.id)&&<p className="wild-region-progress">베리숲 해금: 1지역 서로 다른 포켓몬 {cleared}/{need}종 첫 처치 (등장 종의 70%)</p>}
-    <div className="wild-header"><div><small>REGION {String(REGIONS.indexOf(region)+1).padStart(2,'0')}</small><h2>{region.name}</h2></div>
-      <div className="wild-progress">{total} / {pokemon.length*REGION.defaultKillLimit}회 처치</div></div>
+    <div className="wild-region-summary"><span className="wild-progress">{total} / {pokemon.length*REGION.defaultKillLimit}회 처치</span></div>
     {recoveryMs>0&&<p className="wild-recovery" role="status">메타몽 회복 중 · {(recoveryMs/1000).toFixed(1)}초</p>}
     <div className="wild-grid">
       {pokemon.map(p=>{
