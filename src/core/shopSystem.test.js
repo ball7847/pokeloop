@@ -11,7 +11,7 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
     ['attackMultiplier','격투',1,1.5,.04],['speed','비행',20,1000,.01],
-    ['antidote','독',10,1.5,1]
+    ['antidote','독',10,1.5,1],['poisonMultiplier','독',10,1.5,.03]
   ]);
   assert.equal(upgradeCost('hp',1),1.5);
   assert.equal(upgradeCost('attack',2),2.25);
@@ -146,4 +146,25 @@ test('antidote costs poison energy 10 then 15 and increases detox by one each',(
  assert.equal(effectiveDittoStats(s).antidote,2);
  assert.equal(s.particleBank.독,25);
  assert.equal(buy(s,'BUY_UPGRADE','antidote'),s);
+});
+
+test('poison +3% is additive-per-level multiplicative to earned base poison, never flat',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,독:50},
+   dittoStats:{...funded().dittoStats,poison:2.5}};
+ assert.equal(upgradeCost('poisonMultiplier',0),10);
+ assert.equal(upgradeCost('poisonMultiplier',1),15);
+ s=buy(s,'BUY_UPGRADE','poisonMultiplier');
+ assert.equal(effectiveDittoStats(s).poison,2.575);
+ s=buy(s,'BUY_UPGRADE','poisonMultiplier');
+ assert.ok(Math.abs(effectiveDittoStats(s).poison-2.65)<1e-10);
+ assert.equal(s.energyBalances.독,25);
+ assert.equal(s.energyUpgrades.poisonMultiplier,2);
+ assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.poisonMultiplier,2);
+ assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,poison:0}}).poison,0);
+ const saved=decodeSave(encodeSave(s)).game;
+ assert.ok(Math.abs(effectiveDittoStats(saved).poison-2.65)<1e-10);
+ const sharedEnergy=buy(s,'BUY_UPGRADE','antidote');
+ assert.equal(sharedEnergy.energyBalances.독,15);
+ assert.ok(Math.abs(effectiveDittoStats(sharedEnergy).poison-2.65)<1e-10);
+ assert.equal(effectiveDittoStats(sharedEnergy).antidote,1);
 });
