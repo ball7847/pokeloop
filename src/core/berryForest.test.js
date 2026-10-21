@@ -161,7 +161,7 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
    for(let count=1;count<=2;count++){
      s=transition(s,{type:'SELECT_WILD',pokemonId:id});
      assert.equal(s.combat.active,true);
-     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?28.5:14.7);
+     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?28.5:4.7);
      s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
      assert.equal(s.killCounts[id],count);
      assert.equal(s.combat.active,false);
