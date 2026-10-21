@@ -131,3 +131,36 @@ test('post-change balance: all available enemies and stat/economy state across s
  assert.ok(traces.hp.effective.hp>=traces.none.effective.hp);
  assert.ok(traces.attack.effective.attack>=traces.none.effective.attack);
 });
+
+test('controlled allocation comparison: HP only, attack only, balanced with same earned energy',()=>{
+ const baseline=run('none').s;
+ const names=['hpOnly','attackOnly','balanced'];
+ const results={};
+ function seeded(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+ for(const strategy of names){
+  let s=baseline;
+  for(let n=0;n<100;n++){
+   const chosen=strategy==='hpOnly'?'hp':strategy==='attackOnly'?'attack':
+    (s.energyUpgrades.hp??0)<=(s.energyUpgrades.attack??0)?'hp':'attack';
+   const next=transition(s,{type:'BUY_UPGRADE',id:chosen});
+   if(next===s)break;
+   s=next;
+  }
+  for(let n=0;n<100;n++){
+   const next=transition(s,{type:'BUY_UPGRADE',id:'attackMultiplier'});
+   if(next===s)break;
+   s=next;
+  }
+  const wins={},trials=300;
+  for(const id of ['jigglypuff','nidoran-m','nidoran-f']){
+   let victories=0;
+   for(let i=0;i<trials;i++){
+    const v=battle({...s,recoveryMs:0,retryPokemonId:null},id,seeded(i*983+42));
+    if(v.kind==='victory')victories++;
+   }
+   wins[id]=victories;
+  }
+  results[strategy]={levels:s.energyUpgrades,stats:effectiveDittoStats(s),unspentNormal:s.energyBalances['노말'],wins,trials};
+ }
+ console.log('VIRTUAL_ALLOCATION_CONTROLLED '+JSON.stringify(results));
+});
