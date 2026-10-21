@@ -132,3 +132,18 @@ test('legacy v6 fighting attack upgrade levels migrate without becoming flat att
  assert.equal(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier),2.25);
  assert.equal(effectiveDittoStats(loaded).attack,1.08);
 });
+
+
+test('antidote costs poison energy 10 then 15 and increases detox by one each',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,독:30}};
+ assert.equal(upgradeCost('antidote',0),10);
+ assert.equal(upgradeCost('antidote',1),15);
+ s=buy(s,'BUY_UPGRADE','antidote');
+ assert.equal(s.energyBalances.독,20);
+ assert.equal(effectiveDittoStats(s).antidote,1);
+ s=buy(s,'BUY_UPGRADE','antidote');
+ assert.equal(s.energyBalances.독,5);
+ assert.equal(effectiveDittoStats(s).antidote,2);
+ assert.equal(s.particleBank.독,25);
+ assert.equal(buy(s,'BUY_UPGRADE','antidote'),s);
+});
