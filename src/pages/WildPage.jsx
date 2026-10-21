@@ -36,8 +36,8 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
   const gain=Object.entries(pokemon.rewards).filter(([,v])=>typeof v==='number'?v!==0:isAmount(v)&&compareAmount(v,0)!==0)
     .map(([stat,val])=>({stat,label:REWARD_LABELS[stat]??stat,value:scaledReward(stat,val,count)}));
   return <button type="button" disabled={disabled}
-    className={'wild-card '+(fighting?'is-fighting':!unlocked?'is-locked':'')}
-    aria-label={pokemon.name+' 선택'} onClick={onSelect}>
+    className={'wild-card '+(fighting?'is-fighting':capped?'is-exhausted':!unlocked?'is-locked':'')}
+    aria-label={pokemon.name+(capped?' 처치 완료':' 선택')} onClick={onSelect}>
     <div className="wild-card-upper">
       <div className="wild-card-portrait">
         <img src={spriteUrl(pokemon.number)} alt={pokemon.name} width="64" height="64"/>
