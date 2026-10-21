@@ -48,17 +48,16 @@ function EnergyPage(){
   const dispatch=useGameStore(s=>s.dispatch);
   const rates=particleRates(game);
   return <div className="energy-overview">
-    <div className="intro"><span>PLANETARY ENERGY</span><h2>에너지</h2>
-      <p>강화와 자동화를 구매하거나 내부세계의 계층과 입자 생산 현황을 확인합니다.</p></div>
     <div className="ditto-info-tabs energy-section-tabs" role="tablist" aria-label="에너지 분류">
       {[['stats','강화'],['automation','자동화'],['world','내부세계']].map(([id,label])=><button key={id} type="button" role="tab"
         aria-selected={energyTab===id} className={'ditto-info-tab '+(energyTab===id?'is-active':'')}
         onClick={()=>setEnergyTab(id)}>{label}</button>)}
     </div>
     {energyTab==='world'?<div className="energy-world-content" role="tabpanel">
+    <div className="energy-world-layers">
     <section className="panel energy-page-balances"><h3>10계층 입자 생산 현황 <small>{game.unlockedLayer}/10계층 해금</small></h3>
       <div className="world-layer-table" role="table" aria-label="10계층 입자 생산 현황">
-        <div className="world-layer-head" role="row"><span>계층</span><span>타입별 입자 · 보유량</span><span>생산량/초</span><span>누적 · 이정표</span></div>
+        <div className="world-layer-head" role="row"><span>계층</span><span>타입별 입자 · 보유량 · 생산량</span></div>
         {LAYERS.map(layer=>{
           const unlocked=layer.level<=game.unlockedLayer;
           return <div key={layer.level} className={'world-layer-row '+(!unlocked?'is-locked':'')} role="row">
@@ -76,6 +75,8 @@ function EnergyPage(){
       </div>
       <p>미해금 계층에도 타입 에너지는 정상 지급됩니다. 에너지 구매로 생성된 입자는 100% 보관하고 계층 해금 시 지급됩니다.</p>
     </section>
+    </div>
+    <aside className="energy-world-stellar" aria-label="스텔라에너지 영역">
     <section className="panel"><h3>성층권 · 대기 스텔라에너지</h3>
       <div className="energy-balance-grid">
         <div className="energy-balance-item"><span>대기 스텔라에너지</span><strong>{formatAmount(game.pendingStellar??0)}</strong></div>
@@ -86,6 +87,7 @@ function EnergyPage(){
       <button type="button" disabled={game.combat.active||game.phase==='paused'||compareAmount(game.pendingStellar??0,0)<=0}
         onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 타입 에너지·입자·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
     </section>
+    </aside>
     </div>:<section className="panel energy-purchase-panel" role="tabpanel">
       <div className="energy-shop-list">
         {energyTab==='stats'?UPGRADES.map(item=>{
