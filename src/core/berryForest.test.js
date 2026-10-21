@@ -4,6 +4,7 @@ import {initialState,transition} from './gameState.js';
 import {BERRY_REGION,REGION,BERRY_POKEMON,battleEnergyRewards,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
 import {resolveAttack,hitChance} from './combatEngine.js';
 import {encodeSave,decodeSave} from './saveSystem.js';
+import {eventMessage} from '../store/useGameStore.js';
 
 const state=()=>({...initialState(),phase:'running'});
 test('berry forest exact roster and no invented currency payouts',()=>{
@@ -233,4 +234,9 @@ test('Caterpie and Weedle each grant HP +7 and attack +1.7 with diminishing retu
   assert.ok(Math.abs(s.dittoStats.hp-initialHp-10.5)<1e-8);
   assert.ok(Math.abs(s.dittoStats.attack-initialAttack-2.55)<1e-8);
  }
+});
+
+test('victory log labels defense rather than undefined and speed uses milliseconds',()=>{
+ assert.equal(eventMessage({type:'victory',name:'딱충이',count:5,rewards:{hp:2,defense:0.2}}),'딱충이 5회 처치 · HP +2, 방어 +0.2');
+ assert.equal(eventMessage({type:'victory',name:'주뱃',count:1,rewards:{speed:-20}}),'주뱃 1회 처치 · 스피드 −20ms');
 });
