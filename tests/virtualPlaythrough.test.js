@@ -274,3 +274,150 @@ test('antidote and new Nidoran rebalance: full virtual route plus controlled poi
  console.log('ANTIDOTE_BALANCE_VIRTUAL '+JSON.stringify(observed));
  assert.ok(observed.final.saved);
 });
+
+
+test('female Nidoran ATK/poison 4.7: single encounter, ordinary repeats, and real endless hunger streak',()=>{
+ // Deterministic seeds mean the manual and chained scenarios can be replayed.
+ const rng=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
+ let {s:baseline,results}=run('balanced');
+ const preparation={commonClears:results.region2,
+  initialNormal:baseline.energyBalances['노말'],initialPoison:baseline.energyBalances['독'],
+  initialStats:effectiveDittoStats(baseline)};
+ // Use only actual victories, energy rewards, and normal post-loss recovery.
+ let maleTries=0;
+ while((baseline.killCounts['nidoran-m']??0)<10&&maleTries<500){
+   while(baseline.recoveryMs>0)baseline=transition(baseline,{type:'RECOVERY_TICK',deltaMs:5000});
+   const result=battle(baseline,'nidoran-m',rng(11003+maleTries*1193));
+   baseline=result.state;
+   maleTries++;
+ }
+ assert.equal(baseline.killCounts['nidoran-m'],10,'cannot prepare 10 male victories');
+ const beforeFemale={maleTries,stats:effectiveDittoStats(baseline),
+   poisonEnergy:baseline.energyBalances['독'],normalEnergy:baseline.energyBalances['노말']};
+ const samples=300;
+ const options={};
+ for(const antidote of [0,2]){
+   let starting=baseline;
+   while((starting.energyUpgrades.antidote??0)<antidote){
+     const next=transition(starting,{type:'BUY_UPGRADE',id:'antidote'});
+     assert.notEqual(next,starting,'not enough real poison energy');
+     starting=next;
+   }
+   // Fresh independent encounters, always starting with full HP.
+   let standalone=0;
+   for(let i=0;i<samples;i++){
+     const outcome=battle({...starting,recoveryMs:0,retryPokemonId:null},'nidoran-f',rng(210011+i*1279));
+     if(outcome.kind==='victory')standalone++;
+   }
+   // Repeated ordinary battles: each encounter heals to full, unlike endless hunger.
+   let ordinary=starting,ordinaryAttempts=0,firstWinAttempt=null;
+   while((ordinary.killCounts['nidoran-f']??0)<10&&ordinaryAttempts<250){
+     while(ordinary.recoveryMs>0)ordinary=transition(ordinary,{type:'RECOVERY_TICK',deltaMs:5000});
+     const outcome=battle(ordinary,'nidoran-f',rng(310021+ordinaryAttempts*1733));
+     ordinary=outcome.state;
+     ordinaryAttempts++;
+     if(firstWinAttempt===null&&ordinary.killCounts['nidoran-f']>0)firstWinAttempt=ordinaryAttempts;
+   }
+   // Continuous-kill action only becomes available after buying endless hunger.
+   let chained=transition(starting,{type:'BUY_AUTOMATION',id:'hunger'});
+   assert.equal(chained.automation.hunger,true);
+   const chainHistogram=Array(11).fill(0);
+   let completeChains=0,highestChain=0;
+   let representative=null;
+   for(let i=0;i<samples;i++){
+     let state={...chained,recoveryMs:0,retryPokemonId:null};
+     const initial=state.killCounts['nidoran-f']??0;
+     state=transition(state,{type:'SELECT_WILD',pokemonId:'nidoran-f'});
+     assert.equal(state.combat.active,true);
+     const random=rng(410031+i*1913);
+     let steps=0,peak=initial;
+     let previousCount=initial;
+     let afterWinHp=null,afterWinPoison=null;
+     while(state.combat.active&&steps++<2000){
+       state=transition(state,{type:'COMBAT_TICK',deltaMs:500,random});
+       if(state.killCounts['nidoran-f']>previousCount){
+         previousCount=state.killCounts['nidoran-f'];
+         peak=previousCount;
+         if(afterWinHp===null){
+           afterWinHp=state.combat.currentHp;
+           afterWinPoison=state.combat.playerStatus.poison;
+         }
+       }
+     }
+     assert.ok(steps<2000,'endless hunger battle timeout');
+     const successes=peak-initial;
+     chainHistogram[successes]++;
+     if(successes===10)completeChains++;
+     highestChain=Math.max(highestChain,successes);
+     if(i===0)representative={kills:successes,afterWinHp,afterWinPoison,
+       finishEvent:state.combat.lastEvent?.type,remainingHp:state.combat.currentHp};
+   }
+   options['antidote'+antidote]={
+     availablePoison:starting.energyBalances['독'],
+     standaloneWins:standalone,standaloneTrials:samples,
+     ordinary:{attempts:ordinaryAttempts,kills:ordinary.killCounts['nidoran-f'],
+       firstWinAttempt,finalStats:effectiveDittoStats(ordinary),
+       remainingPoison:ordinary.energyBalances['독']},
+     endlessHunger:{trials:samples,chainHistogram,completeChains,highestChain,representative}
+   };
+ }
+ console.log('FEMALE_NIDORAN_47_CHAIN_TEST '+JSON.stringify({preparation,beforeFemale,options}));
+});
+
+
+test('endless hunger full-route audit: per-species chain length with actual HP and poison carry',()=>{
+ const seeded=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
+ let game=transition(initialState(),{type:'START'});
+ const history={};
+ const purchase=()=>{
+   if(!game.automation.hunger){
+     const next=transition(game,{type:'BUY_AUTOMATION',id:'hunger'});
+     if(next!==game)game=next;
+   }
+   for(let i=0;i<35;i++){
+     const order=(game.energyUpgrades.hp??0)<=(game.energyUpgrades.attack??0)?
+       ['hp','attack','attackMultiplier']:['attack','hp','attackMultiplier'];
+     let next=game;
+     for(const id of order){
+       const candidate=transition(game,{type:'BUY_UPGRADE',id});
+       if(candidate!==game){next=candidate;break;}
+     }
+     if(next===game)break;
+     game=next;
+   }
+ };
+ const enter=id=>{
+   let attempted=0,chainMax=0,chainResults=[],losses=0,finished=0;
+   while((game.killCounts[id]??0)<10&&attempted<35){
+     while(game.recoveryMs>0)game=transition(game,{type:'RECOVERY_TICK',deltaMs:5000});
+     purchase();
+     const before=game.killCounts[id]??0;
+     game=transition(game,{type:'SELECT_WILD',pokemonId:id});
+     if(!game.combat.active)break;
+     const r=seeded(701+id.split('').reduce((v,c)=>v+c.charCodeAt(0),0)*3001+attempted*1613);
+     let ticks=0,peak=before;
+     while(game.combat.active&&ticks++<1000){
+       game=transition(game,{type:'COMBAT_TICK',deltaMs:500,random:r});
+       peak=Math.max(peak,game.killCounts[id]??0);
+     }
+     assert.ok(ticks<1000,'endless hunger timeout for '+id);
+     const chain=peak-before;
+     chainMax=Math.max(chainMax,chain);
+     chainResults.push(chain);
+     if(game.combat.lastEvent?.type==='defeat')losses++;
+     else if(game.combat.lastEvent?.type==='victory')finished++;
+     attempted++;
+   }
+   history[id]={kills:game.killCounts[id]??0,attempts:attempted,maximumUnbrokenKills:chainMax,
+     chainLengths:chainResults,defeats:losses,normalEnergy:game.energyBalances['노말'],
+     stats:effectiveDittoStats(game)};
+ };
+ for(const id of first)if(isPokemonUnlockedInState(game,id))enter(id);
+ if(isRegionUnlocked(game,BERRY_REGION.id)){
+   game=transition(game,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
+   for(const id of second)if(isPokemonUnlockedInState(game,id))enter(id);
+ }
+ console.log('ENDLESS_HUNGER_FULL_ROUTE '+JSON.stringify({purchased:game.automation.hunger,
+   totalWins:game.victories,history}));
+ assert.equal(game.automation.hunger,true);
+});
