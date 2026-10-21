@@ -180,3 +180,52 @@ test('resolve costs five normal energy and rejects insufficient normal funds',()
  assert.equal(purchased.particleBalances.노말,5);
  assert.equal(purchased.automation.resolve,true);
 });
+
+
+test('combat upgrades apply immediately without restoring current HP or restarting battle',()=>{
+ let s=funded();
+ s={...s,energyBalances:{...s.energyBalances,독:100},
+   dittoStats:{...s.dittoStats,poison:5}};
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'rattata'});
+ assert.equal(s.combat.active,true);
+ s={...s,combat:{...s.combat,currentHp:6,dittoHp:{current:6,max:10}}};
+ const startId=s.combat.pokemonId;
+ s=buy(s,'BUY_UPGRADE','hp');
+ assert.equal(s.combat.active,true);
+ assert.equal(s.combat.pokemonId,startId);
+ assert.equal(s.combat.currentHp,6);
+ assert.equal(s.combat.dittoHp.current,6);
+ assert.equal(s.combat.dittoHp.max,14);
+ assert.equal(s.combat.maxHp,14);
+ assert.equal(effectiveDittoStats(s).hp,14);
+ s=buy(s,'BUY_UPGRADE','attack');
+ assert.equal(effectiveDittoStats(s).attack,2);
+ s=buy(s,'BUY_UPGRADE','poisonMultiplier');
+ assert.ok(Math.abs(effectiveDittoStats(s).poison-5.15)<1e-9);
+ s=buy(s,'BUY_UPGRADE','antidote');
+ assert.equal(effectiveDittoStats(s).antidote,1);
+ assert.equal(s.combat.currentHp,6);
+ assert.equal(s.combat.active,true);
+});
+test('speed purchase during combat preserves fractional attack gauge progress',()=>{
+ let s=funded();
+ s={...s,dittoStats:{...s.dittoStats,attack:0}};
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'rattata'});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:1200,random:()=>0.5});
+ const before=s.combat.dittoAttackCooldown;
+ assert.equal(before.duration,3000);
+ assert.equal(before.elapsed,1200);
+ const oldEnemyElapsed=s.combat.enemy.attackCooldown.elapsed;
+ s=buy(s,'BUY_UPGRADE','speed');
+ const after=s.combat.dittoAttackCooldown;
+ assert.ok(Math.abs(after.duration-3000/1.01)<1e-7);
+ assert.ok(Math.abs(after.elapsed/after.duration-.4)<1e-10);
+ assert.equal(s.combat.enemy.attackCooldown.elapsed,oldEnemyElapsed);
+ assert.equal(s.combat.active,true);
+});
+test('cannot buy unaffordable upgrades mid-combat',()=>{
+ let s={...initialState(),phase:'running'};
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'rattata'});
+ const before=s;
+ assert.equal(buy(s,'BUY_UPGRADE','hp'),before);
+});
