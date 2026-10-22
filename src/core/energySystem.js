@@ -125,6 +125,9 @@ function originalSoftcapMultiplier(pending,total,planetMoves){
 export function tickEconomy(state,seconds){
   if(!Number.isFinite(seconds)||seconds<=0||seconds>5)return state;
   if(!state.particleBalances)return state;
+  // An untouched first layer has no producer and cannot generate stellar energy.
+  // Avoid 20 Decimal-heavy substeps and a no-op Zustand update each tick.
+  if(state.unlockedLayer===1&&(state.particleMilestones?.['노말']??0)===0)return state;
   const particles={...state.particleBalances},earned={...state.particleEarned};
   // Time-stepped cascading particle production with fixed milestone multipliers.
   // Dividing into short steps captures cascading output without tying gains to UI frame rate.
