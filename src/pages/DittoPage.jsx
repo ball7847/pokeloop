@@ -1,5 +1,5 @@
 import {StatLabel} from '../components/StatIcon.jsx';
-import React from 'react';
+import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {visibleBasicStats,formatBasicStat} from '../core/dittoStats.js';
 import {DittoBattle} from '../components/CombatPanel.jsx';
@@ -15,8 +15,11 @@ const PENDING={
   assimilation:'타입별 동화도 시스템은 추후 연결됩니다.'
 };
 export function DittoPage({infoTab,setInfoTab}){
-  const game=useGameStore(s=>s.game);
-  const stats=effectiveDittoStats(game);
+  const dittoStats=useGameStore(s=>s.game.dittoStats);
+  const energyUpgrades=useGameStore(s=>s.game.energyUpgrades);
+  const qolUnlocks=useGameStore(s=>s.qolUnlocks);
+  const automation=useGameStore(s=>s.automation);
+  const stats=useMemo(()=>effectiveDittoStats({dittoStats,energyUpgrades}),[dittoStats,energyUpgrades]);
   const dispatch=useGameStore(s=>s.dispatch);
   return <div className="ditto-page">
     <section className="ditto-info-region" aria-label="메타몽 정보 영역">
@@ -31,9 +34,9 @@ export function DittoPage({infoTab,setInfoTab}){
               <strong>{formatBasicStat(key,stats[key])}</strong></div>)}
         </div>:infoTab==='automation'?<div className="ditto-automation-options">
           {AUTOMATIONS.map(item=><div key={item.id} className="ditto-automation-row"><strong>{item.name}</strong>
-            <small>{item.description}</small><button type="button" disabled={!game.qolUnlocks.includes(item.id)}
-              aria-pressed={!!game.automation?.[item.id]} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:item.id})}>
-              {!game.qolUnlocks.includes(item.id)?'미해금':game.automation[item.id]?'켜짐':'꺼짐'}</button></div>)}
+            <small>{item.description}</small><button type="button" disabled={!qolUnlocks.includes(item.id)}
+              aria-pressed={!!automation?.[item.id]} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:item.id})}>
+              {!qolUnlocks.includes(item.id)?'미해금':automation[item.id]?'켜짐':'꺼짐'}</button></div>)}
         </div>:<div className="ditto-info-pending">{PENDING[infoTab]}</div>}
       </div>
     </section>
