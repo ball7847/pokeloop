@@ -1,8 +1,8 @@
 import {initialState,PHASE} from './gameState.js';
-import {WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
+import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
-import {isAmount,storedAmount,compareAmount} from './bigNumber.js';
+import {isAmount,storedAmount} from './bigNumber.js';
 import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
 import {DEFAULT_AUTOMATION} from './shopSystem.js';
 

@@ -15,7 +15,8 @@ export const LAYERS=Object.freeze([
   {name:'초월',types:['페어리']}
 ].map((layer,index)=>Object.freeze({...layer,level:index+1,types:Object.freeze(layer.types)})));
 export const FIRST_MILESTONE=1025;
-export const typeLayer=type=>LAYERS.findIndex(layer=>layer.types.includes(type))+1;
+const layerByType=new Map(LAYERS.flatMap(layer=>layer.types.map(type=>[type,layer.level])));
+export const typeLayer=type=>layerByType.get(type)??0;
 const zeros=()=>Object.fromEntries(TYPES.map(type=>[type,0]));
 export function initialEconomy(){
   return {energyBalances:zeros(),particleBalances:zeros(),particleEarned:zeros(),particleBank:zeros(),particleMilestones:zeros(),
@@ -27,11 +28,16 @@ export function particleMilestoneThreshold(level){
   // First particle milestone is 1025; later thresholds currently use the provisional existing progression.
   return storedAmount(decimal(FIRST_MILESTONE).mul(decimal(1e3).pow(level)));
 }
-export function productionMultiplier(milestones){
-  // Rejected Draft: milestone 1 -> x1; 2-4 -> x1000 each; 5-7 -> x1e6 each; 8+ -> x1e9.
+// Milestones are bounded to 0..10; cache their immutable production factors
+// rather than recomputing Decimal powers on every economy substep.
+const productionMultipliers=Array.from({length:11},(_,level)=>{
   let d=decimal(1);
-  for(let i=2;i<=Math.min(milestones,10);i++)d=d.mul(i<=4?1e3:i<=7?1e6:1e9);
+  for(let i=2;i<=level;i++)d=d.mul(i<=4?1e3:i<=7?1e6:1e9);
   return storedAmount(d);
+});
+export function productionMultiplier(milestones){
+  if(!Number.isFinite(milestones)||milestones<0)return productionMultipliers[0];
+  return productionMultipliers[Math.min(10,Math.floor(milestones))];
 }
 function processMilestones(economy){
   let e={...economy,particleMilestones:{...economy.particleMilestones}};
@@ -119,6 +125,9 @@ function originalSoftcapMultiplier(pending,total,planetMoves){
 export function tickEconomy(state,seconds){
   if(!Number.isFinite(seconds)||seconds<=0||seconds>5)return state;
   if(!state.particleBalances)return state;
+  // An untouched first layer has no producer and cannot generate stellar energy.
+  // Avoid 20 Decimal-heavy substeps and a no-op Zustand update each tick.
+  if(state.unlockedLayer===1&&(state.particleMilestones?.['노말']??0)===0)return state;
   const particles={...state.particleBalances},earned={...state.particleEarned};
   // Time-stepped cascading particle production with fixed milestone multipliers.
   // Dividing into short steps captures cascading output without tying gains to UI frame rate.

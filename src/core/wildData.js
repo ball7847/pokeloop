@@ -28,7 +28,8 @@ export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
 // Evolution children are stored in the Pokémon catalog but never consume base-region slots.
 export const EVOLUTIONS=Object.freeze(ALL_POKEMON.filter(p=>p.evolvesFrom));
-export const evolutionFor=id=>EVOLUTIONS.find(p=>p.evolvesFrom===id)??null;
+const evolutionByParent=new Map(EVOLUTIONS.map(p=>[p.evolvesFrom,p]));
+export const evolutionFor=id=>evolutionByParent.get(id)??null;
 export function evolutionChance(pokemon,state){
   if(!pokemon)return 0;
   if(!pokemon.rarity||pokemon.rarity==='common')return 1;
@@ -36,7 +37,8 @@ export function evolutionChance(pokemon,state){
   // Future rarities require an explicitly configured probability; no invented defaults.
   return 0;
 }
-export const regionForPokemon=id=>BERRY_POKEMON.some(p=>p.id===id)?BERRY_REGION.id:REGION.id;
+const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
+export const regionForPokemon=id=>berryIds.has(id)?BERRY_REGION.id:REGION.id;
 const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
  BERRY_POKEMON.filter(p=>!p.evolvesFrom&&(p.id!=='pikachu'||state?.berryRareAppeared===true)):
  [...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId)];
@@ -90,7 +92,8 @@ export function battleEnergyRewards(pokemon,count=0){
   return Object.fromEntries(Object.entries(rewards).map(([type,amount])=>[type,scaledReward('energy',amount,count)]));
 }
 export const spriteUrl=number=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+number+'.png';
-export const getWildPokemon=id=>ALL_POKEMON.find(p=>p.id===id)||null;
+const pokemonById=new Map(ALL_POKEMON.map(p=>[p.id,p]));
+export const getWildPokemon=id=>pokemonById.get(id)??null;
 export const INITIAL_UNLOCK_COUNT=3;
 // The number of available encounters depends on UNIQUE first victories,
 // not total victories and not the identity of a specific starter Pokemon.
