@@ -207,7 +207,7 @@ test('antidote works even on misses and paralysis-triggered attacks, for both si
  c.enemyStatus.poison=14;
  resolveAttack(c,'enemy',unit({attack:0,antidote:4}),unit(),()=>.5);
  assert.equal(c.enemyStatus.poison,10);
- assert.equal(c.enemy.hp.current,490);
+ assert.equal(c.enemy.hp.current,470);
 });
 test('antidote is saved and older v7 saves default to 0',()=>{
  let s=state();
