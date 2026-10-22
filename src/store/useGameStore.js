@@ -9,7 +9,7 @@ function initialPersistence(){
   return {game:local?.game??initialState(),lastSavedAt:local?.savedAt??null,autoSaveEnabled:readAutoSaveEnabled(),saveError:error};
 }
 
-const labels={hp:'HP',attack:'공격',defense:'방어',specialAttack:'특수공격',specialDefense:'특수방어',speed:'스피드',paralysis:'마비',poison:'독',antidote:'해독',accuracy:'명중',dodge:'회피',minDamagePercent:'최소 피해량'};
+const labels={hp:'HP',attack:'공격',defense:'방어',specialAttack:'특수공격',specialDefense:'특수방어',speed:'스피드',paralysis:'마비',poison:'독',antidote:'해독',accuracy:'명중',dodge:'회피',minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량'};
 const pretty=formatAmount;
 export function eventMessage(event) {
   if(!event)return null;
