@@ -4,7 +4,7 @@ import { DEFAULT_STATS, DEFAULT_DITTO_STATS, resolveStats, isDefaultStat, visibl
 import { initialState, transition } from '../src/core/gameState.js';
 
 test('initial Ditto stats use approved seven defaults', () => {
-  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
+  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
   assert.deepEqual(DEFAULT_DITTO_STATS, initialState().dittoStats);
 });
 test('zero-valued ability is retained in state but hidden from UI', () => {
@@ -25,10 +25,13 @@ test('combat current HP is separate from immutable HP stat', () => {
   assert.equal(reset.combat.currentHp,10);
   assert.equal(reset.combat.maxHp,10);
 });
-test('damage multiplier chooses inclusive integer 85 to 100 in 1% steps', () => {
+test('damage multiplier chooses inclusive integer 85 to 100 or custom 150%', () => {
   assert.equal(rollDamagePercent(85,()=>0),85);
   assert.equal(rollDamagePercent(85,()=>0.5),93);
   assert.equal(rollDamagePercent(85,()=>0.999999),100);
+  assert.equal(rollDamagePercent(85,()=>0,150),85);
+  assert.equal(rollDamagePercent(85,()=>0.999999,150),150);
+  assert.equal(rollDamagePercent(85,()=>0.999999,103.2),103);
   for(let i=0;i<16;i++) assert.equal(rollDamagePercent(85,()=>i/16),85+i);
 });
 
@@ -40,7 +43,7 @@ test('default minimum damage is shared and hidden; modified values remain visibl
 });
 
 test('common stats default independently of Ditto starting overrides',()=>{
- assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
+ assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
  assert.deepEqual(resolveStats({hp:6,attack:2.5}),{...DEFAULT_STATS,hp:6,attack:2.5});
  assert.equal(isDefaultStat('speed',0),true);
  assert.equal(isDefaultStat('speed',3000),false);
