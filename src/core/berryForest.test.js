@@ -45,13 +45,15 @@ test('region 2 unlocks after 70% of appeared unique regional species and first t
  assert.equal(s.activeRegionId,BERRY_REGION.id);
  assert.equal(isPokemonUnlockedInState(s,'caterpie'),true);
  assert.equal(isPokemonUnlockedInState(s,'weedle'),true);
- assert.equal(isPokemonUnlockedInState(s,'kakuna'),true);
+ assert.equal(isPokemonUnlockedInState(s,'jigglypuff'),true);
+ assert.equal(isPokemonUnlockedInState(s,'kakuna'),false);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
  assert.equal(isPokemonUnlockedInState(s,'pikachu'),false);
  s={...s,killCounts:{...s.killCounts,caterpie:1}};
- assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
- assert.equal(appearedInRegion(s,BERRY_REGION.id).length,7);
- assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,8);
+ assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
+ assert.equal(isPokemonUnlockedInState(s,'nidoran-m'),true);
+ assert.equal(appearedInRegion(s,BERRY_REGION.id).length,5);
+ assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,6);
  let rare={...state(),uncommonStarterId:'bulbasaur'};
  assert.equal(isRegionUnlocked({...rare,killCounts:{...rare.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}},BERRY_REGION.id),false);
 });
@@ -128,7 +130,7 @@ test('berry forest battles pay stat rewards, but no unconfigured type energy',()
  assert.equal(s.dittoStats.hp,beforeHp+7);
  assert.equal(s.dittoStats.attack,beforeAttack+1.7);
  assert.deepEqual(s.energyBalances,beforeEnergy);
- assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
+ assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
 });
 
 test('Jigglypuff grants normal energy only with repetition decay, alongside existing special attack reward',()=>{
