@@ -1,5 +1,5 @@
 import {initialState,PHASE} from './gameState.js';
-import {WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,ALL_POKEMON,STARTER_IDS,getWildPokemon,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
+import {WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount,compareAmount} from './bigNumber.js';
@@ -8,7 +8,7 @@ import {DEFAULT_AUTOMATION} from './shopSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=8;
+export const SAVE_VERSION=9;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -26,6 +26,7 @@ export function gameSnapshot(game){
     uncommonChance:game.uncommonChance??0,
     uncommonStarterId:game.uncommonStarterId??null,
     dexDiscovered:game.dexDiscovered??[],
+    evolutionResults:game.evolutionResults??{},
     automation:game.automation??DEFAULT_AUTOMATION,
     recoveryMs:game.recoveryMs??0,retryPokemonId:game.retryPokemonId??null,
     ...Object.fromEntries(['energyBalances','particleBalances','particleEarned','particleBank','particleMilestones','unlockedLayer',
@@ -50,7 +51,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -82,6 +83,13 @@ export function decodeSave(encoded){
     if(!validInteger(count,MAX_COUNTER))throw new Error('처치 횟수가 올바르지 않습니다: '+p.id);
     return [p.id,count];
   }));
+  if(data.version>=9){
+    const results=original.evolutionResults??{};
+    if(!results||typeof results!=='object'||Array.isArray(results)||
+      Object.entries(results).some(([id,value])=>!EVOLUTIONS.some(p=>p.id===id)||typeof value!=='boolean'))
+      throw new Error('진화 판정 기록이 올바르지 않습니다.');
+    cleanGame.evolutionResults={...results};
+  }
   const starter=original.uncommonStarterId??null;
   if(starter!==null&&!STARTER_IDS.includes(starter))throw new Error('6번 슬롯 정보가 올바르지 않습니다.');
   const chance=original.uncommonChance??0;
