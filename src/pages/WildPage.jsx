@@ -18,7 +18,7 @@ const EXTRA_LABELS=Object.freeze({
   minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독',accuracy:'명중',dodge:'회피'
 });
 const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독'});
-const rewardText=(stat,value)=>(value<0?'−':'+')+(stat==='speed'?Number(Math.abs(value).toFixed(3)).toLocaleString('en-US',{maximumFractionDigits:3}):formatAmount(Math.abs(value)))+(stat==='speed'?'ms':'');
+const rewardText=(stat,value)=>(value<0?'−':'+')+(stat==='speed'?Number(Math.abs(value).toFixed(3)).toLocaleString('en-US',{maximumFractionDigits:3}):formatAmount(Math.abs(value)))+(stat==='speed'?'ms':stat==='maxDamagePercent'?'%':'');
 const format=formatAmount;
 
 export function visibleWildBasicStats(pokemon){
