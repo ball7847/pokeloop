@@ -165,7 +165,7 @@ export function decodeSave(encoded){
     if(typeof remaining!=='number'||!Number.isFinite(remaining)||remaining<0||remaining>10000)
       throw new Error('회복시간이 올바르지 않습니다.');
     cleanGame.recoveryMs=remaining;
-    const retry=original.retryPokemonId??null;
+    const retry=original.retryPokemonId==='jigglypuff'&&data.version<=9?'igglybuff':(original.retryPokemonId??null);
     if(retry!==null&&(!getWildPokemon(retry)||!cleanGame.automation.resolve||remaining===0))
       throw new Error('재도전 대상이 올바르지 않습니다.');
     cleanGame.retryPokemonId=retry;
