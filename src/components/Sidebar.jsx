@@ -1,4 +1,4 @@
-import React,{memo} from 'react';
+import React,{memo,useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {TYPES} from '../core/energySystem.js';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
@@ -9,8 +9,13 @@ export function discoveredEnergyItems(game){
     .map(type=>({id:type,name:type+' 에너지',amount:amounts[type]??0}));
 }
 export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
-  const game=useGameStore(s=>s.game);
-  const items=discoveredEnergyItems(game);
+  // Subscribe only to balances displayed here, not to per-frame combat updates.
+  const energyBalances=useGameStore(s=>s.game.energyBalances);
+  const particleBalances=useGameStore(s=>s.game.particleBalances);
+  const particleEarned=useGameStore(s=>s.game.particleEarned);
+  const particleBank=useGameStore(s=>s.game.particleBank);
+  const items=useMemo(()=>discoveredEnergyItems({energyBalances,particleBalances,particleEarned,particleBank}),
+    [energyBalances,particleBalances,particleEarned,particleBank]);
   return <nav className="sidebar" aria-label="메인 메뉴"><small>MENU</small>
     {TABS.map(([id,label])=><button key={id} className={'tab '+(activeTab===id?'selected':'')}
       type="button" aria-current={activeTab===id?'page':undefined}
