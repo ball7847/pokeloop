@@ -81,7 +81,9 @@ function run(strategy){
      if(!isPokemonUnlockedInState(s,id)){
        events.push({kind:'locked',id,at:clock});continue;
      }
-     before[id]={at:clock,stats:effectiveDittoStats(s)};
+     // Snapshot at the actual first challenge, after affordable upgrades.
+     shop();
+     before[id]={at:clock,stats:effectiveDittoStats(s),kills:{...s.killCounts},upgrades:{...s.energyUpgrades}};
      while((s.killCounts[id]??0)<5&&guard++<45){
        const outcome=fight(id);
        if(outcome==='victory'){failed=0;continue;}
@@ -112,7 +114,7 @@ function run(strategy){
  }
  // Evolution children appear only after the parent reaches ten.
  const evolution={metapod:isPokemonUnlockedInState(s,'metapod'),kakuna:isPokemonUnlockedInState(s,'kakuna')};
- const res={strategy,minutes:+(clock/60000).toFixed(2),victories:s.victories,clear,attempts,fails,
+ const res={strategy,firstTaillowChallenge:before.taillow??null,firstMankeyChallenge:before.mankey??null,firstNidoranMaleChallenge:before['nidoran-m']??null,minutes:+(clock/60000).toFixed(2),victories:s.victories,clear,attempts,fails,
    events,evolution,stats:effectiveDittoStats(s),upgrades:s.energyUpgrades};
  console.log('FIVE_KILL_PROBE_'+strategy.toUpperCase()+' '+JSON.stringify(res));
  return res;
