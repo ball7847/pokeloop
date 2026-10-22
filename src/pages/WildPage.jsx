@@ -2,7 +2,7 @@ import {StatLabel} from '../components/StatIcon.jsx';
 import {formatAmount,divideAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
-import {REGION,BERRY_REGION,REGIONS,EVOLUTIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
+import {REGION,BERRY_REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
 import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
 
 // Row-major positions in a 2-column, 3-row grid: HP/Speed, Attack/Defense, Sp.Atk/Sp.Def.
