@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
-import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState} from '../src/core/wildData.js';
+import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon} from '../src/core/wildData.js';
 import {effectiveDittoStats} from '../src/core/shopSystem.js';
 
 const groups=[
@@ -60,7 +60,10 @@ function simulate(strategy){
  }
  function farmEarlier(visited,blocker){
    let total=0;
+   const home=s.activeRegionId;
    for(const id of visited){
+     const nextRegion=regionForPokemon(id);
+     if(nextRegion!==s.activeRegionId)s=transition(s,{type:'SELECT_REGION',regionId:nextRegion});
      if((s.killCounts[id]??0)>=10||!isPokemonUnlockedInState(s,id))continue;
      while((s.killCounts[id]??0)<10){
        const kind=fight(id);
@@ -68,16 +71,21 @@ function simulate(strategy){
        total++;
      }
    }
+   if(s.activeRegionId!==home)s=transition(s,{type:'SELECT_REGION',regionId:home});
    if(total)events.push({event:'farm',for:blocker,atMs:ms,extraWins:total,from:visited.slice()});
    return total;
  }
  function retryPending(reason){
    const pendingNow=[...pending];
    for(const id of pendingNow){
+     const home=s.activeRegionId;
+     const needed=regionForPokemon(id);
+     if(home!==needed)s=transition(s,{type:'SELECT_REGION',regionId:needed});
      if((s.killCounts[id]??0)>=5){pending.splice(pending.indexOf(id),1);continue;}
      const kind=target(id);
      events.push({event:'retry',pokemon:id,reason,result:kind,atMs:ms,kills:s.killCounts[id]??0});
      if(kind==='cleared')pending.splice(pending.indexOf(id),1);
+     if(s.activeRegionId!==home)s=transition(s,{type:'SELECT_REGION',regionId:home});
    }
  }
  const snapshots={};
@@ -95,7 +103,7 @@ function simulate(strategy){
      let kind=target(id);
      if(kind!=='cleared'){
        // First failure: boost earlier monsters up to ten each and immediately retry.
-       farmEarlier(earlier,id);
+       farmEarlier([...groups.slice(0,groups.findIndex(([r])=>r===region)).flatMap(([,old])=>old),...earlier],id);
        kind=target(id);
        events.push({event:'post-farm-retry',pokemon:id,result:kind,atMs:ms,kills:s.killCounts[id]??0});
      }
@@ -105,8 +113,6 @@ function simulate(strategy){
      // If a target remains blocked, move to the next species; after that
      // species advances, revisit the blocked one as requested.
      if(pending.length&&kind==='cleared')retryPending(id);
-     // Also revisit after this species is farmed or a distinct species becomes accessible.
-     if(pending.length&&id!==pending[pending.length-1])retryPending(id);
    }
    if(pending.length)retryPending('end-of-region');
  }
