@@ -29,7 +29,8 @@ test('male Nidoran can deal a 150% damage roll and reward permanent max damage',
  assert.equal(rollDamagePercent(85,()=>1,150),150);
  const c={currentHp:1000,dittoHp:{current:1000,max:1000},enemy:{hp:{current:1000,max:1000}},
    playerStatus:{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0}};
- resolveAttack(c,'enemy',n,{defense:0,dodge:0},()=>0.999999);
+ const rolls=[0.1,0.999999];
+ resolveAttack(c,'enemy',n,{defense:0,dodge:0},()=>rolls.shift()??0.999999);
  assert.equal(c.currentHp,957.25);
  let s=initialState();
  s.phase='running';s.activeRegionId=BERRY_REGION.id;
@@ -49,6 +50,7 @@ test('legacy v9 Jigglypuff progress migrates to Igglybuff with 100% max damage d
  const payload=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(s)),ch=>ch.charCodeAt(0))));
  payload.version=9;
  delete payload.game.killCounts.igglybuff;
+ payload.game.killCounts.jigglypuff=7;
  delete payload.game.dittoStats.maxDamagePercent;
  const data=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(payload))));
  const restored=decodeSave(data).game;
