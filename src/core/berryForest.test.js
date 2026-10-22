@@ -75,18 +75,24 @@ test('accuracy above 100 reduces target dodge, accuracy below 100 can miss',()=>
  resolveAttack(c,'player',unit({attack:100,accuracy:80}),unit(),()=>.95);
  assert.equal(c.enemy.hp.current,500);
 });
-test('paralysis can cancel attacks, persists cumulatively, caps at 250',()=>{
+test('paralysis triggers a next-turn delay, not attack cancellation, and has no stack cap',()=>{
  const c=combat();
- c.playerStatus.paralysis=250;
- const before=c.enemy.hp.current;
+ c.playerStatus.paralysis=500;
  const r=resolveAttack(c,'player',unit({attack:100,paralysis:50}),unit(),()=>0);
- assert.equal(r.cancelled,true);
- assert.equal(c.enemy.hp.current,before);
+ assert.equal(r.cancelled,false);
+ assert.equal(r.hit,true);
+ assert.equal(r.paralysisTriggered,true);
+ assert.equal(r.delayMs,500);
+ assert.equal(c.playerStatus.paralysis,0);
+ assert.equal(c.enemy.hp.current,400);
  const d=combat();
  for(let i=0;i<7;i++)resolveAttack(d,'player',unit({paralysis:43}),unit(),()=>.9);
- assert.equal(d.enemyStatus.paralysis,250);
+ assert.equal(d.enemyStatus.paralysis,301);
+ const notTriggered=resolveAttack(d,'enemy',unit({attack:0}),unit(),()=>.9);
+ assert.equal(notTriggered.delayMs,0);
+ assert.equal(d.enemyStatus.paralysis,301);
 });
-test('poison is flat end-of-action damage even on miss or paralysis cancellation',()=>{
+test('poison is flat end-of-action damage even on miss or paralysis trigger',()=>{
  const c=combat();c.playerStatus.poison=40;
  resolveAttack(c,'player',unit({attack:100,accuracy:0}),unit(),()=>.7);
  assert.equal(c.currentHp,460);
@@ -188,7 +194,7 @@ test('antidote reduces poison before end-of-action damage, never below zero',()=
  assert.equal(c.playerStatus.poison,0);
  assert.equal(c.currentHp,489);
 });
-test('antidote works even on misses and paralysis-cancelled actions, for both sides',()=>{
+test('antidote works even on misses and paralysis-triggered attacks, for both sides',()=>{
  const c=combat();
  c.playerStatus.poison=10;
  resolveAttack(c,'player',unit({accuracy:0,antidote:2}),unit(),()=>.9);
