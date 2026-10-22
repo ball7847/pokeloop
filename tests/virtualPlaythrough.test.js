@@ -298,7 +298,7 @@ test('female Nidoran ATK/poison 4.7: single encounter, ordinary repeats, and rea
  const samples=300;
  const options={};
  for(const antidote of [0,2]){
-   let starting=baseline;
+   let starting={...baseline,killCounts:{...baseline.killCounts,'nidoran-f':0}};
    while((starting.energyUpgrades.antidote??0)<antidote){
      const next=transition(starting,{type:'BUY_UPGRADE',id:'antidote'});
      assert.notEqual(next,starting,'not enough real poison energy');
@@ -434,7 +434,7 @@ test('Nidoran female battle: report remaining HP distribution after poison 4.7 p
  assert.equal(s.killCounts['nidoran-m'],10);
  const data={player:effectiveDittoStats(s),samples:{}};
  for(const level of [0,2]){
-   let candidate=s;
+   let candidate={...s,killCounts:{...s.killCounts,'nidoran-f':0}};
    while((candidate.energyUpgrades.antidote??0)<level){
      const next=transition(candidate,{type:'BUY_UPGRADE',id:'antidote'});
      assert.notEqual(next,candidate);
