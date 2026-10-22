@@ -1,6 +1,6 @@
 import {StatLabel} from '../components/StatIcon.jsx';
 import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
-import React from 'react';
+import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {REGION,BERRY_REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
 import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
@@ -69,8 +69,14 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
   </button>;
 }
 export function WildPage(){
-  const game=useGameStore(s=>s.game);
-  const killCounts=game.killCounts;
+  // Enemy cards depend on encounter/unlock state, not particle production or HP animation ticks.
+  const killCounts=useGameStore(s=>s.game.killCounts);
+  const activeRegionId=useGameStore(s=>s.game.activeRegionId);
+  const berryRareAppeared=useGameStore(s=>s.game.berryRareAppeared);
+  const uncommonStarterId=useGameStore(s=>s.game.uncommonStarterId);
+  const evolutionResults=useGameStore(s=>s.game.evolutionResults);
+  const game=useMemo(()=>({killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,evolutionResults}),
+    [killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,evolutionResults]);
   const combatActive=useGameStore(s=>s.game.combat.active);
   const fightingId=useGameStore(s=>s.game.combat.pokemonId);
   const phase=useGameStore(s=>s.game.phase);
