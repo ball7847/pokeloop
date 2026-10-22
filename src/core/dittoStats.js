@@ -1,6 +1,7 @@
 import {isAmount,compareAmount,formatAmount} from './bigNumber.js';
 // The minimum damage roll is a shared baseline for all combatants.
 export const DEFAULT_MIN_DAMAGE_PERCENT = 85;
+export const DEFAULT_MAX_DAMAGE_PERCENT = 100;
 // One shared baseline for all combatants. Omitted stats inherit these values.
 export const DEFAULT_STATS = Object.freeze({
   hp: 0,
@@ -14,7 +15,8 @@ export const DEFAULT_STATS = Object.freeze({
   accuracy:100,
   dodge:0,
   speed: 0,
-  minDamagePercent: DEFAULT_MIN_DAMAGE_PERCENT
+  minDamagePercent: DEFAULT_MIN_DAMAGE_PERCENT,
+  maxDamagePercent: DEFAULT_MAX_DAMAGE_PERCENT
 });
 export function defaultStat(key) {
   return Object.hasOwn(DEFAULT_STATS,key) ? DEFAULT_STATS[key] : 0;
@@ -40,7 +42,8 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'accuracy',label:'명중',description:'명중 확률(%)입니다. 100% 초과분은 상대의 회피를 감소시킵니다.' },
   { key:'dodge',label:'회피',description:'공격을 피할 확률(%)입니다.' },
   { key:'speed', label:'스피드', description:'공격 간 대기시간(ms)입니다.' },
-  { key:'minDamagePercent', label:'최소 피해량', description:'최종 피해 배율의 하한입니다. 1% 단위로 최대 100%까지 무작위 선택합니다.' }
+  { key:'minDamagePercent', label:'최소 피해량', description:'공격 피해 배율의 최솟값(%)입니다.' },
+  { key:'maxDamagePercent', label:'최대 피해량', description:'공격 피해 배율의 최댓값(%)입니다. 100%를 초과할 수 있습니다.' }
 ]);
 
 export function visibleNonDefaultStats(stats = {}) {
@@ -55,14 +58,16 @@ export function visibleBasicStats(stats = {}) {
 export function formatBasicStat(key, value) {
   if (key === 'speed') return Number.isFinite(value)?value.toLocaleString('en-US') + 'ms':'—';
   if (key === 'accuracy'||key==='dodge')return Number.isFinite(value)?value+'%':'—';
-  if (key === 'minDamagePercent') return Number.isFinite(value)?value + '%':'—';
+  if (key === 'minDamagePercent'||key==='maxDamagePercent') return Number.isFinite(value)?value + '%':'—';
   return formatAmount(value);
 }
 // One integer-percent roll from [lowerBound, 100], inclusive.
 // Only used when the future combat damage calculation is connected.
-export function rollDamagePercent(lowerBound, random = Math.random) {
-  if (!Number.isInteger(lowerBound) || lowerBound < 0 || lowerBound > 100) {
-    throw new RangeError('Damage percentage lower bound must be an integer in [0, 100].');
+export function rollDamagePercent(lowerBound, random = Math.random, upperBound = 100) {
+  if (!Number.isInteger(lowerBound) || lowerBound < 0 || !Number.isFinite(upperBound) || upperBound < lowerBound) {
+    throw new RangeError('Invalid damage percentage range.');
   }
-  return lowerBound + Math.floor(Math.min(0.9999999999999999, Math.max(0, random())) * (101 - lowerBound));
+  // Damage rolls remain integer-percent values, even if a bonus grants fractional max damage.
+  const ceiling=Math.floor(upperBound);
+  return lowerBound + Math.floor(Math.min(0.9999999999999999, Math.max(0, random())) * (ceiling - lowerBound + 1));
 }
