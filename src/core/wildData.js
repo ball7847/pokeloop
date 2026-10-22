@@ -16,8 +16,8 @@ export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 const berryEntries=[
 {id:'caterpie',number:10,name:'캐터피',types:['벌레'],hp:90,attack:6,speed:3000,rewards:{hp:7,attack:1.7}},
 {id:'weedle',number:13,name:'뿔충이',types:['벌레','독'],hp:80,attack:7,speed:3500,rewards:{hp:7,attack:1.7}},
-{id:'kakuna',number:14,name:'딱충이',types:['벌레','독'],hp:90,attack:5,defense:5,speed:5000,rewards:{hp:10,defense:1}},
-{id:'metapod',number:11,name:'단데기',types:['벌레'],hp:100,attack:4,defense:5.5,speed:4500,rewards:{hp:10,defense:1}},
+{id:'kakuna',evolvesFrom:'weedle',rarity:'common',number:14,name:'딱충이',types:['벌레','독'],hp:90,attack:5,defense:5,speed:5000,rewards:{hp:10,defense:1}},
+{id:'metapod',evolvesFrom:'caterpie',rarity:'common',number:11,name:'단데기',types:['벌레'],hp:100,attack:4,defense:5.5,speed:4500,rewards:{hp:10,defense:1}},
 {id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',hp:350,attack:55,speed:1000,paralysis:43,rewards:{attack:25,paralysis:3.2}},
 {id:'jigglypuff',number:39,name:'푸린',types:['노말','페어리'],hp:230,specialAttack:15,speed:3900,energyReward:10,rewards:{specialAttack:4.5}},
 {id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:368,attack:28.5,speed:2730,accuracy:80,rewards:{attack:3.2}},
@@ -26,23 +26,49 @@ const berryEntries=[
 // Region 2 energy remains unset except for explicitly configured per-type payouts.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
+// Evolution children are stored in the Pokémon catalog but never consume base-region slots.
+export const EVOLUTIONS=Object.freeze(ALL_POKEMON.filter(p=>p.evolvesFrom));
+export const evolutionFor=id=>EVOLUTIONS.find(p=>p.evolvesFrom===id)??null;
+export function evolutionChance(pokemon,state){
+  if(!pokemon)return 0;
+  if(!pokemon.rarity||pokemon.rarity==='common')return 1;
+  if(pokemon.rarity==='uncommon')return state.uncommonChance??UNCOMMON_BASE_CHANCE;
+  // Future rarities require an explicitly configured probability; no invented defaults.
+  return 0;
+}
 export const regionForPokemon=id=>BERRY_POKEMON.some(p=>p.id===id)?BERRY_REGION.id:REGION.id;
-export const appearedInRegion=(state,regionId)=>regionId===BERRY_REGION.id?
- BERRY_POKEMON.filter(p=>p.id!=='pikachu'||state?.berryRareAppeared===true):
+const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
+ BERRY_POKEMON.filter(p=>!p.evolvesFrom&&(p.id!=='pikachu'||state?.berryRareAppeared===true)):
  [...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId)];
-export const regionUnlockRequirement=state=>Math.ceil(appearedInRegion(state,REGION.id).length*.7);
+// Recursive insertion also supports later second and third evolutionary stages.
+export function appearedInRegion(state,regionId){
+ const result=[];
+ const insert=p=>{
+   result.push(p);
+   const next=evolutionFor(p.id);
+   if(next&&state?.evolutionResults?.[next.id]===true&&regionForPokemon(next.id)===regionId)insert(next);
+ };
+ baseLineup(state,regionId).forEach(insert);
+ return result;
+}
+export const regionUnlockRequirement=state=>Math.ceil(baseLineup(state,REGION.id).length*.7);
 export const isRegionUnlocked=(state,regionId)=>regionId===REGION.id||
- (regionId===BERRY_REGION.id&&appearedInRegion(state,REGION.id)
+ (regionId===BERRY_REGION.id&&baseLineup(state,REGION.id)
   .filter(p=>(state.killCounts?.[p.id]??0)>0).length>=regionUnlockRequirement(state));
 export function unlockedCountInRegion(state,regionId){
- const lineup=appearedInRegion(state,regionId);
+ const lineup=baseLineup(state,regionId);
  const distinct=lineup.filter(p=>(state.killCounts?.[p.id]??0)>0).length;
  return Math.min(lineup.length,INITIAL_UNLOCK_COUNT+distinct);
 }
 export function isPokemonUnlockedInState(state,id){
  const region=regionForPokemon(id);
  if(!isRegionUnlocked(state,region))return false;
- const lineup=appearedInRegion(state,region);
+ const pokemon=getWildPokemon(id);
+ if(!pokemon)return false;
+ if(pokemon.evolvesFrom){
+   return state.evolutionResults?.[id]===true&&isPokemonUnlockedInState(state,pokemon.evolvesFrom);
+ }
+ const lineup=baseLineup(state,region);
  const index=lineup.findIndex(p=>p.id===id);
  return index>=0&&index<unlockedCountInRegion(state,region);
 }
