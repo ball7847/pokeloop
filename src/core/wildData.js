@@ -14,16 +14,17 @@ export const UNCOMMON_BASE_CHANCE=0;
 export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map(p=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 const berryEntries=[
-{id:'caterpie',number:10,name:'캐터피',types:['벌레'],hp:90,attack:6,speed:3000,rewards:{hp:7,attack:1.7}},
-{id:'weedle',number:13,name:'뿔충이',types:['벌레','독'],hp:80,attack:7,speed:3500,rewards:{hp:7,attack:1.7}},
-{id:'kakuna',evolvesFrom:'weedle',rarity:'common',number:14,name:'딱충이',types:['벌레','독'],hp:90,attack:5,defense:5,speed:5000,rewards:{hp:10,defense:1}},
-{id:'metapod',evolvesFrom:'caterpie',rarity:'common',number:11,name:'단데기',types:['벌레'],hp:100,attack:4,defense:5.5,speed:4500,rewards:{hp:10,defense:1}},
+{id:'caterpie',number:10,name:'캐터피',types:['벌레'],energyReward:3,hp:45,attack:3,speed:3000,rewards:{hp:7}},
+{id:'weedle',number:13,name:'뿔충이',types:['벌레','독'],energyReward:3,hp:40,attack:3.5,speed:3500,rewards:{hp:7}},
+{id:'kakuna',evolvesFrom:'weedle',rarity:'common',number:14,name:'딱충이',types:['벌레','독'],energyReward:5,hp:90,attack:10,defense:5,speed:5000,rewards:{hp:10,defense:1}},
+{id:'metapod',evolvesFrom:'caterpie',rarity:'common',number:11,name:'단데기',types:['벌레'],energyReward:5,hp:100,attack:10,defense:5.5,speed:4500,rewards:{hp:10,defense:1}},
+{id:'taillow',number:276,name:'테일로',types:['노말','비행'],energyReward:10,hp:40,attack:5.5,speed:1100,rewards:{attack:1.5,speed:-30}},
 {id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',hp:350,attack:55,speed:1000,paralysis:43,rewards:{attack:25,paralysis:3.2}},
-{id:'jigglypuff',number:39,name:'푸린',types:['노말','페어리'],hp:230,specialAttack:15,speed:3900,energyReward:10,rewards:{specialAttack:4.5}},
-{id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:368,attack:28.5,speed:2730,accuracy:80,rewards:{attack:3.2}},
-{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:440,attack:4.7,speed:2750,poison:4.7,rewards:{hp:12.9,poison:1}}
+{id:'igglybuff',number:174,name:'푸푸린',types:['노말','페어리'],energyReward:17.4,hp:90,attack:3,specialAttack:4,speed:3000,rewards:{specialAttack:2}},
+{id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:92,attack:28.5,speed:2730,accuracy:80,maxDamagePercent:150,rewards:{attack:3.2,maxDamagePercent:3.2}},
+{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:110,attack:14.7,speed:2750,poison:4.7,rewards:{hp:12.9,poison:1}}
 ];
-// Region 2 energy remains unset except for explicitly configured per-type payouts.
+// Region 2 awards each configured energyReward to each of the Pokémon's types.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
 // Evolution children are stored in the Pokémon catalog but never consume base-region slots.
