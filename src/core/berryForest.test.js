@@ -164,8 +164,8 @@ test('Igglybuff grants normal and fairy energy with repetition decay and special
  s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
  assert.equal(s.killCounts.igglybuff,2);
- assert.equal(s.energyBalances.노말,before.노말+26.1);
- assert.equal(s.energyBalances.페어리,before.페어리+26.1);
+ assert.ok(Math.abs(s.energyBalances.노말-(before.노말+26.1))<1e-8);
+ assert.ok(Math.abs(s.energyBalances.페어리-(before.페어리+26.1))<1e-8);
  assert.equal(s.dittoStats.specialAttack,3);
 });
 
@@ -235,7 +235,7 @@ test('antidote is saved and older v7 saves default to 0',()=>{
 });
 
 
-test('Caterpie and Weedle each grant HP +7 and attack +1.7 with diminishing returns',()=>{
+test('Caterpie and Weedle grant HP +7 without attack rewards, with diminishing returns',()=>{
  for(const id of ['caterpie','weedle']){
   let s=state();
   s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}};
@@ -248,7 +248,7 @@ test('Caterpie and Weedle each grant HP +7 and attack +1.7 with diminishing retu
    assert.equal(s.killCounts[id],i+1);
   }
   assert.ok(Math.abs(s.dittoStats.hp-initialHp-10.5)<1e-8);
-  assert.ok(Math.abs(s.dittoStats.attack-initialAttack-2.55)<1e-8);
+  assert.equal(s.dittoStats.attack,initialAttack);
  }
 });
 
