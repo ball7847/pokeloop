@@ -141,6 +141,7 @@ function run(strategy){
    }
    if(outcome!=='cleared'&&!pending.includes(id))pending.push(id);
    logs.push({event:'evolution-result',pokemon:id,result:outcome,kills:s.killCounts[id]??0,atMs:ms});
+   if(outcome==='cleared'&&pending.length)retry('after '+id+' evolution wins');
  }
  const result={strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
