@@ -8,11 +8,11 @@ import {DEFAULT_AUTOMATION} from './shopSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=9;
+export const SAVE_VERSION=10;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
-const basicKeys=['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','paralysis','poison','antidote','accuracy','dodge'];
+const basicKeys=['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','maxDamagePercent','paralysis','poison','antidote','accuracy','dodge'];
 const progressKeys=['floor','encounterIndex','victories','runId','eventSerial'];
 const validInteger=(value,max)=>Number.isSafeInteger(value)&&value>=0&&value<=max;
 
@@ -51,7 +51,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,8,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,9,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -67,7 +67,7 @@ export function decodeSave(encoded){
   if(!original.dittoStats||typeof original.dittoStats!=='object')throw new Error('메타몽 능력치가 없습니다.');
   const stats=resolveStats(original.dittoStats);
   for(const key of basicKeys){
-    if(['speed','minDamagePercent','accuracy','dodge'].includes(key)){
+    if(['speed','minDamagePercent','maxDamagePercent','accuracy','dodge'].includes(key)){
       if(typeof stats[key]!=='number'||!Number.isFinite(stats[key])||stats[key]<0)
         throw new Error('능력치 값이 올바르지 않습니다: '+key);
     }else if(!isAmount(stats[key])){
@@ -76,10 +76,12 @@ export function decodeSave(encoded){
   }
   if(stats.speed!==0&&stats.speed<1)throw new Error('스피드 값이 올바르지 않습니다.');
   if(stats.minDamagePercent>100)throw new Error('최소 피해량이 올바르지 않습니다.');
-  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,['speed','minDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
+  if(stats.maxDamagePercent<stats.minDamagePercent)throw new Error('최대 피해량이 올바르지 않습니다.');
+  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,['speed','minDamagePercent','maxDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
   if(!original.killCounts||typeof original.killCounts!=='object')throw new Error('처치 기록이 없습니다.');
   cleanGame.killCounts=Object.fromEntries(ALL_POKEMON.map(p=>{
-    const count=original.killCounts[p.id]??0;
+    // v9 and earlier named Igglybuff's Berry Forest slot 'jigglypuff'.
+    const count=p.id==='igglybuff'?(original.killCounts.igglybuff??original.killCounts.jigglypuff??0):(original.killCounts[p.id]??0);
     if(!validInteger(count,MAX_COUNTER))throw new Error('처치 횟수가 올바르지 않습니다: '+p.id);
     return [p.id,count];
   }));
@@ -95,7 +97,7 @@ export function decodeSave(encoded){
   const chance=original.uncommonChance??0;
   if(typeof chance!=='number'||!Number.isFinite(chance)||chance<0||chance>1)throw new Error('안흔함 확률이 올바르지 않습니다.');
   const found=original.dexDiscovered??[];
-  if(!Array.isArray(found)||found.length>ALL_POKEMON.length||found.some(id=>typeof id!=='string'||!getWildPokemon(id))||new Set(found).size!==found.length)throw new Error('도감 정보가 올바르지 않습니다.');
+  if(!Array.isArray(found)||found.length>ALL_POKEMON.length||found.some(id=>typeof id!=='string'||!(getWildPokemon(id)||(data.version<=9&&id==='jigglypuff')))||new Set(found).size!==found.length)throw new Error('도감 정보가 올바르지 않습니다.');
   // v3 stored battle essence and freely minted layer energy separately.
   // Preserve both quantities but map them to the new energy and particle roles.
   if(data.version>=3){
@@ -163,7 +165,7 @@ export function decodeSave(encoded){
     if(typeof remaining!=='number'||!Number.isFinite(remaining)||remaining<0||remaining>10000)
       throw new Error('회복시간이 올바르지 않습니다.');
     cleanGame.recoveryMs=remaining;
-    const retry=original.retryPokemonId??null;
+    const retry=original.retryPokemonId==='jigglypuff'&&data.version<=9?'igglybuff':(original.retryPokemonId??null);
     if(retry!==null&&(!getWildPokemon(retry)||!cleanGame.automation.resolve||remaining===0))
       throw new Error('재도전 대상이 올바르지 않습니다.');
     cleanGame.retryPokemonId=retry;
@@ -184,7 +186,8 @@ export function decodeSave(encoded){
       throw new Error('지역 정보가 올바르지 않습니다.');
     cleanGame.activeRegionId=original.activeRegionId;
   }
-  cleanGame.uncommonStarterId=starter;cleanGame.uncommonChance=chance;cleanGame.dexDiscovered=[...found];
+  cleanGame.uncommonStarterId=starter;cleanGame.uncommonChance=chance;
+  cleanGame.dexDiscovered=[...new Set(found.map(id=>id==='jigglypuff'?'igglybuff':id))];
   if(!isRegionUnlocked(cleanGame,cleanGame.activeRegionId))cleanGame.activeRegionId=REGION.id;
   // Active combat is deliberately not persisted. Resuming requires a new battle.
   cleanGame.phase=original.phase===PHASE.RUNNING?PHASE.RUNNING:original.phase;

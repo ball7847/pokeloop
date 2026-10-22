@@ -25,7 +25,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
       name:p.name,imageUrl:spriteUrl(p.number),
       hp:{current:p.hp,max:p.hp},
       stats:Object.fromEntries(visibleNonDefaultStats(p).map(({key,label})=>[label,p[key]])),
-      minDamagePercent:p.minDamagePercent,
+      minDamagePercent:p.minDamagePercent,maxDamagePercent:p.maxDamagePercent,
       rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,scaledReward(key,value,state.killCounts[id]||0)])),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack,statistics:p
@@ -104,7 +104,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
     let damage=0;
     for(const [attack,defense] of [['attack','defense'],['specialAttack','specialDefense']]){
       if(compareAmount(attackerStats[attack]??0,0)<=0)continue;
-      const factor=rollDamagePercent(attackerStats.minDamagePercent??85,random)/100;
+      const factor=rollDamagePercent(attackerStats.minDamagePercent??85,random,attackerStats.maxDamagePercent??100)/100;
       const raw=multiplyAmount(attackerStats[attack],factor);
       const net=subtractAmount(raw,defenderStats[defense]??0);
       if(compareAmount(net,0)>0)damage=addAmount(damage,net);

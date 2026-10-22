@@ -15,10 +15,10 @@ export const WILD_BASIC_FIELDS=Object.freeze([
   {key:'specialDefense',label:'특수방어'}
 ]);
 const EXTRA_LABELS=Object.freeze({
-  minDamagePercent:'최소 피해량',paralysis:'마비',poison:'독',accuracy:'명중',dodge:'회피'
+  minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독',accuracy:'명중',dodge:'회피'
 });
-const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',paralysis:'마비',poison:'독'});
-const rewardText=(stat,value)=>(value<0?'−':'+')+(stat==='speed'?Number(Math.abs(value).toFixed(3)).toLocaleString('en-US',{maximumFractionDigits:3}):formatAmount(Math.abs(value)))+(stat==='speed'?'ms':'');
+const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독'});
+const rewardText=(stat,value)=>(value<0?'−':'+')+(stat==='speed'?Number(Math.abs(value).toFixed(3)).toLocaleString('en-US',{maximumFractionDigits:3}):formatAmount(Math.abs(value)))+(stat==='speed'?'ms':stat==='maxDamagePercent'?'%':'');
 const format=formatAmount;
 
 export function visibleWildBasicStats(pokemon){
@@ -26,7 +26,7 @@ export function visibleWildBasicStats(pokemon){
 }
 export function visibleWildExtraStats(pokemon){
   const resolved=resolveStats(pokemon);
-  const extras={minDamagePercent:resolved.minDamagePercent,paralysis:resolved.paralysis,poison:resolved.poison,
+  const extras={minDamagePercent:resolved.minDamagePercent,maxDamagePercent:resolved.maxDamagePercent,paralysis:resolved.paralysis,poison:resolved.poison,
     accuracy:resolved.accuracy,dodge:resolved.dodge,...(pokemon.extraStats??{})};
   return Object.entries(extras).filter(([key,value])=>!isDefaultStat(key,value));
 }
@@ -53,7 +53,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
     <div className="wild-extra-stats" aria-label="추가 능력치">
       {extras.map(([key,value])=><div key={key} className="wild-stat-box">
-        <span>{EXTRA_LABELS[key]??key}</span><strong>{['minDamagePercent','accuracy','dodge'].includes(key)?value+'%':format(value)}</strong>
+        <span>{EXTRA_LABELS[key]??key}</span><strong>{['minDamagePercent','maxDamagePercent','accuracy','dodge'].includes(key)?value+'%':format(value)}</strong>
       </div>)}
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
@@ -105,7 +105,7 @@ export function WildPage(){
         const fighting=combatActive&&fightingId===p.id;
         const disabled=!unlocked||capped||combatActive||recoveryMs>0||phase==='paused'||phase==='finished';
         return <React.Fragment key={p.id}>
-          {region.id===BERRY_REGION.id&&!game.berryRareAppeared&&p.id==='jigglypuff'&&
+          {region.id===BERRY_REGION.id&&!game.berryRareAppeared&&p.id==='igglybuff'&&
             <div className="wild-empty-cell wild-rare-empty" aria-label="5번 슬롯 피카츄: 안흔함 포켓몬 미등장"><strong>피카츄 · 안흔함</strong><small>이번 환생 미등장</small></div>}
           <WildCard pokemon={p} count={count} unlocked={unlocked} capped={capped}
             fighting={fighting} disabled={disabled} onSelect={()=>dispatch({type:'SELECT_WILD',pokemonId:p.id})}/>

@@ -6,7 +6,7 @@ import {effectiveDittoStats} from '../src/core/shopSystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 const first=['rattata','pidgey','spearow','mankey','zubat'];
-const second=['caterpie','weedle','kakuna','metapod','jigglypuff','nidoran-m','nidoran-f'];
+const second=['caterpie','weedle','taillow','kakuna','metapod','igglybuff','nidoran-m','nidoran-f'];
 function battle(s,id,seed=0.5){
  s=transition(s,{type:'SELECT_WILD',pokemonId:id});
  if(!s.combat.active)return {state:s,kind:'blocked',elapsed:0};
@@ -87,14 +87,15 @@ test('economic and rare encounter reachability, game default rules',()=>{
  const s=initialState();
  assert.equal(s.berryRareAppeared,false);
  assert.equal(UNCOMMON_BASE_CHANCE,0);
- assert.ok(BERRY_POKEMON.filter(p=>!['jigglypuff','nidoran-m','nidoran-f'].includes(p.id)).every(p=>p.energyReward===undefined));
- assert.equal(BERRY_POKEMON.find(p=>p.id==='jigglypuff').energyReward,10);
+ assert.equal(BERRY_POKEMON.find(p=>p.id==='caterpie').energyReward,3);
+ assert.equal(BERRY_POKEMON.find(p=>p.id==='taillow').energyReward,10);
+ assert.equal(BERRY_POKEMON.find(p=>p.id==='igglybuff').energyReward,17.4);
  // Under the current capped first region, total normal energy available is finite.
  const H10=Array.from({length:10},(_,i)=>1/(i+1)).reduce((a,b)=>a+b,0);
  const maxNormal=H10*(1+2+3);
  assert.ok(maxNormal<1025);
  console.log('VIRTUAL_ECONOMY '+JSON.stringify({maxNormalFromRegion1:maxNormal,normalMilestone:1025,
-  berriesAwardEnergy:'jigglypuff normal/fairy 10 each; nidoran male/female poison 6.9 each',secondRegionRareAppearsWithoutExplicitStateChange:false}));
+  berriesAwardEnergy:'igglybuff normal/fairy 17.4 each; nidoran male/female poison 6.9 each',secondRegionRareAppearsWithoutExplicitStateChange:false}));
 });
 
 test('region 2 late encounters: Monte Carlo first-win viability after all accessible stat farming',()=>{
@@ -103,7 +104,7 @@ test('region 2 late encounters: Monte Carlo first-win viability after all access
  function seeded(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
  const sample=500;
  const wins={};
- for(const id of ['jigglypuff','nidoran-m','nidoran-f']){
+ for(const id of ['igglybuff','nidoran-m','nidoran-f']){
    let count=0;
    for(let i=1;i<=sample;i++){
      const {kind}=battle({...s,recoveryMs:0,retryPokemonId:null},id,seeded(i*1009+17));
@@ -153,7 +154,7 @@ test('controlled allocation comparison: HP only, attack only, balanced with same
    s=next;
   }
   const wins={},trials=300;
-  for(const id of ['jigglypuff','nidoran-m','nidoran-f']){
+  for(const id of ['igglybuff','nidoran-m','nidoran-f']){
    let victories=0;
    for(let i=0;i<trials;i++){
     const v=battle({...s,recoveryMs:0,retryPokemonId:null},id,seeded(i*983+42));
@@ -173,7 +174,7 @@ test('post-Nidoran rebalance: reachable route, rewards, and late battle odds',()
    const {s,results}=run(strategy);
    const finalStats=effectiveDittoStats(s);
    const wins={};
-   for(const id of ['jigglypuff','nidoran-m','nidoran-f']){
+   for(const id of ['igglybuff','nidoran-m','nidoran-f']){
      let victories=0;
      for(let i=1;i<=200;i++){
        const probe=battle({...s,recoveryMs:0,retryPokemonId:null},id,seeded(i*1013+33));
@@ -297,7 +298,7 @@ test('female Nidoran ATK/poison 4.7: single encounter, ordinary repeats, and rea
  const samples=300;
  const options={};
  for(const antidote of [0,2]){
-   let starting=baseline;
+   let starting={...baseline,killCounts:{...baseline.killCounts,'nidoran-f':0}};
    while((starting.energyUpgrades.antidote??0)<antidote){
      const next=transition(starting,{type:'BUY_UPGRADE',id:'antidote'});
      assert.notEqual(next,starting,'not enough real poison energy');
@@ -433,7 +434,7 @@ test('Nidoran female battle: report remaining HP distribution after poison 4.7 p
  assert.equal(s.killCounts['nidoran-m'],10);
  const data={player:effectiveDittoStats(s),samples:{}};
  for(const level of [0,2]){
-   let candidate=s;
+   let candidate={...s,killCounts:{...s.killCounts,'nidoran-f':0}};
    while((candidate.energyUpgrades.antidote??0)<level){
      const next=transition(candidate,{type:'BUY_UPGRADE',id:'antidote'});
      assert.notEqual(next,candidate);
