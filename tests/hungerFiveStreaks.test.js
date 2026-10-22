@@ -14,6 +14,8 @@ function run(strategy){
  const logs=[],firstChallenge={},battles={},streaks={},failures={},pending=[];
  let automationBoughtAt=null;
  function toggle(on){
+   // The first victory is needed to earn the one Normal energy for this automation.
+   if(!s.qolUnlocks.includes('hunger'))return;
    if(s.automation.hunger!==on){
      s=transition(s,{type:'TOGGLE_AUTOMATION',id:'hunger'});
      if(s.automation.hunger!==on)throw Error('could not change hunger toggle');
