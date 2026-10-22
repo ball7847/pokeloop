@@ -1,4 +1,4 @@
-import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards} from './wildData.js';
+import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,evolutionFor,evolutionChance} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
 import {effectiveDittoStats} from './shopSystem.js';
@@ -34,7 +34,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
     lastEvent:{id:state.eventSerial+1,type:'start',pokemonId:id,name:p.name}
   }};
 }
-function finish(state,c,type) {
+function finish(state,c,type,random=Math.random) {
   const p=getWildPokemon(c.pokemonId);
   if(type==='victory') {
     const count=state.killCounts[p.id]||0;
@@ -47,7 +47,9 @@ function finish(state,c,type) {
     let rewarded=state;
     for(const [type,amount] of Object.entries(battleEnergyRewards(p,count)))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
-    const updated={...rewarded,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,
+    const evolution=count+1===REGION.defaultKillLimit?evolutionFor(p.id):null;
+    const evolutionResults=evolution?{...state.evolutionResults,[evolution.id]:random()<evolutionChance(evolution,state)}:state.evolutionResults;
+    const updated={...rewarded,evolutionResults,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,
       encounterIndex:state.encounterIndex+1,
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
@@ -138,8 +140,8 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
       my.elapsed-=myPeriod;
       resolveAttack(c,'player',playerStats,enemyStats,random);
       my.duration=Math.max(1,playerStats.speed);
-      if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat');
-      if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory');
+      if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat',random);
+      if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory',random);
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
