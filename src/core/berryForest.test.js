@@ -7,24 +7,30 @@ import {encodeSave,decodeSave} from './saveSystem.js';
 import {eventMessage} from '../store/useGameStore.js';
 
 const state=()=>({...initialState(),phase:'running'});
-test('berry forest exact roster and no invented currency payouts',()=>{
- assert.deepEqual(BERRY_POKEMON.map(p=>[p.id,p.hp,p.attack,p.specialAttack,p.defense,p.speed,p.paralysis,p.poison,p.accuracy]),[
- ['caterpie',90,6,0,0,3000,0,0,100],
- ['weedle',80,7,0,0,3500,0,0,100],
- ['kakuna',90,5,0,5,5000,0,0,100],
- ['metapod',100,4,0,5.5,4500,0,0,100],
- ['pikachu',350,55,0,0,1000,43,0,100],
- ['jigglypuff',230,0,15,0,3900,0,0,100],
- ['nidoran-m',368,28.5,0,0,2730,0,0,80],
- ['nidoran-f',440,4.7,0,0,2750,0,4.7,100]
+test('berry forest roster, stats, rewards and energy payout',()=>{
+ assert.deepEqual(BERRY_POKEMON.map(p=>[p.id,p.hp,p.attack,p.specialAttack,p.defense,p.speed,p.paralysis,p.poison,p.accuracy,p.maxDamagePercent]),[
+ ['caterpie',45,3,0,0,3000,0,0,100,100],
+ ['weedle',40,3.5,0,0,3500,0,0,100,100],
+ ['kakuna',90,10,0,5,5000,0,0,100,100],
+ ['metapod',100,10,0,5.5,4500,0,0,100,100],
+ ['taillow',40,5.5,0,0,1100,0,0,100,100],
+ ['pikachu',350,55,0,0,1000,43,0,100,100],
+ ['igglybuff',90,3,4,0,3000,0,0,100,100],
+ ['nidoran-m',92,28.5,0,0,2730,0,0,80,150],
+ ['nidoran-f',110,14.7,0,0,2750,0,4.7,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
- {hp:7,attack:1.7},{hp:7,attack:1.7},{hp:10,defense:1},{hp:10,defense:1},
- {attack:25,paralysis:3.2},{specialAttack:4.5},{attack:3.2},{hp:12.9,poison:1}
+ {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},{attack:1.5,speed:-30},
+ {attack:25,paralysis:3.2},{specialAttack:2},{attack:3.2,maxDamagePercent:3.2},{hp:12.9,poison:1}
  ]);
- assert.ok(BERRY_POKEMON.filter(p=>!['jigglypuff','nidoran-m','nidoran-f'].includes(p.id)).every(p=>p.energyReward===undefined));
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),0),{노말:10,페어리:10});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='jigglypuff'),1),{노말:5,페어리:5});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{벌레:3});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='weedle')),{벌레:3,독:3});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='metapod')),{벌레:5});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='kakuna')),{벌레:5,독:5});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='taillow')),{노말:10,비행:10});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff')),{노말:17.4,페어리:17.4});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff'),1),{노말:8.7,페어리:8.7});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='pikachu')),{});
  for(const id of ['nidoran-m','nidoran-f']){
    const p=BERRY_POKEMON.find(p=>p.id===id);
    assert.deepEqual(battleEnergyRewards(p,0),{독:6.9});
@@ -45,15 +51,17 @@ test('region 2 unlocks after 70% of appeared unique regional species and first t
  assert.equal(s.activeRegionId,BERRY_REGION.id);
  assert.equal(isPokemonUnlockedInState(s,'caterpie'),true);
  assert.equal(isPokemonUnlockedInState(s,'weedle'),true);
- assert.equal(isPokemonUnlockedInState(s,'jigglypuff'),true);
+ assert.equal(isPokemonUnlockedInState(s,'taillow'),true);
+ assert.equal(isPokemonUnlockedInState(s,'igglybuff'),false);
  assert.equal(isPokemonUnlockedInState(s,'kakuna'),false);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
  assert.equal(isPokemonUnlockedInState(s,'pikachu'),false);
  s={...s,killCounts:{...s.killCounts,caterpie:1}};
  assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
- assert.equal(isPokemonUnlockedInState(s,'nidoran-m'),true);
- assert.equal(appearedInRegion(s,BERRY_REGION.id).length,5);
- assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,6);
+ assert.equal(isPokemonUnlockedInState(s,'igglybuff'),true);
+ assert.equal(isPokemonUnlockedInState(s,'nidoran-m'),false);
+ assert.equal(appearedInRegion(s,BERRY_REGION.id).length,6);
+ assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,7);
  let rare={...state(),uncommonStarterId:'bulbasaur'};
  assert.equal(isRegionUnlocked({...rare,killCounts:{...rare.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}},BERRY_REGION.id),false);
 });
@@ -120,59 +128,59 @@ test('v6 region, new stat rewards, and berry first victories survive save',()=>{
  assert.equal(restored.dittoStats.specialAttack,4.5);
 });
 
-test('berry forest battles pay stat rewards, but no unconfigured type energy',()=>{
+test('berry forest battles pay configured type energy and stat rewards',()=>{
  let s=state();
  s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},
   killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}};
  s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
  s=transition(s,{type:'SELECT_WILD',pokemonId:'caterpie'});
  assert.equal(s.combat.active,true);
- assert.equal(s.combat.enemy.hp.max,90);
+ assert.equal(s.combat.enemy.hp.max,45);
  const beforeHp=s.dittoStats.hp;
  const beforeAttack=s.dittoStats.attack;
  const beforeEnergy={...s.energyBalances};
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
  assert.equal(s.killCounts.caterpie,1);
  assert.equal(s.dittoStats.hp,beforeHp+7);
- assert.equal(s.dittoStats.attack,beforeAttack+1.7);
- assert.deepEqual(s.energyBalances,beforeEnergy);
+ assert.equal(s.dittoStats.attack,beforeAttack);
+ assert.equal(s.energyBalances.벌레,beforeEnergy.벌레+3);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
 });
 
-test('Jigglypuff grants normal energy only with repetition decay, alongside existing special attack reward',()=>{
+test('Igglybuff grants normal and fairy energy with repetition decay and special attack reward',()=>{
  let s=state();
  s={...s,activeRegionId:BERRY_REGION.id,
    killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1},
    dittoStats:{...s.dittoStats,attack:10000,speed:1}};
  const before={...s.energyBalances};
- s=transition(s,{type:'SELECT_WILD',pokemonId:'jigglypuff'});
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
  assert.equal(s.combat.active,true);
- assert.equal(s.combat.enemy.hp.max,230);
+ assert.equal(s.combat.enemy.hp.max,90);
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
- assert.equal(s.killCounts.jigglypuff,1);
- assert.equal(s.energyBalances.노말,before.노말+10);
- assert.equal(s.energyBalances.페어리,before.페어리+10);
- assert.equal(s.dittoStats.specialAttack,4.5);
- s=transition(s,{type:'SELECT_WILD',pokemonId:'jigglypuff'});
+ assert.equal(s.killCounts.igglybuff,1);
+ assert.equal(s.energyBalances.노말,before.노말+17.4);
+ assert.equal(s.energyBalances.페어리,before.페어리+17.4);
+ assert.equal(s.dittoStats.specialAttack,2);
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
- assert.equal(s.killCounts.jigglypuff,2);
- assert.equal(s.energyBalances.노말,before.노말+15);
- assert.equal(s.energyBalances.페어리,before.페어리+15);
- assert.equal(s.dittoStats.specialAttack,6.75);
+ assert.equal(s.killCounts.igglybuff,2);
+ assert.equal(s.energyBalances.노말,before.노말+26.1);
+ assert.equal(s.energyBalances.페어리,before.페어리+26.1);
+ assert.equal(s.dittoStats.specialAttack,3);
 });
 
 test('Nidoran males and females grant poison energy with normal diminishing returns and keep stat rewards',()=>{
  for(const [id,rewardField,rewardValue] of [['nidoran-m','attack',3.2],['nidoran-f','hp',12.9]]){
    let s=state();
    s={...s,activeRegionId:BERRY_REGION.id,
-     killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1,jigglypuff:1},
+     killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1,igglybuff:1},
      dittoStats:{...s.dittoStats,hp:10000,attack:10000,speed:1}};
    const initialEnergy={...s.energyBalances};
    const initialReward=s.dittoStats[rewardField];
    for(let count=1;count<=2;count++){
      s=transition(s,{type:'SELECT_WILD',pokemonId:id});
      assert.equal(s.combat.active,true);
-     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?28.5:4.7);
+     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?28.5:14.7);
      s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
      assert.equal(s.killCounts[id],count);
      assert.equal(s.combat.active,false);
