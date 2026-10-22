@@ -17,8 +17,8 @@ const PENDING={
 export function DittoPage({infoTab,setInfoTab}){
   const dittoStats=useGameStore(s=>s.game.dittoStats);
   const energyUpgrades=useGameStore(s=>s.game.energyUpgrades);
-  const qolUnlocks=useGameStore(s=>s.qolUnlocks);
-  const automation=useGameStore(s=>s.automation);
+  const qolUnlocks=useGameStore(s=>s.game.qolUnlocks);
+  const automation=useGameStore(s=>s.game.automation);
   const stats=useMemo(()=>effectiveDittoStats({dittoStats,energyUpgrades}),[dittoStats,energyUpgrades]);
   const dispatch=useGameStore(s=>s.dispatch);
   return <div className="ditto-page">
