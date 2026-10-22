@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {decimal,storedAmount,addAmount,subtractAmount,multiplyAmount,divideAmount,compareAmount,formatAmount} from '../src/core/bigNumber.js';
 import {initialState,transition} from '../src/core/gameState.js';
-import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
+import {encodeSave,decodeSave,SAVE_VERSION} from '../src/core/saveSystem.js';
 
 test('1e1025 stats survive arithmetic and combat without infinity',()=>{
  assert.equal(storedAmount('1e1025'),'1e1025');
@@ -37,7 +37,7 @@ test('new save and legacy version 1 are both readable',()=>{
  const encoded=encodeSave(s,Date.UTC(2026,9,18));
  assert.equal(decodeSave(encoded).game.dittoStats.attack,'1e1025');
  const raw=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded),c=>c.charCodeAt(0))));
- assert.equal(raw.version,8);
+ assert.equal(raw.version,SAVE_VERSION);
  raw.version=1;raw.game.dittoStats.attack=12.5;raw.game.dittoStats.hp=10;
  const text=JSON.stringify(raw);const bytes=new TextEncoder().encode(text);
  const legacy=btoa(String.fromCharCode(...bytes));
