@@ -8,7 +8,7 @@ export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
   dittoStats:{...DEFAULT_DITTO_STATS},
   killCounts:Object.fromEntries(ALL_POKEMON.map(p=>[p.id,0])),
-  activeRegionId:REGION.id,berryRareAppeared:false,
+  activeRegionId:REGION.id,berryRareAppeared:false,evolutionResults:{},
   uncommonChance:UNCOMMON_BASE_CHANCE,uncommonStarterId:null,dexDiscovered:[],
   ...initialEconomy(),
   automation:{...DEFAULT_AUTOMATION},recoveryMs:0,retryPokemonId:null,
