@@ -11,6 +11,8 @@ const groups=[
 function run(strategy){
  let s=transition(initialState(),{type:'START'}),ms=0,steps=0;
  const allIds=groups.flatMap(([,ids])=>ids);
+ const evolutionIds=['metapod','kakuna'];
+ const reportIds=[...allIds,...evolutionIds];
  const logs=[],firstChallenge={},battles={},streaks={},failures={},pending=[];
  let automationBoughtAt=null;
  function toggle(on){
@@ -127,10 +129,23 @@ function run(strategy){
    }
    if(pending.length)retry('end '+region);
  }
+ // Evolved enemies only appear after a parent's tenth victory. If unlocked,
+ // include each in the completion probe rather than silently omitting them.
+ for(const id of evolutionIds){
+   if(!isPokemonUnlockedInState(s,id))continue;
+   let outcome=target(id);
+   if(outcome!=='cleared'){
+     logs.push({event:'blocked-evolution',pokemon:id,result:outcome,atMs:ms});
+     farm(allIds,id);
+     outcome=target(id);
+   }
+   if(outcome!=='cleared'&&!pending.includes(id))pending.push(id);
+   logs.push({event:'evolution-result',pokemon:id,result:outcome,kills:s.killCounts[id]??0,atMs:ms});
+ }
  const result={strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
-   victories:s.victories,kills:Object.fromEntries(allIds.map(id=>[id,s.killCounts[id]??0])),
+   victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
-   maxStreak:Object.fromEntries(allIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
+   maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
    firstTaillow:firstChallenge.taillow??null,unresolved:pending,events:logs,
    stats:effectiveDittoStats(s),upgrades:s.energyUpgrades,steps};
  console.log('HUNGER_FIVE_'+strategy.toUpperCase()+' '+JSON.stringify(result));
