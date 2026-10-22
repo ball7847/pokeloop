@@ -81,6 +81,7 @@ export function WildPage(){
   const cleared=appearedInRegion(game,REGION.id).filter(p=>(killCounts[p.id]??0)>0).length;
   const need=regionUnlockRequirement(game);
   const total=pokemon.reduce((sum,p)=>sum+(killCounts[p.id]||0),0);
+  const baseCount=pokemon.filter(p=>!p.evolvesFrom).length;
   return <section className="wild-page">
     <div className="wild-region-tabs" role="tablist" aria-label="지역 선택">
       {REGIONS.map(r=><button key={r.id} role="tab" type="button" aria-selected={region.id===r.id}
@@ -105,7 +106,7 @@ export function WildPage(){
         </React.Fragment>;
       })}
       {region.id===REGION.id&&!game.uncommonStarterId&&<div className="wild-empty-cell wild-rare-empty" aria-label="6번 슬롯: 안흔함 포켓몬 미등장"><strong>안흔함</strong><small>미등장</small></div>}
-      {Array.from({length:Math.max(0,region.capacity-pokemon.length-(region.id===REGION.id&&!game.uncommonStarterId?1:0)-(region.id===BERRY_REGION.id&&!game.berryRareAppeared?1:0))},(_,i)=>
+      {Array.from({length:Math.max(0,region.capacity-baseCount-(region.id===REGION.id&&!game.uncommonStarterId?1:0)-(region.id===BERRY_REGION.id&&!game.berryRareAppeared?1:0))},(_,i)=>
         <div key={'empty-'+i} className="wild-empty-cell" aria-hidden="true"/>)}
     </div>
     <p className="wild-footnote">포켓몬을 선택하면 자동 전투가 시작됩니다. 처음 3마리가 해금되며, 서로 다른 포켓몬을 처음 처치할 때마다 다음 포켓몬이 1마리씩 해금됩니다. 반복 처치는 추가 해금되지 않습니다. 보상은 처치 횟수에 따라 감소합니다.</p>
