@@ -2,7 +2,7 @@ import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUr
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
 import {effectiveDittoStats} from './shopSystem.js';
-import {addAmount,subtractAmount,multiplyAmount,compareAmount} from './bigNumber.js';
+import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
 export const emptyCombat = hp=>({
   active:false, enemy:null, currentHp:hp, maxHp:hp,
   dittoHp:{current:hp,max:hp}, dittoAttackCooldown:null,
@@ -92,9 +92,13 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
     if(player)c.enemy.hp.current=value;
     else {c.currentHp=value;c.dittoHp.current=value;}
   };
-  const cancelChance=Math.min(250,actingStatus.paralysis)*.001;
-  const cancelled=random()<cancelChance;
-  const hit=!cancelled&&random()<hitChance(attackerStats,defenderStats);
+  // Paralysis never cancels the current attack. A successful 25% proc
+  // consumes the entire stack and extends only the NEXT attack cooldown.
+  const paralysis=actingStatus.paralysis??0;
+  const triggered=compareAmount(paralysis,0)>0&&random()<0.25;
+  const delayMs=triggered?Math.min(Number.MAX_VALUE,decimal(paralysis).toNumber()):0;
+  if(triggered)actingStatus.paralysis=0;
+  const hit=random()<hitChance(attackerStats,defenderStats);
   if(hit){
     // Physical and special damage are separate channels within the same action.
     let damage=0;
@@ -106,11 +110,11 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       if(compareAmount(net,0)>0)damage=addAmount(damage,net);
     }
     if(compareAmount(damage,0)>0)setDefenderHp(subtractAmount(defenderHp(),damage));
-    targetStatus.paralysis=Math.min(250,targetStatus.paralysis+(attackerStats.paralysis??0));
+    targetStatus.paralysis=addAmount(targetStatus.paralysis??0,attackerStats.paralysis??0);
     targetStatus.poison=addAmount(targetStatus.poison,attackerStats.poison??0);
   }
   // Detoxify before paying poison damage at the end of EVERY attack action,
-  // including attacks that are cancelled by paralysis or miss.
+  // including misses or attacks that trigger paralysis delay.
   if(compareAmount(actingStatus.poison,0)>0){
     const antidote=attackerStats.antidote??0;
     if(compareAmount(antidote,0)>0){
@@ -119,7 +123,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
     }
     if(compareAmount(actingStatus.poison,0)>0)setActingHp(subtractAmount(actingHp(),actingStatus.poison));
   }
-  return {hit,cancelled};
+  return {hit,cancelled:false,paralysisTriggered:triggered,delayMs};
 }
 export function advanceBattle(state,deltaMs,random=Math.random) {
   if(state.phase!=='running'||!state.combat.active)return state;
@@ -129,25 +133,25 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   const playerStats=effectiveDittoStats(state),enemyStats=c.enemy.statistics??getWildPokemon(c.pokemonId);
   let remaining=Math.min(deltaMs,5000);
   const my=c.dittoAttackCooldown,foe=c.enemy.attackCooldown;
-  const foePeriod=Math.max(1,foe.duration);
   for(let steps=0;remaining>0&&steps<1000;steps++){
-    const myPeriod=Math.max(1,my.duration);
+    const myPeriod=Math.max(1,my.duration),foePeriod=Math.max(1,foe.duration);
     const toMine=Math.max(0,myPeriod-my.elapsed),toFoe=Math.max(0,foePeriod-foe.elapsed);
     const next=Math.min(toMine,toFoe,remaining);
     my.elapsed+=next;foe.elapsed+=next;remaining-=next;
     if(my.elapsed<myPeriod&&foe.elapsed<foePeriod)break;
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
-      resolveAttack(c,'player',playerStats,enemyStats,random);
-      my.duration=Math.max(1,playerStats.speed);
+      const attack=resolveAttack(c,'player',playerStats,enemyStats,random);
+      my.duration=Math.max(1,playerStats.speed+attack.delayMs);
       if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat',random);
       if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory',random);
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
-      resolveAttack(c,'enemy',enemyStats,playerStats,random);
-      if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat');
-      if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory');
+      const attack=resolveAttack(c,'enemy',enemyStats,playerStats,random);
+      foe.duration=Math.max(1,enemyStats.speed+attack.delayMs);
+      if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat',random);
+      if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory',random);
     }
   }
   return {...state,combat:c};
