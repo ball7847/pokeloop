@@ -15,7 +15,7 @@ export function eventMessage(event) {
   if(!event)return null;
   if(event.type==='start')return event.name+'과(와) 전투 시작';
   if(event.type==='victory')return event.name+' '+event.count+'회 처치 · '+
-    Object.entries(event.rewards).map(([k,v])=>(labels[k]??k)+' '+(v<0?'−':'+')+pretty(Math.abs(v))+(k==='speed'?'ms':'')).join(', ');
+    Object.entries(event.rewards).map(([k,v])=>(labels[k]??k)+' '+(v<0?'−':'+')+pretty(Math.abs(v))+(k==='speed'?'ms':k==='maxDamagePercent'?'%':'')).join(', ');
   if(event.type==='defeat')return event.name+'에게 쓰러졌습니다.';
   if(event.type==='flee')return '전투에서 도망쳤습니다.';
   return null;
