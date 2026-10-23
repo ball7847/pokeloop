@@ -20,7 +20,7 @@ test('React root renders all primary regions and initial stat values',async()=>{
   assert.ok(markup.includes('class="ditto-battle-region"'));
   assert.equal(markup.includes('class="mini-combat"'),false);
 });
-test('React wild page has 5 Pokemon and 15 inactive cells',async()=>{
+test('React wild page shows only appeared Pokemon without inactive cells',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  let html;
  try {
@@ -28,7 +28,7 @@ test('React wild page has 5 Pokemon and 15 inactive cells',async()=>{
    html=renderToStaticMarkup(React.createElement(WildPage));
  } finally {await vite.close();}
  for(const name of ['꼬렛','구구','망키','깨비참','주뱃'])assert.ok(html.includes(name));
- assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,14);
+ assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
 });
 test('Zustand dispatch records only event transitions, never combat ticks',()=>{
  dispatch({type:'RESET'});
@@ -86,7 +86,7 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
    assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,15);
    assert.deepEqual(visibleWildBasicStats({hp:3,attack:0,speed:2000}).map(x=>x.key),['hp','speed']);
    assert.deepEqual(visibleWildExtraStats({extraStats:{dodge:0,critChance:12}}),[['critChance',12]]);
-   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,14);
+   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
  }finally{await vite.close();}
 });
 
@@ -118,7 +118,7 @@ test('six local user-supplied stat silhouettes appear without duplicate text',as
    assert.match(detail,/attack\.svg/);
    assert.match(wild,/speed\.svg/);
    assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,15);
-   assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,14);
+   assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,0);
  } finally { await vite.close(); }
 });
 test('wild Pokemon inherit 85% damage floor while the default never takes a card slot',async()=>{
@@ -173,7 +173,7 @@ test('wild layout keeps 4 columns, square portrait, no sequence number and fixed
   const html=renderToStaticMarkup(React.createElement(WildPage));
   assert.equal((html.match(/class="wild-basic-stats"/g)||[]).length,5);
   assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,15);
-  assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,14);
+  assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
   assert.doesNotMatch(html,/class="wild-order"/);
   const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
   assert.match(css,/\.wild-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);
