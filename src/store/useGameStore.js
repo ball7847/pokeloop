@@ -23,6 +23,9 @@ export function eventMessage(event) {
 export const useGameStore=create((set,get)=>({
   ...initialPersistence(),
   logs:[],
+  // UI-only filter persists across page tab unmounts, not in saved game data.
+  wildRegionFilter:null,
+  setWildRegionFilter:(filter)=>set({wildRegionFilter:filter}),
   saveLocal:()=>{
     const savedAt=writeLocalSave(get().game);
     set({lastSavedAt:savedAt,saveError:null});
