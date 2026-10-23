@@ -1,8 +1,8 @@
 import {StatLabel} from '../components/StatIcon.jsx';
 import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
-import React,{useMemo,useState} from 'react';
+import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
-import {REGION,BERRY_REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
+import {REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
 import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
 
 // Row-major positions in a 2-column, 3-row grid: HP/Speed, Attack/Defense, Sp.Atk/Sp.Def.
@@ -89,7 +89,9 @@ export function WildPage(){
   const recoveryMs=useGameStore(s=>s.game.recoveryMs);
   const dispatch=useGameStore(s=>s.dispatch);
   // This is a view filter only. The game keeps a real active region for combat.
-  const [regionFilter,setRegionFilter]=useState(activeRegionId);
+  const storedFilter=useGameStore(s=>s.wildRegionFilter);
+  const setRegionFilter=useGameStore(s=>s.setWildRegionFilter);
+  const regionFilter=storedFilter??activeRegionId;
   const allRegions=regionFilter==='all';
   const pokemon=visiblePokemonForRegion(game,regionFilter);
   const selectPokemon=p=>{
@@ -100,19 +102,15 @@ export function WildPage(){
     }
     dispatch({type:'SELECT_WILD',pokemonId:p.id});
   };
-  const cleared=appearedInRegion(game,REGION.id).filter(p=>(killCounts[p.id]??0)>0).length;
-  const need=regionUnlockRequirement(game);
   const total=pokemon.reduce((sum,p)=>sum+(killCounts[p.id]||0),0);
-  const baseCount=pokemon.filter(p=>!p.evolvesFrom).length;
   return <section className="wild-page">
     <div className="wild-region-tabs" role="tablist" aria-label="지역 선택">
       <button key="all" role="tab" type="button" aria-selected={allRegions}
         disabled={combatActive} onClick={()=>setRegionFilter('all')}>모두</button>
       {REGIONS.map(r=><button key={r.id} role="tab" type="button" aria-selected={regionFilter===r.id}
         disabled={!isRegionUnlocked(game,r.id)||combatActive} onClick={()=>{setRegionFilter(r.id);dispatch({type:'SELECT_REGION',regionId:r.id});}}>
-        {r.name}{isRegionUnlocked(game,r.id)?'':' (잠김)'}</button>)}
+        {r.name}</button>)}
     </div>
-    {!isRegionUnlocked(game,BERRY_REGION.id)&&<p className="wild-region-progress">베리숲 해금: 1지역 서로 다른 포켓몬 {cleared}/{need}종 첫 처치 (등장 종의 70%)</p>}
     <div className="wild-region-summary"><span className="wild-progress">{total} / {pokemon.length*REGION.defaultKillLimit}회 처치</span></div>
     {recoveryMs>0&&<p className="wild-recovery" role="status">메타몽 회복 중 · {(recoveryMs/1000).toFixed(1)}초</p>}
     <div className="wild-grid">
