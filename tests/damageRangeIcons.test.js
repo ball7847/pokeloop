@@ -20,7 +20,7 @@ test('damage range icons use uploaded minimum image and a strictly vertical mirr
   const {StatLabel:Label}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
   const minMarkup=renderToStaticMarkup(React.createElement(Label,{stat:'minDamagePercent',label:'최소 피해량'}));
   const maxMarkup=renderToStaticMarkup(React.createElement(Label,{stat:'maxDamagePercent',label:'최대 피해량'}));
-  assert.match(minMarkup,/minDamagePercent\\.svg/);
-  assert.match(maxMarkup,/maxDamagePercent\\.svg/);
+  assert.match(minMarkup,/minDamagePercent\.svg/);
+  assert.match(maxMarkup,/maxDamagePercent\.svg/);
  }finally{await vite.close();}
 });
