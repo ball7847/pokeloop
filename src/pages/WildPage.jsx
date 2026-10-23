@@ -54,7 +54,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
     <div className="wild-extra-stats" aria-label="추가 능력치">
       {extras.map(([key,value])=><div key={key} className="wild-stat-box">
-        <span>{EXTRA_LABELS[key]??key}</span><strong>{['minDamagePercent','maxDamagePercent','accuracy','dodge'].includes(key)?value+'%':format(value)}</strong>
+        <StatLabel stat={key} label={EXTRA_LABELS[key]??key}/><strong>{['minDamagePercent','maxDamagePercent','accuracy','dodge'].includes(key)?value+'%':format(value)}</strong>
       </div>)}
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
