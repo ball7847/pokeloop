@@ -4,12 +4,12 @@ import {purchaseWithEnergy} from './energySystem.js';
 // Rejected Draft shop pattern: base cost * growth^currentLevel,
 // additive per-level bonuses to the base stat.
 export const UPGRADES=Object.freeze([
-  {id:'hp',name:'HP 강화',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
-  {id:'attack',name:'공격 강화',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
+  {id:'hp',name:'HP 증가',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
+  {id:'attack',name:'공격 증가',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
   {id:'attackMultiplier',name:'공격 증폭',type:'격투',base:1,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
-  {id:'speed',name:'공격속도 강화',type:'비행',base:20,growth:1000,bonus:0.01,unit:'percent',stat:'공격속도 배율'},
-  {id:'antidote',name:'해독',type:'독',base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
-  {id:'poisonMultiplier',name:'독 강화',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'}
+  {id:'speed',name:'공격속도 증폭',type:'비행',base:20,growth:1000,bonus:0.01,unit:'percent',stat:'공격속도 배율'},
+  {id:'antidote',name:'해독 증가',type:'독',base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
+  {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'}
 ]);
 export const AUTOMATIONS=Object.freeze([
   {id:'hunger',name:'끝없는 허기',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
