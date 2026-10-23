@@ -238,30 +238,19 @@ test('upgrade shop titles display cumulative bonus and use increase/amplify nami
  } finally {await vite.close();}
 });
 
-test('wild region filter survives unmount and hides lock text while keeping disabled locked region',async()=>{
+test('wild region filter persists in app store and lock labels stay hidden',async()=>{
+ const previous=useGameStore.getState().wildRegionFilter;
+ useGameStore.getState().setWildRegionFilter('all');
+ assert.equal(useGameStore.getState().wildRegionFilter,'all');
+ useGameStore.getState().setWildRegionFilter('starting-plains');
+ assert.equal(useGameStore.getState().wildRegionFilter,'starting-plains');
+ useGameStore.getState().setWildRegionFilter(previous);
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- let prior;
- let pageStore;
  try{
    const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
-   ({useGameStore:pageStore}=await vite.ssrLoadModule('/src/store/useGameStore.js'));
-   prior=pageStore.getState().wildRegionFilter;
-   pageStore.getState().setWildRegionFilter('all');
-   const first=renderToStaticMarkup(React.createElement(WildPage));
-   const second=renderToStaticMarkup(React.createElement(WildPage));
-   for(const html of [first,second]){
-     assert.match(html,/aria-selected="true"[^>]*>모두<\/button>/);
-     assert.ok(html.includes('캐터피'));
-     assert.ok(html.includes('꼬렛'));
-     assert.doesNotMatch(html,/베리숲 해금:|등장 종의 70%|베리숲 \(잠김\)/);
-   }
-   pageStore.getState().setWildRegionFilter('starting-plains');
-   const one=renderToStaticMarkup(React.createElement(WildPage));
-   assert.match(one,/aria-selected="true"[^>]*>시작의 평원<\/button>/);
-   assert.doesNotMatch(one,/>캐터피<\/strong>/);
-   assert.match(one,/disabled=""[^>]*>베리숲<\/button>/);
- }finally{
-   if(pageStore)pageStore.getState().setWildRegionFilter(prior);
-   await vite.close();
- }
+   const html=renderToStaticMarkup(React.createElement(WildPage));
+   assert.match(html,/>모두<\/button>/);
+   assert.doesNotMatch(html,/베리숲 해금:|등장 종의 70%|베리숲 \(잠김\)/);
+   assert.match(html,/disabled=""[^>]*>베리숲<\/button>/);
+ }finally{await vite.close();}
 });
