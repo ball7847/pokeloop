@@ -208,3 +208,32 @@ test('energy navigation has approved order and reveals discovered balances only'
    assert.deepEqual(discoveredEnergyItems({energyBalances:{비행:42}}),[{id:'비행',name:'비행 에너지',amount:42}]);
  }finally{await vite.close();}
 });
+
+test('region filter combines only appeared Pokemon and keeps not-yet-unlocked cards visible',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try {
+   const {visiblePokemonForRegion}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+   const {initialState}=await vite.ssrLoadModule('/src/core/gameState.js');
+   const state=initialState();
+   const ids=filter=>visiblePokemonForRegion(state,filter).map(p=>p.id);
+   assert.deepEqual(ids('starting-plains'),['rattata','pidgey','mankey','spearow','zubat']);
+   assert.deepEqual(ids('berry-forest'),['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f']);
+   assert.deepEqual(ids('all'),[...ids('starting-plains'),...ids('berry-forest')]);
+   for(const id of ['pikachu','bulbasaur','metapod','kakuna'])assert.equal(ids('all').includes(id),false);
+   const appeared={...state,berryRareAppeared:true,uncommonStarterId:'charmander',evolutionResults:{metapod:true,kakuna:true}};
+   const after=visiblePokemonForRegion(appeared,'all').map(p=>p.id);
+   for(const id of ['pikachu','charmander','metapod','kakuna'])assert.ok(after.includes(id),id);
+ } finally {await vite.close();}
+});
+test('upgrade shop titles display cumulative bonus and use increase/amplify naming',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try {
+   const {EnergyPage}=await vite.ssrLoadModule('/src/pages/EnergyPage.jsx');
+   const {UPGRADES}=await vite.ssrLoadModule('/src/core/shopSystem.js');
+   assert.deepEqual(UPGRADES.map(item=>item.name),['HP 증가','공격 증가','공격 증폭','공격속도 증폭','해독 증가','독 증폭']);
+   const html=renderToStaticMarkup(React.createElement(EnergyPage));
+   assert.match(html,/HP 증가 Lv\. 0 \(HP \+0\)/);
+   assert.match(html,/공격 증폭 Lv\. 0 \(공격 \+0%\)/);
+   assert.doesNotMatch(html,/레벨당|현재 적용:/);
+ } finally {await vite.close();}
+});
