@@ -1,4 +1,5 @@
 import {StatLabel} from '../components/StatIcon.jsx';
+import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
@@ -60,7 +61,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
       {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}><StatLabel stat={stat} label={label} compact/> {rewardText(stat,value)}</span>)}
       {Object.keys(battleEnergyRewards(pokemon,count)).length===0?<span className="wild-reward">타입 에너지 보상 미설정</span>:
        Object.entries(battleEnergyRewards(pokemon,count)).map(([type,amount])=>
-         <span className="wild-reward" key={'energy-'+type}>{type} 에너지 +{formatAmount(amount)}</span>)}
+         <span className="wild-reward" key={'energy-'+type}><EnergyTypeIcon type={type}/>{type} 에너지 +{formatAmount(amount)}</span>)}
     </div>
     <div className="wild-card-footer">
       <span className="wild-kills">{count} / {REGION.defaultKillLimit}회</span>
