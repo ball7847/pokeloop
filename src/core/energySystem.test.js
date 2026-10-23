@@ -113,17 +113,17 @@ test('legacy v3 preserves old essence as energy and old layer energy as particle
   assert.equal(migrated.particleBank['비행'],9);
 });
 
-test('configured species payouts remain unchanged after renaming to energy',async()=>{
+test('configured species payouts include the Mankey balance adjustment',async()=>{
   const {WILD_POKEMON,UNCOMMON_STARTERS}=await import('./wildData.js');
   assert.deepEqual(WILD_POKEMON.map(p=>[p.id,p.energyReward]),[
-    ['rattata',1],['pidgey',2],['mankey',10],['spearow',3],['zubat',3]
+    ['rattata',1],['pidgey',2],['mankey',2],['spearow',3],['zubat',3]
   ]);
   assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.energyReward),[132,132,132]);
 });
 
 test('energy uses the same 1/(1+previous kills) decay as stat rewards',async()=>{
   const {getWildPokemon,scaledReward}=await import('./wildData.js');
-  for(const [id,base] of [['rattata',1],['pidgey',2],['mankey',10],
+  for(const [id,base] of [['rattata',1],['pidgey',2],['mankey',2],
     ['spearow',3],['zubat',3],['bulbasaur',132],['charmander',132],['squirtle',132]]){
     const pokemon=getWildPokemon(id);
     assert.equal(pokemon.energyReward,base);
