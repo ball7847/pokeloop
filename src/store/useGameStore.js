@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import {formatAmount} from '../core/bigNumber.js';
+import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import { initialState, transition } from '../core/gameState.js';
 import {loadLocalSave,readAutoSaveEnabled,writeLocalSave,writeAutoSaveEnabled,clearLocalSave} from '../core/saveSystem.js';
 
@@ -14,8 +14,14 @@ const pretty=formatAmount;
 export function eventMessage(event) {
   if(!event)return null;
   if(event.type==='start')return event.name+'과(와) 전투 시작';
-  if(event.type==='victory')return event.name+' '+event.count+'회 처치 · '+
-    Object.entries(event.rewards).map(([k,v])=>(labels[k]??k)+' '+(v<0?'−':'+')+pretty(Math.abs(v))+(k==='speed'?'ms':k==='maxDamagePercent'?'%':'')).join(', ');
+  if(event.type==='victory'){
+    const statRewards=Object.entries(event.rewards??{}).map(([k,v])=>
+      (labels[k]??k)+' '+(v<0?'−':'+')+pretty(Math.abs(v))+(k==='speed'?'ms':k==='maxDamagePercent'?'%':''));
+    const energyRewards=Object.entries(event.energyRewards??{}).filter(([,amount])=>compareAmount(amount,0)>0)
+      .map(([type,amount])=>type+' 에너지 +'+pretty(amount));
+    const details=[...statRewards,...energyRewards];
+    return event.name+' '+event.count+'회 처치'+(details.length?' · '+details.join(', '):'');
+  }
   if(event.type==='defeat')return event.name+'에게 쓰러졌습니다.';
   if(event.type==='flee')return '전투에서 도망쳤습니다.';
   return null;

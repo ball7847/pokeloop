@@ -5,7 +5,7 @@ export const REGIONS=Object.freeze([REGION,BERRY_REGION]);
 const entries=[
 {id:'rattata',number:19,name:'꼬렛',types:['노말'],energyReward:1,hp:3,attack:2,speed:2100,rewards:{attack:1}},
 {id:'pidgey',number:16,name:'구구',types:['노말','비행'],energyReward:2,hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
-{id:'mankey',number:56,name:'망키',types:['격투'],energyReward:10,hp:24,attack:7,speed:1800,rewards:{hp:5.6,attack:2}},
+{id:'mankey',number:56,name:'망키',types:['격투'],energyReward:2,hp:24,attack:7,speed:1800,rewards:{hp:5.6,attack:2}},
 {id:'spearow',number:21,name:'깨비참',types:['노말','비행'],energyReward:3,hp:13.3,attack:2,speed:1300,rewards:{hp:2.1,attack:1}},
 {id:'zubat',number:41,name:'주뱃',types:['독','비행'],energyReward:3,hp:10,attack:1.2,speed:800,rewards:{attack:1,speed:-20}}
 ];
