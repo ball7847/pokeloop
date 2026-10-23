@@ -68,6 +68,12 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
   </button>;
 }
+// Filters only Pokémon that actually appeared this planet; never fabricates slots.
+export function visiblePokemonForRegion(game,filter){
+  return filter==='all'
+    ? REGIONS.flatMap(region=>appearedInRegion(game,region.id))
+    : appearedInRegion(game,filter);
+}
 export function WildPage(){
   // Enemy cards depend on encounter/unlock state, not particle production or HP animation ticks.
   const killCounts=useGameStore(s=>s.game.killCounts);
@@ -85,7 +91,7 @@ export function WildPage(){
   // This is a view filter only. The game keeps a real active region for combat.
   const [regionFilter,setRegionFilter]=useState(activeRegionId);
   const allRegions=regionFilter==='all';
-  const pokemon=allRegions?REGIONS.flatMap(r=>appearedInRegion(game,r.id)):appearedInRegion(game,regionFilter);
+  const pokemon=visiblePokemonForRegion(game,regionFilter);
   const selectPokemon=p=>{
     if(allRegions){
       const home=REGIONS.find(r=>appearedInRegion(game,r.id).some(x=>x.id===p.id));
