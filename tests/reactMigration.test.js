@@ -237,3 +237,28 @@ test('upgrade shop titles display cumulative bonus and use increase/amplify nami
    assert.doesNotMatch(html,/레벨당|현재 적용:/);
  } finally {await vite.close();}
 });
+
+test('wild region filter survives unmount and hides lock text while keeping disabled locked region',async()=>{
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ const prior=useGameStore.getState().wildRegionFilter;
+ try{
+   const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
+   useGameStore.getState().setWildRegionFilter('all');
+   const first=renderToStaticMarkup(React.createElement(WildPage));
+   const second=renderToStaticMarkup(React.createElement(WildPage));
+   for(const html of [first,second]){
+     assert.match(html,/aria-selected="true"[^>]*>모두<\/button>/);
+     assert.ok(html.includes('캐터피'));
+     assert.ok(html.includes('꼬렛'));
+     assert.doesNotMatch(html,/베리숲 해금:|등장 종의 70%|베리숲 \(잠김\)/);
+   }
+   useGameStore.getState().setWildRegionFilter('starting-plains');
+   const one=renderToStaticMarkup(React.createElement(WildPage));
+   assert.match(one,/aria-selected="true"[^>]*>시작의 평원<\/button>/);
+   assert.doesNotMatch(one,/>캐터피<\/strong>/);
+   assert.match(one,/disabled=""[^>]*>베리숲<\/button>/);
+ }finally{
+   useGameStore.getState().setWildRegionFilter(prior);
+   await vite.close();
+ }
+});
