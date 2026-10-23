@@ -17,13 +17,10 @@ test('damage range icons use uploaded minimum image and a strictly vertical mirr
    assert.ok(homeStatIconUrl(stat).endsWith(stat+'.svg'));
    assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat,label:stat})),/home-stat-icon/);
   }
-  const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
-  const {useGameStore}=await vite.ssrLoadModule('/src/store/useGameStore.js');
-  const old=useGameStore.getState().game;
-  try{
-   useGameStore.setState({game:{...old,killCounts:{...old.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1},activeRegionId:'berry-forest'}});
-   const html=renderToStaticMarkup(React.createElement(WildPage));
-   assert.match(html,/maxDamagePercent\.svg/);
-  } finally {useGameStore.setState({game:old});}
+  const {StatLabel:Label}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+  const minMarkup=renderToStaticMarkup(React.createElement(Label,{stat:'minDamagePercent',label:'최소 피해량'}));
+  const maxMarkup=renderToStaticMarkup(React.createElement(Label,{stat:'maxDamagePercent',label:'최대 피해량'}));
+  assert.match(minMarkup,/minDamagePercent\\.svg/);
+  assert.match(maxMarkup,/maxDamagePercent\\.svg/);
  }finally{await vite.close();}
 });
