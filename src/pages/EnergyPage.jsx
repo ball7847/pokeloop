@@ -3,6 +3,7 @@ import {useGameStore} from '../store/useGameStore.js';
 import {LAYERS,particleRates,particleMilestoneThreshold} from '../core/energySystem.js';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import {UPGRADES,AUTOMATIONS,upgradeCost} from '../core/shopSystem.js';
+import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 export function EnergyPage(){
   const [energyTab,setEnergyTab]=useState('stats');
   const game=useGameStore(s=>s.game);
@@ -25,7 +26,7 @@ export function EnergyPage(){
             <div className="world-layer-title"><strong>{layer.level}계층 · {layer.name}</strong><small>{unlocked?'해금':'잠김'}</small></div>
             <div className="world-layer-types">
               {layer.types.map(t=><div className="world-type-line" key={t}>
-                <span className="world-type-name">{t}</span>
+                <span className="world-type-name"><EnergyTypeIcon type={t}/>{t}</span>
                 <strong>{unlocked?formatAmount(game.particleBalances[t]??0):'보관 '+formatAmount(game.particleBank[t]??0)}</strong>
                 <span>{unlocked?formatAmount(rates[t]??0)+'/s':'잠김'}</span>
                 <small>누적 {unlocked?formatAmount(game.particleEarned[t]??0):'—'} · 이정표 {game.particleMilestones[t]??0}{unlocked?' · 다음 '+formatAmount(particleMilestoneThreshold(game.particleMilestones[t]??0)):''}</small>
@@ -58,7 +59,7 @@ export function EnergyPage(){
           return <div className="energy-shop-item" key={item.id}>
             <div><strong>{item.name} Lv. {level} ({item.stat==='공격속도 배율'?'공격속도':item.stat} +{formatAmount(level*item.bonus*(item.unit==='flat'?1:100))}{item.unit==='flat'?'':'%'})</strong></div>
             <button type="button" disabled={!affordable||game.phase!=='running'}
-              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{item.type} 에너지 {formatAmount(cost)} 구매</button>
+              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {formatAmount(cost)} 구매</button>
           </div>;
         }):AUTOMATIONS.map(item=>{
           const owned=game.qolUnlocks?.includes(item.id);
@@ -68,7 +69,7 @@ export function EnergyPage(){
             {owned?<button type="button" aria-pressed={active} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:item.id})}>
               {active?'활성화 · 끄기':'비활성화 · 켜기'}</button>:
               <button type="button" disabled={compareAmount(game.energyBalances[item.type]??0,item.cost)<0||game.phase==='paused'}
-                onClick={()=>dispatch({type:'BUY_AUTOMATION',id:item.id})}>{item.type} 에너지 {item.cost} 해금</button>}
+                onClick={()=>dispatch({type:'BUY_AUTOMATION',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {item.cost} 해금</button>}
           </div>;
         })}
         <small>구매 시 소비한 타입 에너지와 동일한 수량의 입자가 생성됩니다. 미해금 계층의 입자는 보관됩니다.</small>
