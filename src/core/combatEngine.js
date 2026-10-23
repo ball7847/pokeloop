@@ -44,8 +44,9 @@ function finish(state,c,type,random=Math.random) {
       const value=scaledReward(key,base,count);
       stats[key]=key==='speed'?Math.max(1,stats.speed+value):addAmount(stats[key],value);
     }
+    const energyRewards=battleEnergyRewards(p,count);
     let rewarded=state;
-    for(const [type,amount] of Object.entries(battleEnergyRewards(p,count)))
+    for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
     const evolution=count+1===REGION.defaultKillLimit?evolutionFor(p.id):null;
     const evolutionResults=evolution?{...state.evolutionResults,[evolution.id]:random()<evolutionChance(evolution,state)}:state.evolutionResults;
@@ -54,7 +55,7 @@ function finish(state,c,type,random=Math.random) {
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
       combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type:'victory',pokemonId:p.id,name:p.name,
-        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,scaledReward(k,v,count)]))}}};
+        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,scaledReward(k,v,count)])),energyRewards}}};
     if(updated.automation?.hunger&&count+1<REGION.defaultKillLimit&&compareAmount(c.currentHp,0)>0){
       // Reward applies before next encounter. Current HP carries over without healing.
       // A follow-up attack starts a fresh enemy and cooldown, not a new run.
