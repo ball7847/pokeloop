@@ -1,6 +1,6 @@
 import {StatLabel} from '../components/StatIcon.jsx';
 import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
-import React,{useMemo} from 'react';
+import React,{useMemo,useState} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {REGION,BERRY_REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionUnlockRequirement,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
 import {formatBasicStat,isDefaultStat,resolveStats} from '../core/dittoStats.js';
@@ -82,16 +82,28 @@ export function WildPage(){
   const phase=useGameStore(s=>s.game.phase);
   const recoveryMs=useGameStore(s=>s.game.recoveryMs);
   const dispatch=useGameStore(s=>s.dispatch);
-  const region=REGIONS.find(r=>r.id===game.activeRegionId)??REGION;
-  const pokemon=appearedInRegion(game,region.id);
+  // This is a view filter only. The game keeps a real active region for combat.
+  const [regionFilter,setRegionFilter]=useState(activeRegionId);
+  const allRegions=regionFilter==='all';
+  const pokemon=allRegions?REGIONS.flatMap(r=>appearedInRegion(game,r.id)):appearedInRegion(game,regionFilter);
+  const selectPokemon=p=>{
+    if(allRegions){
+      const home=REGIONS.find(r=>appearedInRegion(game,r.id).some(x=>x.id===p.id));
+      if(!home||!isRegionUnlocked(game,home.id))return;
+      if(home.id!==game.activeRegionId)dispatch({type:'SELECT_REGION',regionId:home.id});
+    }
+    dispatch({type:'SELECT_WILD',pokemonId:p.id});
+  };
   const cleared=appearedInRegion(game,REGION.id).filter(p=>(killCounts[p.id]??0)>0).length;
   const need=regionUnlockRequirement(game);
   const total=pokemon.reduce((sum,p)=>sum+(killCounts[p.id]||0),0);
   const baseCount=pokemon.filter(p=>!p.evolvesFrom).length;
   return <section className="wild-page">
     <div className="wild-region-tabs" role="tablist" aria-label="지역 선택">
-      {REGIONS.map(r=><button key={r.id} role="tab" type="button" aria-selected={region.id===r.id}
-        disabled={!isRegionUnlocked(game,r.id)||combatActive} onClick={()=>dispatch({type:'SELECT_REGION',regionId:r.id})}>
+      <button key="all" role="tab" type="button" aria-selected={allRegions}
+        disabled={combatActive} onClick={()=>setRegionFilter('all')}>모두</button>
+      {REGIONS.map(r=><button key={r.id} role="tab" type="button" aria-selected={regionFilter===r.id}
+        disabled={!isRegionUnlocked(game,r.id)||combatActive} onClick={()=>{setRegionFilter(r.id);dispatch({type:'SELECT_REGION',regionId:r.id});}}>
         {r.name}{isRegionUnlocked(game,r.id)?'':' (잠김)'}</button>)}
     </div>
     {!isRegionUnlocked(game,BERRY_REGION.id)&&<p className="wild-region-progress">베리숲 해금: 1지역 서로 다른 포켓몬 {cleared}/{need}종 첫 처치 (등장 종의 70%)</p>}
@@ -104,16 +116,9 @@ export function WildPage(){
         const capped=count>=REGION.defaultKillLimit;
         const fighting=combatActive&&fightingId===p.id;
         const disabled=!unlocked||capped||combatActive||recoveryMs>0||phase==='paused'||phase==='finished';
-        return <React.Fragment key={p.id}>
-          {region.id===BERRY_REGION.id&&!game.berryRareAppeared&&p.id==='igglybuff'&&
-            <div className="wild-empty-cell wild-rare-empty" aria-label="5번 슬롯 피카츄: 안흔함 포켓몬 미등장"><strong>피카츄 · 안흔함</strong><small>이번 환생 미등장</small></div>}
-          <WildCard pokemon={p} count={count} unlocked={unlocked} capped={capped}
-            fighting={fighting} disabled={disabled} onSelect={()=>dispatch({type:'SELECT_WILD',pokemonId:p.id})}/>
-        </React.Fragment>;
+        return <WildCard key={p.id} pokemon={p} count={count} unlocked={unlocked} capped={capped}
+          fighting={fighting} disabled={disabled} onSelect={()=>selectPokemon(p)}/>;
       })}
-      {region.id===REGION.id&&!game.uncommonStarterId&&<div className="wild-empty-cell wild-rare-empty" aria-label="6번 슬롯: 안흔함 포켓몬 미등장"><strong>안흔함</strong><small>미등장</small></div>}
-      {Array.from({length:Math.max(0,region.capacity-baseCount-(region.id===REGION.id&&!game.uncommonStarterId?1:0)-(region.id===BERRY_REGION.id&&!game.berryRareAppeared?1:0))},(_,i)=>
-        <div key={'empty-'+i} className="wild-empty-cell" aria-hidden="true"/>)}
     </div>
     <p className="wild-footnote">포켓몬을 선택하면 자동 전투가 시작됩니다. 처음 3마리가 해금되며, 서로 다른 포켓몬을 처음 처치할 때마다 다음 포켓몬이 1마리씩 해금됩니다. 반복 처치는 추가 해금되지 않습니다. 보상은 처치 횟수에 따라 감소합니다.</p>
   </section>;
