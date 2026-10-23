@@ -3,9 +3,10 @@ import React from 'react';
 // Local SVG vectorizations of the six user-provided Pokémon HOME PNG silhouettes.
 export const HOME_STAT_FILES = Object.freeze({
   hp:'hp.svg', attack:'attack.svg', defense:'defense.svg',
-  specialAttack:'specialAttack.svg', specialDefense:'specialDefense.svg', speed:'speed.svg'
+  specialAttack:'specialAttack.svg', specialDefense:'specialDefense.svg', speed:'speed.svg',
+  minDamagePercent:'minDamagePercent.svg', maxDamagePercent:'maxDamagePercent.svg'
 });
-const EXTRA_ICONS=Object.freeze({poison:'☣',paralysis:'ϟ',antidote:'✚',accuracy:'◎',dodge:'↝',minDamagePercent:'◈'});
+const EXTRA_ICONS=Object.freeze({poison:'☣',paralysis:'ϟ',antidote:'✚',accuracy:'◎',dodge:'↝'});
 const SHORT_LABELS=Object.freeze({
   hp:'HP',attack:'공격',defense:'방어',
   specialAttack:'특공',specialDefense:'특방',speed:'스피드'
