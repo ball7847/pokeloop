@@ -240,10 +240,13 @@ test('upgrade shop titles display cumulative bonus and use increase/amplify nami
 
 test('wild region filter survives unmount and hides lock text while keeping disabled locked region',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- const prior=useGameStore.getState().wildRegionFilter;
+ let prior;
+ let pageStore;
  try{
    const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
-   useGameStore.getState().setWildRegionFilter('all');
+   ({useGameStore:pageStore}=await vite.ssrLoadModule('/src/store/useGameStore.js'));
+   prior=pageStore.getState().wildRegionFilter;
+   pageStore.getState().setWildRegionFilter('all');
    const first=renderToStaticMarkup(React.createElement(WildPage));
    const second=renderToStaticMarkup(React.createElement(WildPage));
    for(const html of [first,second]){
@@ -252,13 +255,13 @@ test('wild region filter survives unmount and hides lock text while keeping disa
      assert.ok(html.includes('꼬렛'));
      assert.doesNotMatch(html,/베리숲 해금:|등장 종의 70%|베리숲 \(잠김\)/);
    }
-   useGameStore.getState().setWildRegionFilter('starting-plains');
+   pageStore.getState().setWildRegionFilter('starting-plains');
    const one=renderToStaticMarkup(React.createElement(WildPage));
    assert.match(one,/aria-selected="true"[^>]*>시작의 평원<\/button>/);
    assert.doesNotMatch(one,/>캐터피<\/strong>/);
    assert.match(one,/disabled=""[^>]*>베리숲<\/button>/);
  }finally{
-   useGameStore.getState().setWildRegionFilter(prior);
+   if(pageStore)pageStore.getState().setWildRegionFilter(prior);
    await vite.close();
  }
 });
