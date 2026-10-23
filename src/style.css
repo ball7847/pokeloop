@@ -343,3 +343,14 @@
  .world-type-line{grid-template-columns:29px minmax(0,1fr) minmax(47px,1fr)}
  .energy-world-stellar .energy-balance-grid{grid-template-columns:1fr}
 }
+
+
+/* Locally bundled Pokemon type glyphs, used wherever type energy is displayed. */
+.energy-type-icon{width:16px;height:16px;flex:0 0 16px;vertical-align:-3px;object-fit:contain}
+.energy-type-label,.sidebar-energy-name,.world-type-name,.log-energy-gain{display:inline-flex;align-items:center;gap:4px}
+.sidebar-energy-name{min-width:0;overflow-wrap:anywhere}
+.world-type-name{white-space:nowrap}
+.log-energy-gain{display:inline-flex;vertical-align:middle;white-space:nowrap}
+.energy-shop-item button .energy-type-icon{margin-right:5px}
+.wild-reward .energy-type-icon{width:14px;height:14px;flex-basis:14px}
+@media(max-width:650px){.wild-reward .energy-type-icon{width:12px;height:12px;flex-basis:12px}}
