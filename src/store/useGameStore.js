@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import {formatAmount} from '../core/bigNumber.js';
+import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import { initialState, transition } from '../core/gameState.js';
 import {loadLocalSave,readAutoSaveEnabled,writeLocalSave,writeAutoSaveEnabled,clearLocalSave} from '../core/saveSystem.js';
 
@@ -17,7 +17,7 @@ export function eventMessage(event) {
   if(event.type==='victory'){
     const statRewards=Object.entries(event.rewards??{}).map(([k,v])=>
       (labels[k]??k)+' '+(v<0?'−':'+')+pretty(Math.abs(v))+(k==='speed'?'ms':k==='maxDamagePercent'?'%':''));
-    const energyRewards=Object.entries(event.energyRewards??{}).filter(([,amount])=>Number(amount)>0)
+    const energyRewards=Object.entries(event.energyRewards??{}).filter(([,amount])=>compareAmount(amount,0)>0)
       .map(([type,amount])=>type+' 에너지 +'+pretty(amount));
     const details=[...statRewards,...energyRewards];
     return event.name+' '+event.count+'회 처치'+(details.length?' · '+details.join(', '):'');
