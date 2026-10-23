@@ -3,7 +3,7 @@ import {useGameStore} from '../store/useGameStore.js';
 import {EnergyTypeIcon,TYPE_ICON_FILES} from './EnergyTypeIcon.jsx';
 
 // Preserve the existing plain-text logs; decorate only recognised energy gains.
-const energyRewardPattern=/((?:노말|불꽃|물|풀|전기|얼음|격투|독|땅|비행|에스퍼|벌레|바위|고스트|드래곤|악|강철|페어리) 에너지 \\+[^,\\s]+)/g;
+const energyRewardPattern=/((?:노말|불꽃|물|풀|전기|얼음|격투|독|땅|비행|에스퍼|벌레|바위|고스트|드래곤|악|강철|페어리) 에너지 \+[^,\s]+)/g;
 export function renderLogMessage(message){
   if(typeof message!=='string')return message;
   return message.split(energyRewardPattern).map((part,index)=>{
