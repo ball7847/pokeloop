@@ -1,6 +1,7 @@
 import React,{memo,useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {TYPES} from '../core/energySystem.js';
+import {EnergyTypeIcon} from './EnergyTypeIcon.jsx';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 const TABS=[['settings','설정'],['ditto','메타몽'],['wild','야생'],['dex','도감'],['energy','에너지']];
 export function discoveredEnergyItems(game){
@@ -21,7 +22,7 @@ export const Sidebar=memo(function Sidebar({activeTab,onTabChange}){
       type="button" aria-current={activeTab===id?'page':undefined}
       onClick={()=>onTabChange(id)}>{label}<span>›</span></button>)}
     <section className="sidebar-energies" aria-label="보유 에너지"><div className="sidebar-energy-title"><strong>보유 에너지</strong><small>{items.length}/18</small></div>
-      {items.length? <div className="sidebar-energy-list">{items.map(item=><div className="sidebar-energy-item" key={item.id}><span>{item.name}</span><strong>{formatAmount(item.amount)}</strong></div>)}</div>:
+      {items.length? <div className="sidebar-energy-list">{items.map(item=><div className="sidebar-energy-item" key={item.id}><span className="sidebar-energy-name"><EnergyTypeIcon type={item.id}/>{item.name}</span><strong>{formatAmount(item.amount)}</strong></div>)}</div>:
         <p className="sidebar-energy-empty">발견한 에너지가 없습니다.</p>}
     </section>
   </nav>;
