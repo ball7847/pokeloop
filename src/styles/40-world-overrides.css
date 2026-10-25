@@ -6,7 +6,6 @@
 .world-layer-title{display:flex;flex-direction:column;gap:2px;min-width:0}
 .world-layer-title strong{font-size:11px;line-height:1.25}
 .world-layer-title small{font-size:10px;color:#897c70}
-.world-layer-types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 12px;min-width:0}
 .world-type-line{min-width:0;display:grid;grid-template-columns:32px minmax(0,1fr) minmax(52px,.8fr) minmax(110px,1.2fr);gap:5px;align-items:center;font-size:11px;font-variant-numeric:tabular-nums}
 .world-type-line strong,.world-type-line span,.world-type-line small{min-width:0;overflow-wrap:anywhere}
 .world-type-line small{color:#817568;font-size:9px}
