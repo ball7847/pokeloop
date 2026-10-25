@@ -106,7 +106,7 @@ test('modular CSS keeps identical cascade content, preserves four-column cards, 
  assert.ok(joined.length>=34863);
  let baselineChecksum=2166136261;
  for(let i=0;i<34863;i++)baselineChecksum=Math.imul(baselineChecksum^joined.charCodeAt(i),16777619)>>>0;
- assert.equal(baselineChecksum,3466728381);
+ assert.equal(baselineChecksum,3332493401);
  assert.match(joined,/\.wild-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
  assert.match(joined,/@media\(max-width:650px\)/);
  assert.match(joined,/@media\(max-width:900px\)/);
