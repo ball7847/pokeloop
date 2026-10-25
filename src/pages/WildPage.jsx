@@ -4,7 +4,7 @@ import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
-import {formatBasicStat,formatStatValue,isDefaultStat,resolveStats} from '../core/dittoStats.js';
+import {formatBasicStat,formatStatValue,isDefaultStat,resolveStats,BASIC_STAT_KEYS,SPECIAL_STAT_KEYS} from '../core/dittoStats.js';
 
 // Row-major positions in a 2-column, 3-row grid: HP/Speed, Attack/Defense, Sp.Atk/Sp.Def.
 export const WILD_BASIC_FIELDS=Object.freeze([
@@ -27,9 +27,8 @@ export function visibleWildBasicStats(pokemon){
 }
 export function visibleWildExtraStats(pokemon){
   const resolved=resolveStats(pokemon);
-  const extras={minDamagePercent:resolved.minDamagePercent,maxDamagePercent:resolved.maxDamagePercent,paralysis:resolved.paralysis,poison:resolved.poison,
-    accuracy:resolved.accuracy,dodge:resolved.dodge,...(pokemon.extraStats??{})};
-  return Object.entries(extras).filter(([key,value])=>!isDefaultStat(key,value));
+  const extras={...Object.fromEntries(SPECIAL_STAT_KEYS.map(key=>[key,resolved[key]])),...(pokemon.extraStats??{})};
+  return Object.entries(extras).filter(([key,value])=>!BASIC_STAT_KEYS.includes(key)&&!isDefaultStat(key,value));
 }
 function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
   const basic=new Set(visibleWildBasicStats(pokemon).map(({key})=>key));
@@ -52,7 +51,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
         </div>
       </div>
     </div>
-    <div className="wild-extra-stats" aria-label="추가 능력치">
+    <div className="wild-extra-stats" aria-label="특별 능력치">
       {extras.map(([key,value])=><div key={key} className="wild-stat-box">
         <StatLabel stat={key} label={EXTRA_LABELS[key]??key}/><strong>{formatStatValue(key,value)}</strong>
       </div>)}
@@ -61,7 +60,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
       {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}><StatLabel stat={stat} label={label} compact/> {rewardText(stat,value)}</span>)}
       {Object.keys(battleEnergyRewards(pokemon,count)).length===0?<span className="wild-reward">타입 에너지 보상 미설정</span>:
        Object.entries(battleEnergyRewards(pokemon,count)).map(([type,amount])=>
-         <span className="wild-reward" key={'energy-'+type}><EnergyTypeIcon type={type}/>{type} 에너지 +{formatAmount(amount)}</span>)}
+         <span className="wild-reward" key={'energy-'+type} title={type+' 에너지 +'+formatAmount(amount)} aria-label={type+' 에너지 +'+formatAmount(amount)}><EnergyTypeIcon type={type}/>+{formatAmount(amount)}</span>)}
     </div>
     <div className="wild-card-footer">
       <span className="wild-kills">{count} / {REGION.defaultKillLimit}회</span>
