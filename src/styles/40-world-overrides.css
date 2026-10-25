@@ -79,7 +79,10 @@
 .battle-damage-number{position:absolute;display:block;white-space:nowrap;max-width:90%;font-size:25px;font-weight:900;line-height:1.1;letter-spacing:-.04em;
   color:#29231d;text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff,0 2px 4px #0008;
   transform:translate(-50%,-50%);animation:pokeloop-float-damage 1.2s ease-out forwards;will-change:transform,opacity;font-variant-numeric:tabular-nums}
-.battle-damage-number.on-player{color:#d63d42}
+/* Colors indicate damage type, regardless of whether Ditto or the enemy takes the hit. */
+.battle-damage-number.is-physical{color:#d63d42}
+.battle-damage-number.is-special{color:#2375d2}
+.battle-damage-number.is-fixed{color:#fff;text-shadow:-1px -1px 0 #333,1px -1px 0 #333,-1px 1px 0 #333,1px 1px 0 #333,0 2px 4px #000a}
 .battle-damage-number.is-poison{color:#a331bc}
 .battle-damage-number.is-miss,.battle-damage-number.is-blocked{color:#777;font-style:italic;font-size:20px}
 @keyframes pokeloop-float-damage{
