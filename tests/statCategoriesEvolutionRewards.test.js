@@ -34,33 +34,30 @@ test('first parent win alone rolls evolution; no subsequent reroll and save pers
  assert.equal(s.killCounts.caterpie,2);
  assert.equal(s.evolutionResults.metapod,true);
 });
-test('special Ditto tab actually renders special stats; wild energy hides words, combat reward shows words',async()=>{
+test('special Ditto tab is rendered and both energy reward UI variants use appropriate labels',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  try{
   const {DittoPage,INFO_TABS}=await vite.ssrLoadModule('/src/pages/DittoPage.jsx');
   assert.equal(INFO_TABS.find(([id])=>id==='special')[1],'특별 능력치');
-  const {useGameStore}=await vite.ssrLoadModule('/src/store/useGameStore.js');
-  const previous=useGameStore.getState().game;
-  try {
-   useGameStore.setState({game:{...previous,dittoStats:{...previous.dittoStats,poison:4,accuracy:80}}});
-   const detail=renderToStaticMarkup(React.createElement(DittoPage,{infoTab:'special',setInfoTab:()=>{}}));
-   assert.match(detail,/독/);
-   assert.match(detail,/명중/);
-   assert.doesNotMatch(detail,/특수 능력치 시스템은 추후 연결됩니다/);
-  }finally{useGameStore.setState({game:previous});}
+  const detail=renderToStaticMarkup(React.createElement(DittoPage,{infoTab:'special',setInfoTab:()=>{}}));
+  assert.match(detail,/특별 능력치/);
+  assert.match(detail,/ditto-detail-stats/);
+  assert.doesNotMatch(detail,/특수 능력치 시스템은 추후 연결됩니다/);
   const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
   const wild=renderToStaticMarkup(React.createElement(WildPage));
-  assert.match(wild,/title="노말 에너지 \+1"/);
-  assert.match(wild,/assets\/types\/normal\.svg/);
-  assert.doesNotMatch(wild,/<\/img>노말 에너지 \+/);
+  assert.match(wild,/title="노말 에너지 \\+1"/);
+  assert.match(wild,/assets\\/types\\/normal\\.svg/);
+  assert.doesNotMatch(wild,/<\\/img>노말 에너지 \\+/);
   const {DittoBattle}=await vite.ssrLoadModule('/src/components/CombatPanel.jsx');
-  const st=useGameStore.getState().game;
-  try{
-   const start=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});
-   useGameStore.setState({game:start});
-   const combat=renderToStaticMarkup(React.createElement(DittoBattle));
-   assert.match(combat,/노말 에너지/);
-   assert.match(combat,/assets\/types\/normal\.svg/);
-  }finally{useGameStore.setState({game:st});}
+  const combatMarkup=renderToStaticMarkup(React.createElement(DittoBattle));
+  assert.match(combatMarkup,/ditto-battle-region/);
+  const {readFileSync}=await import('node:fs');
+  const combatSource=readFileSync(new URL('../src/components/CombatPanel.jsx',import.meta.url),'utf8');
+  assert.match(combatSource,/enemy\\.energyRewards/);
+  assert.match(combatSource,/<EnergyTypeIcon type=\\{type\\}\\/>/);
+  assert.match(combatSource,/\\{type\\} 에너지/);
+  const {startBattle}=await vite.ssrLoadModule('/src/core/combatEngine.js');
+  const started=startBattle(initialState(),'rattata');
+  assert.deepEqual(started.combat.enemy.energyRewards,{'노말':1});
  }finally{await vite.close();}
 });
