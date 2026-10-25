@@ -80,7 +80,7 @@ export function hitChance(attacker,defender){
   return Math.max(0,Math.min(1,(Math.min(accuracy,100)-scaledDodge)/100));
 }
 const freshStatus=()=>({paralysis:0,poison:0});
-export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math.random){
+export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math.random,visualEvents=[]){
   const player=attacker==='player';
   const actingStatus=player?c.playerStatus:c.enemyStatus;
   const targetStatus=player?c.enemyStatus:c.playerStatus;
@@ -101,6 +101,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   const delayMs=triggered?Math.min(Number.MAX_VALUE,decimal(paralysis).toNumber()):0;
   if(triggered)actingStatus.paralysis=0;
   const hit=random()<hitChance(attackerStats,defenderStats);
+  const target=player?'enemy':'player';
   if(hit){
     // Physical and special damage are separate channels within the same action.
     let damage=0;
@@ -111,10 +112,16 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       const net=subtractAmount(raw,defenderStats[defense]??0);
       if(compareAmount(net,0)>0)damage=addAmount(damage,net);
     }
-    if(compareAmount(damage,0)>0)setDefenderHp(subtractAmount(defenderHp(),damage));
+    if(compareAmount(damage,0)>0){
+      const before=defenderHp();
+      setDefenderHp(subtractAmount(before,damage));
+      // Visual damage is capped at the target's remaining HP; never modify battle math.
+      const actual=compareAmount(before,damage)<0?before:damage;
+      visualEvents.push({target,kind:'damage',value:compareAmount(actual,0)>0?actual:0});
+    }else visualEvents.push({target,kind:'blocked',value:0});
     targetStatus.paralysis=addAmount(targetStatus.paralysis??0,attackerStats.paralysis??0);
     targetStatus.poison=addAmount(targetStatus.poison,attackerStats.poison??0);
-  }
+  }else visualEvents.push({target,kind:'miss',value:'MISS'});
   // Detoxify before paying poison damage at the end of EVERY attack action,
   // including misses or attacks that trigger paralysis delay.
   if(compareAmount(actingStatus.poison,0)>0){
@@ -123,7 +130,12 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       const remaining=subtractAmount(actingStatus.poison,antidote);
       actingStatus.poison=compareAmount(remaining,0)>0?remaining:0;
     }
-    if(compareAmount(actingStatus.poison,0)>0)setActingHp(subtractAmount(actingHp(),actingStatus.poison));
+    if(compareAmount(actingStatus.poison,0)>0){
+      const before=actingHp();
+      setActingHp(subtractAmount(before,actingStatus.poison));
+      const actual=compareAmount(before,actingStatus.poison)<0?before:actingStatus.poison;
+      if(compareAmount(actual,0)>0)visualEvents.push({target:player?'player':'enemy',kind:'poison',value:actual});
+    }
   }
   return {hit,cancelled:false,paralysisTriggered:triggered,delayMs};
 }
@@ -131,6 +143,8 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   if(state.phase!=='running'||!state.combat.active)return state;
   if(!Number.isFinite(deltaMs)||deltaMs<=0)return state;
   const c=structuredClone(state.combat);
+  const visualEvents=[];
+  const withEffects=next=>({...next,combatVisualEvents:visualEvents});
   c.playerStatus??=freshStatus();c.enemyStatus??=freshStatus();
   const playerStats=effectiveDittoStats(state),enemyStats=c.enemy.statistics??getWildPokemon(c.pokemonId);
   let remaining=Math.min(deltaMs,5000);
@@ -143,20 +157,20 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
     if(my.elapsed<myPeriod&&foe.elapsed<foePeriod)break;
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
-      const attack=resolveAttack(c,'player',playerStats,enemyStats,random);
+      const attack=resolveAttack(c,'player',playerStats,enemyStats,random,visualEvents);
       my.duration=Math.max(100,playerStats.speed+attack.delayMs);
-      if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat',random);
-      if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory',random);
+      if(compareAmount(c.currentHp,0)<=0)return withEffects(finish(state,c,'defeat',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(finish(state,c,'victory',random));
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
-      const attack=resolveAttack(c,'enemy',enemyStats,playerStats,random);
+      const attack=resolveAttack(c,'enemy',enemyStats,playerStats,random,visualEvents);
       foe.duration=Math.max(100,enemyStats.speed+attack.delayMs);
-      if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat',random);
-      if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory',random);
+      if(compareAmount(c.currentHp,0)<=0)return withEffects(finish(state,c,'defeat',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(finish(state,c,'victory',random));
     }
   }
-  return {...state,combat:c};
+  return {...state,combat:c,combatVisualEvents:visualEvents};
 }
 export function fleeBattle(state){
   return state.combat.active ? finish(state,state.combat,'flee') : state;
