@@ -122,3 +122,55 @@ test('unprocessed offline production survives paused saves without running battl
  assert.equal(decoded.victories,0);
  assert.equal(decoded.combat.active,false);
 });
+
+test('offline queue ignores malformed and nonpositive intervals',()=>{
+ const before=useGameStore.getState();
+ try{
+  useGameStore.setState({game:{...initialState(),phase:'running'},offlineRemainingSeconds:3});
+  for(const seconds of [NaN,Infinity,-Infinity,-10,0,undefined]){
+   useGameStore.getState().queueOfflineProduction(seconds);
+   assert.equal(useGameStore.getState().offlineRemainingSeconds,3);
+  }
+  useGameStore.getState().queueOfflineProduction(2.5);
+  assert.equal(useGameStore.getState().offlineRemainingSeconds,5.5);
+ }finally{useGameStore.setState(before,true);}
+});
+
+test('saving during offline catch-up preserves unprocessed time without double awarding production',async()=>{
+ const before=useGameStore.getState();
+ const previousWindow=globalThis.window;
+ const storage=new Map();
+ globalThis.window={localStorage:{
+  getItem:key=>storage.get(key)??null,
+  setItem:(key,value)=>storage.set(key,value),
+  removeItem:key=>storage.delete(key)
+ }};
+ try{
+  const base=initialState(),game={...base,phase:'running',
+   particleBalances:{...base.particleBalances,노말:2},
+   particleMilestones:{...base.particleMilestones,노말:1},normalFirstMilestonePermanent:true};
+  useGameStore.setState({game,offlineRemainingSeconds:12.5});
+  useGameStore.getState().consumeOfflineProduction(5);
+  const partially=useGameStore.getState();
+  assert.equal(partially.offlineRemainingSeconds,7.5);
+  const savedAt=partially.saveLocal();
+  const {decodeSave,loadLocalSave}=await import('../src/core/saveSystem.js');
+  const restored=loadLocalSave();
+  assert.equal(restored.savedAt,savedAt);
+  assert.equal(restored.game.pendingOfflineSeconds,7.5);
+  assert.equal(restored.game.pendingStellar,partially.game.pendingStellar);
+  assert.equal(restored.game.victories,0);
+  // A fresh session resumes the pending portion only; it must not reapply the first 5 seconds.
+  useGameStore.setState({game:restored.game,offlineRemainingSeconds:restored.game.pendingOfflineSeconds});
+  useGameStore.getState().consumeOfflineProduction(5);
+  useGameStore.getState().consumeOfflineProduction(5);
+  assert.equal(useGameStore.getState().offlineRemainingSeconds,0);
+  const {tickEconomy}=await import('../src/core/energySystem.js');
+  const expected=tickEconomy(tickEconomy(tickEconomy(game,5),5),2.5);
+  assert.equal(useGameStore.getState().game.pendingStellar,expected.pendingStellar);
+ }finally{
+  if(previousWindow===undefined)delete globalThis.window;
+  else globalThis.window=previousWindow;
+  useGameStore.setState(before,true);
+ }
+});
