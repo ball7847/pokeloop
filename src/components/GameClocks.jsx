@@ -47,8 +47,11 @@ export function CombatClock(){
           const ms=Math.min(5000,combatDebtMs);
           const current=useGameStore.getState().game;
           if(current.phase!=='running')break;
-          if(current.recoveryMs>0)store.dispatch({type:'RECOVERY_TICK',deltaMs:ms});
-          if(current.combat.active)store.dispatch({type:'COMBAT_TICK',deltaMs:ms});
+          const recoveryPart=Math.min(ms,current.recoveryMs??0);
+          if(recoveryPart>0)store.dispatch({type:'RECOVERY_TICK',deltaMs:recoveryPart});
+          const battlePart=ms-recoveryPart;
+          if(battlePart>0&&useGameStore.getState().game.combat.active)
+            store.dispatch({type:'COMBAT_TICK',deltaMs:battlePart});
           combatDebtMs-=ms;
         }
       }
