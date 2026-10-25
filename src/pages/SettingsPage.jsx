@@ -17,12 +17,16 @@ function SaveSettings(){
   const notify=(action,success)=>{
     try{success(action());}catch(error){setFeedback('오류: '+error.message);}
   };
-  const importEncoded=encoded=>notify(()=>decodeSave(encoded),({game})=>{
+  const importEncoded=encoded=>notify(()=>decodeSave(encoded),({game,savedAt})=>{
     if(!window.confirm('현재 진행 상황을 불러온 데이터로 덮어쓸까요?'))return;
-    useGameStore.getState().importGame(game);
+    const elapsed=game.phase==='running'?Math.max(0,(Date.now()-Date.parse(savedAt))/1000):0;
+    useGameStore.getState().importGame({...game,pendingOfflineSeconds:(game.pendingOfflineSeconds??0)+elapsed});
     setPasteOpen(false);setPasteText('');setFeedback('저장 데이터를 불러오고 로컬에 저장했습니다.');
   });
-  const exportEncoded=()=>encodeSave(useGameStore.getState().game);
+  const exportEncoded=()=>{
+    const {game,offlineRemainingSeconds}=useGameStore.getState();
+    return encodeSave({...game,pendingOfflineSeconds:offlineRemainingSeconds});
+  };
   const saveFile=()=>notify(exportEncoded,encoded=>{
     const blob=new Blob([encoded+'\n'],{type:'text/plain;charset=utf-8'});
     const url=URL.createObjectURL(blob);
