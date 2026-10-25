@@ -3,6 +3,7 @@ import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
 import {effectiveDittoStats} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
+import {appendDamageEvents,appendStatusDamageEvent} from './combatVisualEvents.js';
 export const emptyCombat = hp=>({
   active:false, enemy:null, currentHp:hp, maxHp:hp,
   dittoHp:{current:hp,max:hp}, dittoAttackCooldown:null,
@@ -119,15 +120,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
     if(compareAmount(damage,0)>0){
       const before=defenderHp();
       setDefenderHp(subtractAmount(before,damage));
-      // Keep the original total damage, but cap displayed channel values by actual HP lost.
-      // Allocate the visible HP loss in calculation order (physical, then special).
-      let remaining=compareAmount(before,damage)<0?before:damage;
-      for(const channel of channels){
-        if(compareAmount(remaining,0)<=0)break;
-        const visible=compareAmount(remaining,channel.value)<0?remaining:channel.value;
-        if(compareAmount(visible,0)>0)visualEvents.push({target,kind:channel.kind,value:visible});
-        remaining=subtractAmount(remaining,visible);
-      }
+      appendDamageEvents(visualEvents,target,channels,before,damage);
     }else visualEvents.push({target,kind:'blocked',value:0});
     targetStatus.paralysis=addAmount(targetStatus.paralysis??0,attackerStats.paralysis??0);
     targetStatus.poison=addAmount(targetStatus.poison,attackerStats.poison??0);
@@ -144,7 +137,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       const before=actingHp();
       setActingHp(subtractAmount(before,actingStatus.poison));
       const actual=compareAmount(before,actingStatus.poison)<0?before:actingStatus.poison;
-      if(compareAmount(actual,0)>0)visualEvents.push({target:player?'player':'enemy',kind:'poison',value:actual});
+      appendStatusDamageEvent(visualEvents,player?'player':'enemy','poison',actual);
     }
   }
   return {hit,cancelled:false,paralysisTriggered:triggered,delayMs};
