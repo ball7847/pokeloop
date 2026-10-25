@@ -39,6 +39,7 @@ export const useGameStore=create((set,get)=>({
   wildRegionFilter:null,
   energySectionTab:'stats',
   setEnergySectionTab:(tab)=>set({energySectionTab:tab}),
+  queueOfflineProduction:(seconds)=>set(previous=>({offlineRemainingSeconds:previous.offlineRemainingSeconds+Math.max(0,seconds)})),
   consumeOfflineProduction:(seconds)=>set(previous=>{
     if(previous.offlineRemainingSeconds<=0)return previous;
     const applied=Math.min(5,Math.max(0,seconds),previous.offlineRemainingSeconds);
