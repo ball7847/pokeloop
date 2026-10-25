@@ -1,13 +1,18 @@
 import { create } from 'zustand';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import { initialState, transition } from '../core/gameState.js';
+import {REGION,isRegionUnlocked} from '../core/wildData.js';
+import {tickEconomy} from '../core/energySystem.js';
 import {formatStatValue} from '../core/dittoStats.js';
 import {loadLocalSave,readAutoSaveEnabled,writeLocalSave,writeAutoSaveEnabled,clearLocalSave} from '../core/saveSystem.js';
 
 function initialPersistence(){
   let local=null,error=null;
   try{local=loadLocalSave();}catch(e){error='로컬 저장 데이터 불러오기 실패: '+e.message;}
-  return {game:local?.game??initialState(),lastSavedAt:local?.savedAt??null,autoSaveEnabled:readAutoSaveEnabled(),saveError:error};
+  const elapsed=local?.savedAt?Math.max(0,(Date.now()-Date.parse(local.savedAt))/1000):0;
+  return {game:local?.game??initialState(),lastSavedAt:local?.savedAt??null,
+    offlineRemainingSeconds:local?.game?.phase==='running'?elapsed:0,
+    autoSaveEnabled:readAutoSaveEnabled(),saveError:error};
 }
 
 const labels={hp:'HP',attack:'공격',defense:'방어',specialAttack:'특수공격',specialDefense:'특수방어',speed:'스피드',paralysis:'마비',poison:'독',antidote:'해독',accuracy:'명중',dodge:'회피',minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량'};
@@ -32,9 +37,19 @@ export const useGameStore=create((set,get)=>({
   logs:[],
   // UI-only filter persists across page tab unmounts, not in saved game data.
   wildRegionFilter:null,
+  energySectionTab:'stats',
+  setEnergySectionTab:(tab)=>set({energySectionTab:tab}),
+  consumeOfflineProduction:(seconds)=>set(previous=>{
+    if(previous.offlineRemainingSeconds<=0)return previous;
+    const applied=Math.min(5,Math.max(0,seconds),previous.offlineRemainingSeconds);
+    if(applied<=0)return previous;
+    return {game:tickEconomy(previous.game,applied),offlineRemainingSeconds:Math.max(0,previous.offlineRemainingSeconds-applied)};
+  }),
   setWildRegionFilter:(filter)=>set({wildRegionFilter:filter}),
   saveLocal:()=>{
-    const savedAt=writeLocalSave(get().game);
+    const state=get();
+    // Saving during offline catch-up records the last fully accounted production time.
+    const savedAt=writeLocalSave(state.game,undefined,Date.now()-Math.ceil(state.offlineRemainingSeconds*1000));
     set({lastSavedAt:savedAt,saveError:null});
     return savedAt;
   },
@@ -42,10 +57,18 @@ export const useGameStore=create((set,get)=>({
     writeAutoSaveEnabled(enabled);
     set({autoSaveEnabled:enabled});
   },
-  restoreGame:(game)=>set({game,logs:[],saveError:null}),
+  restoreGame:(game)=>set(previous=>({game,logs:[],saveError:null,offlineRemainingSeconds:0,
+    wildRegionFilter:previous.wildRegionFilter==='all'||isRegionUnlocked(game,previous.wildRegionFilter)?previous.wildRegionFilter:REGION.id})),
+  importGame:(game)=>{
+    // Atomic from the player's perspective: do not replace the running game if persistence fails.
+    const savedAt=writeLocalSave(game);
+    set(previous=>({game,logs:[],saveError:null,lastSavedAt:savedAt,offlineRemainingSeconds:0,
+      wildRegionFilter:previous.wildRegionFilter==='all'||isRegionUnlocked(game,previous.wildRegionFilter)?previous.wildRegionFilter:REGION.id}));
+  },
   resetSavedGame:()=>{
     clearLocalSave();
-    set({game:initialState(),logs:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null});
+    set({game:initialState(),logs:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null,
+      offlineRemainingSeconds:0,wildRegionFilter:REGION.id,energySectionTab:'stats'});
   },
   dispatch:(action)=>set(previous=>{
     const game=transition(previous.game,action);
@@ -59,6 +82,7 @@ export const useGameStore=create((set,get)=>({
       RESET:'게임 진행 상태가 초기화되었습니다.',
       MOVE_PLANET:'메타몽이 행성을 이동하고 대기 스텔라에너지를 흡수했습니다.'
     })[action.type];
-    return {game,logs:message?[message,...previous.logs].slice(0,100):previous.logs};
+    return {game,logs:message?[message,...previous.logs].slice(0,100):previous.logs,
+      ...(action.type==='MOVE_PLANET'||action.type==='RESET'?{wildRegionFilter:REGION.id,energySectionTab:'stats',offlineRemainingSeconds:0}:{})};
   })
 }));
