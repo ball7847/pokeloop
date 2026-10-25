@@ -1,7 +1,7 @@
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {StatLabel} from './StatIcon.jsx';
 import {EnergyTypeIcon} from './EnergyTypeIcon.jsx';
-import {formatStatValue} from '../core/dittoStats.js';
+import {formatStatValue,statKey,statLabel} from '../core/dittoStats.js';
 import {formatAmount,isAmount,decimal,compareAmount} from '../core/bigNumber.js';
 import {useGameStore} from '../store/useGameStore.js';
 const fmt=formatAmount;
@@ -25,8 +25,6 @@ function Cooldown({name,value,kind}){
       <div className="battle-cooldown-fill"/>
     </div></div>;
 }
-const COMBAT_STAT_KEYS=Object.freeze({HP:'hp',공격:'attack',방어:'defense',특수공격:'specialAttack',특수방어:'specialDefense',스피드:'speed',독:'poison',해독:'antidote',마비:'paralysis',명중:'accuracy',회피:'dodge','최소 피해량':'minDamagePercent','최대 피해량':'maxDamagePercent'});
-const COMBAT_REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',specialDefense:'특수방어',paralysis:'마비',poison:'독',antidote:'해독'});
 // Rejected Draft-style transient numbers, anchored to existing artwork / HP bar.
 // The layer outlives an individual battle so killing blows stay visible.
 export function DamagePopupLayer({active=false}){
@@ -78,13 +76,13 @@ export function DittoBattle(){
     <div className="battle-opponent">
       <div className="battle-stats-panel"><h3>적 능력치</h3><div className="battle-enemy-stats">
         {Object.entries(enemy.stats||{}).filter(([,v])=>isAmount(v)).map(([key,value])=>
-          <div key={key}><StatLabel stat={COMBAT_STAT_KEYS[key]??key} label={key}/><strong>{formatStatValue(COMBAT_STAT_KEYS[key]??key,value)}</strong></div>)}
+          <div key={key}><StatLabel stat={statKey(key)} label={key}/><strong>{formatStatValue(statKey(key),value)}</strong></div>)}
       </div></div>
       <div className="battle-enemy-image" id="battle-enemy-hit-anchor"><strong>{enemy.name}</strong>
         {enemy.imageUrl?<img src={enemy.imageUrl} alt={enemy.name}/>:<div className="battle-image-placeholder" aria-hidden="true">?</div>}</div>
       <div className="battle-side-panel"><div className="battle-rewards"><h3>보상</h3><div className="battle-reward-items">
         {Object.entries(enemy.rewards||{}).map(([key,value])=>
-          <span key={key}><StatLabel stat={key} label={COMBAT_REWARD_LABELS[key]??key}/>
+          <span key={key}><StatLabel stat={key} label={statLabel(key)}/>
             <strong>{value<0?'−':'+'}{formatStatValue(key,Math.abs(value))}</strong></span>)}
         {Object.entries(enemy.energyRewards??{}).map(([type,amount])=><span key={'energy-'+type}>
           <EnergyTypeIcon type={type}/><span>{type} 에너지</span><strong>+{formatAmount(amount)}</strong></span>)}
