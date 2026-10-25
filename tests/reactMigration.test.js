@@ -129,7 +129,7 @@ test('wild Pokemon inherit 85% damage floor while the default never takes a card
    const html=renderToStaticMarkup(React.createElement(WildPage));
    assert.equal(html.includes('85%'),false);
    assert.deepEqual(visibleWildExtraStats({}),[]);
-   assert.deepEqual(visibleWildExtraStats({minDamagePercent:90}),[['minDamagePercent',90]]);
+   assert.deepEqual(visibleWildExtraStats({minDamagePercent:90}),[]);
    assert.deepEqual(visibleWildExtraStats({extraStats:{minDamagePercent:85,critChance:3}}),[['critChance',3]]);
    const {initialState,transition}=await vite.ssrLoadModule('/src/core/gameState.js');
    const started=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});
@@ -166,14 +166,14 @@ test('Ditto detail always shows HP, attack, speed and minimum damage; header sho
  }finally{await vite.close();}
 });
 
-test('wild layout keeps 4 columns, square portrait, no sequence number and fixed 2×3 stat positions',async()=>{
+test('wild layout keeps 4 columns, square portrait, no sequence number and fixed 2×4 stat positions',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  try{
   const {WildPage,WILD_BASIC_FIELDS}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
-  assert.deepEqual(WILD_BASIC_FIELDS.map(x=>x.key),['hp','speed','attack','defense','specialAttack','specialDefense']);
+  assert.deepEqual(WILD_BASIC_FIELDS.map(x=>x.key),['hp','speed','attack','defense','specialAttack','specialDefense','minDamagePercent','maxDamagePercent']);
   const html=renderToStaticMarkup(React.createElement(WildPage));
   assert.equal((html.match(/class="wild-basic-stats"/g)||[]).length,5);
-  assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,15);
+  assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,25);
   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
   assert.doesNotMatch(html,/class="wild-order"/);
   const css=readStyles();

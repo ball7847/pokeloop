@@ -46,6 +46,12 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'maxDamagePercent', label:'최대 피해량', description:'공격 피해 배율의 최댓값(%)입니다. 100%를 초과할 수 있습니다.' }
 ]);
 
+export const BASIC_STAT_KEYS=Object.freeze(['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','maxDamagePercent']);
+export const SPECIAL_STAT_KEYS=Object.freeze(BASIC_STAT_FIELDS.map(field=>field.key).filter(key=>!BASIC_STAT_KEYS.includes(key)));
+export function visibleSpecialStats(stats={}){
+  const resolved=resolveStats(stats);
+  return BASIC_STAT_FIELDS.filter(({key})=>SPECIAL_STAT_KEYS.includes(key)&&!isDefaultStat(key,resolved[key]));
+}
 export function visibleNonDefaultStats(stats = {}) {
   const resolved=resolveStats(stats);
   return BASIC_STAT_FIELDS.filter(({key}) => !isDefaultStat(key,resolved[key]));
@@ -53,7 +59,7 @@ export function visibleNonDefaultStats(stats = {}) {
 export const ALWAYS_VISIBLE_DITTO_STATS = Object.freeze(['hp','attack','speed','minDamagePercent']);
 export function visibleBasicStats(stats = {}) {
   const resolved=resolveStats(stats);
-  return BASIC_STAT_FIELDS.filter(({key}) => ALWAYS_VISIBLE_DITTO_STATS.includes(key) || !isDefaultStat(key,resolved[key]));
+  return BASIC_STAT_FIELDS.filter(({key}) => BASIC_STAT_KEYS.includes(key)&&(ALWAYS_VISIBLE_DITTO_STATS.includes(key) || !isDefaultStat(key,resolved[key])));
 }
 // Format-only: never round the stored stat or values used in combat.
 // All displayed stats share the same precision policy, including % and ms.

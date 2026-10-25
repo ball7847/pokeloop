@@ -27,6 +27,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
       stats:Object.fromEntries(visibleNonDefaultStats(p).map(({key,label})=>[label,p[key]])),
       minDamagePercent:p.minDamagePercent,maxDamagePercent:p.maxDamagePercent,
       rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,scaledReward(key,value,state.killCounts[id]||0)])),
+      energyRewards:battleEnergyRewards(p,state.killCounts[id]||0),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack,statistics:p
     },
@@ -48,7 +49,7 @@ function finish(state,c,type,random=Math.random) {
     let rewarded=state;
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
-    const evolution=count+1===REGION.defaultKillLimit?evolutionFor(p.id):null;
+    const evolution=count===0?evolutionFor(p.id):null;
     const evolutionResults=evolution?{...state.evolutionResults,[evolution.id]:random()<evolutionChance(evolution,state)}:state.evolutionResults;
     const updated={...rewarded,evolutionResults,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,
       encounterIndex:state.encounterIndex+1,

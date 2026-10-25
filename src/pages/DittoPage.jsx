@@ -1,15 +1,14 @@
 import {StatLabel} from '../components/StatIcon.jsx';
 import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
-import {visibleBasicStats,formatBasicStat} from '../core/dittoStats.js';
+import {visibleBasicStats,visibleSpecialStats,formatBasicStat} from '../core/dittoStats.js';
 import {DittoBattle} from '../components/CombatPanel.jsx';
 import {effectiveDittoStats,AUTOMATIONS} from '../core/shopSystem.js';
 export const INFO_TABS=[
-  ['basic','기본 능력치'],['special','특수 능력치'],['bonus','보너스'],
+  ['basic','기본 능력치'],['special','특별 능력치'],['bonus','보너스'],
   ['automation','자동화'],['assimilation','동화도']
 ];
 const PENDING={
-  special:'특수 능력치 시스템은 추후 연결됩니다.',
   bonus:'보너스 효과 시스템은 추후 연결됩니다.',
 
   assimilation:'타입별 동화도 시스템은 추후 연결됩니다.'
@@ -30,6 +29,10 @@ export function DittoPage({infoTab,setInfoTab}){
       <div className="ditto-info-body" role="tabpanel">
         {infoTab==='basic'?<div className="ditto-detail-stats">
           {visibleBasicStats(stats).map(({key,label,description})=>
+            <div key={key} className="ditto-detail-stat" title={description}><StatLabel stat={key} label={label}/>
+              <strong>{formatBasicStat(key,stats[key])}</strong></div>)}
+        </div>:infoTab==='special'?<div className="ditto-detail-stats">
+          {visibleSpecialStats(stats).map(({key,label,description})=>
             <div key={key} className="ditto-detail-stat" title={description}><StatLabel stat={key} label={label}/>
               <strong>{formatBasicStat(key,stats[key])}</strong></div>)}
         </div>:infoTab==='automation'?<div className="ditto-automation-options">
