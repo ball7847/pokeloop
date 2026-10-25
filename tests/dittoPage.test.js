@@ -1,3 +1,4 @@
+import {readStyles} from './readStyles.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DITTO_INFO_TABS, isDittoInfoTab, renderDittoBattle, renderDittoPage } from '../src/ui/dittoPage.js';
@@ -27,7 +28,7 @@ test('battle region reserves space but is visually empty outside combat', () => 
   const html = renderDittoPage();
   assert.match(html, /class="ditto-battle-region"/);
   assert.doesNotMatch(html, /battle-opponent|battle-vitals|도망가기/);
-  const css = readFileSync(new URL('../src/style.css', import.meta.url),'utf8');
+  const css = readStyles();
   assert.match(css,/\.ditto-battle-region\{min-height:390px/);
 });
 test('active encounter shows enemy, rewards, bars and escape button', () => {

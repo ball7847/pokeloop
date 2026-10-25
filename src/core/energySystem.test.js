@@ -140,7 +140,7 @@ test('actual repeated battles grant decaying type energy, not fixed payouts',()=
   for(let killed=0;killed<10;killed++){
     state=transition(state,{type:'SELECT_WILD',pokemonId:'rattata'});
     assert.equal(state.combat.active,true);
-    state=transition(state,{type:'COMBAT_TICK',deltaMs:5,random:()=>0.5});
+    state=transition(state,{type:'COMBAT_TICK',deltaMs:100,random:()=>0.5});
     assert.equal(state.killCounts.rattata,killed+1);
     expected+=1/(killed+1);
     assert.ok(Math.abs(Number(state.energyBalances['노말'])-expected)<1e-8);

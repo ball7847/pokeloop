@@ -19,6 +19,8 @@ const validInteger=(value,max)=>Number.isSafeInteger(value)&&value>=0&&value<=ma
 export function gameSnapshot(game){
   return {
     phase:game.phase,
+    // Unprocessed offline production is stored independently of wall-clock save time.
+    pendingOfflineSeconds:game.pendingOfflineSeconds??0,
     ...Object.fromEntries(progressKeys.map(key=>[key,game[key]])),
     dittoStats:Object.fromEntries(basicKeys.map(key=>[key,game.dittoStats[key]])),
     killCounts:Object.fromEntries(ALL_POKEMON.map(p=>[p.id,game.killCounts[p.id]??0])),
@@ -59,6 +61,9 @@ export function decodeSave(encoded){
   if(![PHASE.READY,PHASE.RUNNING,PHASE.PAUSED,PHASE.FINISHED].includes(original.phase))
     throw new Error('게임 진행 상태가 올바르지 않습니다.');
   const cleanGame=initialState();
+  const pending=original.pendingOfflineSeconds??0;
+  if(typeof pending!=='number'||!Number.isFinite(pending)||pending<0)throw new Error('미처리 오프라인 생산 시간이 올바르지 않습니다.');
+  cleanGame.pendingOfflineSeconds=pending;
   for(const key of progressKeys){
     if(!validInteger(original[key],MAX_COUNTER))throw new Error('진행 기록이 올바르지 않습니다: '+key);
     cleanGame[key]=original[key];
@@ -77,7 +82,7 @@ export function decodeSave(encoded){
   if(stats.speed!==0&&stats.speed<1)throw new Error('스피드 값이 올바르지 않습니다.');
   if(stats.minDamagePercent>100)throw new Error('최소 피해량이 올바르지 않습니다.');
   if(stats.maxDamagePercent<stats.minDamagePercent)throw new Error('최대 피해량이 올바르지 않습니다.');
-  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,['speed','minDamagePercent','maxDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
+  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,key==='speed'?Math.max(100,stats[key]):['minDamagePercent','maxDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
   if(!original.killCounts||typeof original.killCounts!=='object')throw new Error('처치 기록이 없습니다.');
   cleanGame.killCounts=Object.fromEntries(ALL_POKEMON.map(p=>{
     // v9 and earlier named Igglybuff's Berry Forest slot 'jigglypuff'.

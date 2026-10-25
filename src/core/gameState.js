@@ -1,4 +1,4 @@
-import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked} from './wildData.js';
+import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy} from './energySystem.js';
@@ -28,7 +28,8 @@ export function transition(state, action) {
       const remaining=Math.max(0,state.recoveryMs-Math.min(action.deltaMs,5000));
       const recovered={...state,recoveryMs:remaining};
       if(remaining===0&&state.retryPokemonId){
-        const next=startBattle({...recovered,retryPokemonId:null},state.retryPokemonId);
+        const targetRegion=regionForPokemon(state.retryPokemonId);
+        const next=startBattle({...recovered,retryPokemonId:null,activeRegionId:targetRegion},state.retryPokemonId);
         return next.combat.active?next:{...recovered,retryPokemonId:null};
       }
       return recovered;
