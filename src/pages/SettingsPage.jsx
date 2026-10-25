@@ -19,8 +19,8 @@ function SaveSettings(){
   };
   const importEncoded=encoded=>notify(()=>decodeSave(encoded),({game})=>{
     if(!window.confirm('현재 진행 상황을 불러온 데이터로 덮어쓸까요?'))return;
-    useGameStore.getState().restoreGame(game);
-    setPasteOpen(false);setPasteText('');setFeedback('저장 데이터를 불러왔습니다. 로컬에도 저장하려면 로컬 저장을 누르세요.');
+    useGameStore.getState().importGame(game);
+    setPasteOpen(false);setPasteText('');setFeedback('저장 데이터를 불러오고 로컬에 저장했습니다.');
   });
   const exportEncoded=()=>encodeSave(useGameStore.getState().game);
   const saveFile=()=>notify(exportEncoded,encoded=>{
