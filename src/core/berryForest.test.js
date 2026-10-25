@@ -139,7 +139,7 @@ test('berry forest battles pay configured type energy and stat rewards',()=>{
  const beforeHp=s.dittoStats.hp;
  const beforeAttack=s.dittoStats.attack;
  const beforeEnergy={...s.energyBalances};
- s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.5});
  assert.equal(s.killCounts.caterpie,1);
  assert.equal(s.dittoStats.hp,beforeHp+7);
  assert.equal(s.dittoStats.attack,beforeAttack);
@@ -156,13 +156,13 @@ test('Igglybuff grants normal and fairy energy with repetition decay and special
  s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
  assert.equal(s.combat.active,true);
  assert.equal(s.combat.enemy.hp.max,90);
- s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
  assert.equal(s.killCounts.igglybuff,1);
  assert.equal(s.energyBalances.노말,before.노말+17.4);
  assert.equal(s.energyBalances.페어리,before.페어리+17.4);
  assert.equal(s.dittoStats.specialAttack,2);
  s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
- s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
  assert.equal(s.killCounts.igglybuff,2);
  assert.ok(Math.abs(s.energyBalances.노말-(before.노말+26.1))<1e-8);
  assert.ok(Math.abs(s.energyBalances.페어리-(before.페어리+26.1))<1e-8);
@@ -181,7 +181,7 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
      s=transition(s,{type:'SELECT_WILD',pokemonId:id});
      assert.equal(s.combat.active,true);
      assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?28.5:14.7);
-     s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.6});
+     s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
      assert.equal(s.killCounts[id],count);
      assert.equal(s.combat.active,false);
    }
@@ -244,7 +244,7 @@ test('Caterpie and Weedle grant HP +7 without attack rewards, with diminishing r
   for(let i=0;i<2;i++){
    s=transition(s,{type:'SELECT_WILD',pokemonId:id});
    assert.equal(s.combat.active,true,id+' unlock/encounter');
-   s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>.5});
+   s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.5});
    assert.equal(s.killCounts[id],i+1);
   }
   assert.ok(Math.abs(s.dittoStats.hp-initialHp-10.5)<1e-8);
