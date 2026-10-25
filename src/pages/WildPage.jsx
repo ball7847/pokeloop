@@ -4,7 +4,7 @@ import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
-import {formatBasicStat,formatStatValue,isDefaultStat,resolveStats,BASIC_STAT_KEYS,SPECIAL_STAT_KEYS} from '../core/dittoStats.js';
+import {formatBasicStat,formatStatValue,isDefaultStat,resolveStats,BASIC_STAT_KEYS,SPECIAL_STAT_KEYS,statLabel} from '../core/dittoStats.js';
 
 // Row-major positions in a 2-column, 4-row grid: six core stats and damage range.
 export const WILD_BASIC_FIELDS=Object.freeze([
@@ -20,7 +20,6 @@ export const WILD_BASIC_FIELDS=Object.freeze([
 const EXTRA_LABELS=Object.freeze({
   minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독',accuracy:'명중',dodge:'회피'
 });
-const REWARD_LABELS=Object.freeze({attack:'공격',hp:'HP',speed:'스피드',defense:'방어',specialAttack:'특수공격',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독'});
 const rewardText=(stat,value)=>(value<0?'−':'+')+formatStatValue(stat,Math.abs(value));
 const format=formatAmount;
 
@@ -36,7 +35,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
   const basic=new Set(visibleWildBasicStats(pokemon).map(({key})=>key));
   const extras=visibleWildExtraStats(pokemon);
   const gain=Object.entries(pokemon.rewards).filter(([,v])=>typeof v==='number'?v!==0:isAmount(v)&&compareAmount(v,0)!==0)
-    .map(([stat,val])=>({stat,label:REWARD_LABELS[stat]??stat,value:scaledReward(stat,val,count)}));
+    .map(([stat,val])=>({stat,label:statLabel(stat),value:scaledReward(stat,val,count)}));
   return <button type="button" disabled={disabled}
     className={'wild-card '+(fighting?'is-fighting':capped?'is-exhausted':!unlocked?'is-locked':'')}
     aria-label={pokemon.name+(capped?' 처치 완료':' 선택')} onClick={onSelect}>
