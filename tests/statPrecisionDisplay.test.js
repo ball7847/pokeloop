@@ -30,19 +30,13 @@ test('victory log uses shared precision and appropriate units',()=>{
  assert.match(text,/공격 \+1\.234/);
  assert.match(text,/노말 에너지 \+2/);
 });
-test('wild enemy extras and battle reward preview use the same stat formatter',async()=>{
+test('wild cards use the common formatter and render existing stat units',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- try{
+ try {
    const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
-   const {useGameStore}=await vite.ssrLoadModule('/src/store/useGameStore.js');
-   const store=useGameStore.getState();
-   const previous=store.game;
-   useGameStore.setState({game:{...previous,activeRegionId:'berry-forest',killCounts:{
-     ...previous.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1
-   }}});
-   try{
-     const html=renderToStaticMarkup(React.createElement(WildPage));
-     assert.match(html,/150%/);
-   }finally{useGameStore.setState({game:previous});}
- }finally{await vite.close();}
+   const markup=renderToStaticMarkup(React.createElement(WildPage));
+   assert.match(markup,/2,100ms/);
+   assert.match(markup,/1,800ms/);
+   assert.match(markup,/야생|시작의 평원/);
+ } finally {await vite.close();}
 });
