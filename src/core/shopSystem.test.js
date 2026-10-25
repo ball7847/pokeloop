@@ -62,7 +62,7 @@ test('hunger carries damaged HP and runs until ten victories without recovery',(
   for(let count=1;count<=10;count++){
     const hp= count===1?4:s.combat.currentHp;
     s={...s,combat:{...s.combat,currentHp:hp,dittoHp:{...s.combat.dittoHp,current:hp}}};
-    s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>0.5});
+    s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>0.5});
     assert.equal(s.killCounts.rattata,count);
     assert.equal(s.recoveryMs,0);
     if(count<10){assert.equal(s.combat.active,true);assert.equal(s.combat.currentHp,4);}
