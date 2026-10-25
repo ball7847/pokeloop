@@ -1,3 +1,4 @@
+import {readStyles} from './readStyles.js';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -57,7 +58,7 @@ test('Zustand state maintains existing victory and reward rules',()=>{
 });
 
 test('desktop layout confines scrolling to panels without clipping mobile document',()=>{
- const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
+ const css=readStyles();
  assert.match(css,/\@media \(min-width:951px\) \{/);
  assert.match(css,/\.shell \{ height:100dvh; min-height:0; overflow:hidden; \}/);
  assert.match(css,/\.workspace \{ flex:1 1 0; height:0; min-height:0; overflow:hidden; \}/);
@@ -175,7 +176,7 @@ test('wild layout keeps 4 columns, square portrait, no sequence number and fixed
   assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,15);
   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
   assert.doesNotMatch(html,/class="wild-order"/);
-  const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
+  const css=readStyles();
   assert.match(css,/\.wild-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);
   assert.match(css,/\.wild-card-portrait\{aspect-ratio:1\/1/);
   assert.match(css,/\.wild-basic-stats\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
@@ -190,7 +191,7 @@ test('Ditto top stats keep 3 columns and six stable slots with hidden zero value
    assert.equal((html.match(/class="stat-slot-empty"/g)||[]).length,3);
    assert.ok(html.indexOf('hp.svg')<html.indexOf('attack.svg'));
    assert.ok(html.indexOf('attack.svg')<html.indexOf('speed.svg'));
-   const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
+   const css=readStyles();
    assert.match(css,/\.stat-grid\{flex:1;min-width:0;display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
  }finally{await vite.close();}
 });
