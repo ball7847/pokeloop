@@ -105,19 +105,29 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   if(hit){
     // Physical and special damage are separate channels within the same action.
     let damage=0;
-    for(const [attack,defense] of [['attack','defense'],['specialAttack','specialDefense']]){
+    const channels=[];
+    for(const [attack,defense,kind] of [['attack','defense','physical'],['specialAttack','specialDefense','special']]){
       if(compareAmount(attackerStats[attack]??0,0)<=0)continue;
       const factor=rollDamagePercent(attackerStats.minDamagePercent??85,random,attackerStats.maxDamagePercent??100)/100;
       const raw=multiplyAmount(attackerStats[attack],factor);
       const net=subtractAmount(raw,defenderStats[defense]??0);
-      if(compareAmount(net,0)>0)damage=addAmount(damage,net);
+      if(compareAmount(net,0)>0){
+        damage=addAmount(damage,net);
+        channels.push({kind,value:net});
+      }
     }
     if(compareAmount(damage,0)>0){
       const before=defenderHp();
       setDefenderHp(subtractAmount(before,damage));
-      // Visual damage is capped at the target's remaining HP; never modify battle math.
-      const actual=compareAmount(before,damage)<0?before:damage;
-      visualEvents.push({target,kind:'damage',value:compareAmount(actual,0)>0?actual:0});
+      // Keep the original total damage, but cap displayed channel values by actual HP lost.
+      // Allocate the visible HP loss in calculation order (physical, then special).
+      let remaining=compareAmount(before,damage)<0?before:damage;
+      for(const channel of channels){
+        if(compareAmount(remaining,0)<=0)break;
+        const visible=compareAmount(remaining,channel.value)<0?remaining:channel.value;
+        if(compareAmount(visible,0)>0)visualEvents.push({target,kind:channel.kind,value:visible});
+        remaining=subtractAmount(remaining,visible);
+      }
     }else visualEvents.push({target,kind:'blocked',value:0});
     targetStatus.paralysis=addAmount(targetStatus.paralysis??0,attackerStats.paralysis??0);
     targetStatus.poison=addAmount(targetStatus.poison,attackerStats.poison??0);
