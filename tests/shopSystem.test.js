@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initialState,transition} from './gameState.js';
-import {UPGRADES,upgradeCost,effectiveDittoStats} from './shopSystem.js';
-import {grantBattleEnergy} from './energySystem.js';
-import {encodeSave,decodeSave} from './saveSystem.js';
+import {initialState,transition} from '../src/core/gameState.js';
+import {UPGRADES,upgradeCost,effectiveDittoStats} from '../src/core/shopSystem.js';
+import {grantBattleEnergy} from '../src/core/energySystem.js';
+import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 const buy=(state,type,id)=>transition(state,{type,id});
 const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,비행:1000}});

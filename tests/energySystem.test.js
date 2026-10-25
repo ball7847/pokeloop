@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialEconomy,grantBattleEnergy,purchaseWithEnergy,tickEconomy,movePlanet,
-  LAYERS,TYPES,particleRates} from './energySystem.js';
-import {initialState,transition} from './gameState.js';
-import {encodeSave,decodeSave} from './saveSystem.js';
+  LAYERS,TYPES,particleRates} from '../src/core/energySystem.js';
+import {initialState,transition} from '../src/core/gameState.js';
+import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 test('18 types are assigned once across the 10 fixed layers',()=>{
   assert.equal(LAYERS.length,10);
@@ -114,7 +114,7 @@ test('legacy v3 preserves old essence as energy and old layer energy as particle
 });
 
 test('configured species payouts include the Mankey balance adjustment',async()=>{
-  const {WILD_POKEMON,UNCOMMON_STARTERS}=await import('./wildData.js');
+  const {WILD_POKEMON,UNCOMMON_STARTERS}=await import('../src/core/wildData.js');
   assert.deepEqual(WILD_POKEMON.map(p=>[p.id,p.energyReward]),[
     ['rattata',1],['pidgey',2],['mankey',2],['spearow',3],['zubat',3]
   ]);
@@ -122,7 +122,7 @@ test('configured species payouts include the Mankey balance adjustment',async()=
 });
 
 test('energy uses the same 1/(1+previous kills) decay as stat rewards',async()=>{
-  const {getWildPokemon,scaledReward}=await import('./wildData.js');
+  const {getWildPokemon,scaledReward}=await import('../src/core/wildData.js');
   for(const [id,base] of [['rattata',1],['pidgey',2],['mankey',2],
     ['spearow',3],['zubat',3],['bulbasaur',132],['charmander',132],['squirtle',132]]){
     const pokemon=getWildPokemon(id);

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initialState,transition} from './gameState.js';
-import {BERRY_REGION,REGION,BERRY_POKEMON,battleEnergyRewards,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
-import {resolveAttack,hitChance} from './combatEngine.js';
-import {encodeSave,decodeSave} from './saveSystem.js';
-import {eventMessage} from '../store/useGameStore.js';
+import {initialState,transition} from '../src/core/gameState.js';
+import {BERRY_REGION,REGION,BERRY_POKEMON,battleEnergyRewards,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from '../src/core/wildData.js';
+import {resolveAttack,hitChance} from '../src/core/combatEngine.js';
+import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
+import {eventMessage} from '../src/store/useGameStore.js';
 
 const state=()=>({...initialState(),phase:'running'});
 test('berry forest roster, stats, rewards and energy payout',()=>{
