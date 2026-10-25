@@ -46,6 +46,11 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'maxDamagePercent', label:'최대 피해량', description:'공격 피해 배율의 최댓값(%)입니다. 100%를 초과할 수 있습니다.' }
 ]);
 
+// Canonical stat labels shared by combat, rewards, logs and wild cards.
+export const STAT_LABELS=Object.freeze(Object.fromEntries(BASIC_STAT_FIELDS.map(({key,label})=>[key,label])));
+export const STAT_KEYS_BY_LABEL=Object.freeze(Object.fromEntries(Object.entries(STAT_LABELS).map(([key,label])=>[label,key])));
+export const statLabel=key=>STAT_LABELS[key]??key;
+export const statKey=label=>STAT_KEYS_BY_LABEL[label]??label;
 export const BASIC_STAT_KEYS=Object.freeze(['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','maxDamagePercent']);
 export const SPECIAL_STAT_KEYS=Object.freeze(BASIC_STAT_FIELDS.map(field=>field.key).filter(key=>!BASIC_STAT_KEYS.includes(key)));
 export function visibleSpecialStats(stats={}){
