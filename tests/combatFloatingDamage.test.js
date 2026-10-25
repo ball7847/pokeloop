@@ -120,5 +120,5 @@ test('damage popup colors are category-based instead of target-based',()=>{
  const css=readFileSync(new URL('../src/styles/40-world-overrides.css',import.meta.url),'utf8');
  for(const kind of ['physical','special','fixed','poison'])
   assert.match(css,new RegExp('\\.battle-damage-number\\.is-'+kind+'\\{color:'));
- assert.doesNotMatch(css,/\\.battle-damage-number\\.on-player\\{color:/);
+ assert.doesNotMatch(css,/\.battle-damage-number\.on-player\{color:/);
 });
