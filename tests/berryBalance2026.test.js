@@ -38,7 +38,7 @@ test('male Nidoran can deal a 150% damage roll and reward permanent max damage',
  s.dittoStats={...s.dittoStats,hp:10000,attack:10000,speed:1};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'nidoran-m'});
  assert.equal(s.combat.active,true);
- s=transition(s,{type:'COMBAT_TICK',deltaMs:5,random:()=>0.5});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>0.5});
  assert.equal(s.killCounts['nidoran-m'],1);
  assert.equal(s.dittoStats.maxDamagePercent,103.2);
  assert.equal(decodeSave(encodeSave(s)).game.dittoStats.maxDamagePercent,103.2);
