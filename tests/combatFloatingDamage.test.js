@@ -16,7 +16,7 @@ test('player damage number reflects effective HP loss, including overkill and ki
  s.combat.dittoAttackCooldown={elapsed:0,duration:100};
  const next=advanceBattle(s,100,()=>0.5);
  assert.equal(next.combat.lastEvent.type,'victory');
- assert.deepEqual(next.combatVisualEvents.map(e=>[e.kind,e.target]),[['damage','enemy']]);
+ assert.deepEqual(next.combatVisualEvents.map(e=>[e.kind,e.target]),[['physical','enemy']]);
  assert.equal(next.combatVisualEvents[0].value,3);
 });
 test('attacks emit miss and blocked events without changing actual HP',()=>{
@@ -89,4 +89,36 @@ test('damage overlay renders even after battle ends and uses original movement t
  assert.match(css,/pokeloop-float-damage 1\.2s ease-out/);
  assert.match(css,/40px/);
  assert.match(css,/pointer-events:none/);
+});
+
+test('physical and special damage use separate events for either target, capped to actual HP loss',()=>{
+ for(const attacker of ['player','enemy']){
+  const state=combatState(),combat=structuredClone(state.combat);
+  combat.currentHp=20;
+  combat.dittoHp.current=20;
+  combat.enemy.hp.current=20;
+  const stats={attack:8,specialAttack:6,accuracy:100,minDamagePercent:100,maxDamagePercent:100};
+  const defense={defense:0,specialDefense:0,dodge:0};
+  const effects=[];
+  resolveAttack(combat,attacker,stats,defense,()=>0.5,effects);
+  assert.deepEqual(effects.map(e=>[e.kind,e.target,e.value]),[
+   ['physical',attacker==='player'?'enemy':'player',8],
+   ['special',attacker==='player'?'enemy':'player',6]
+  ]);
+  assert.equal(attacker==='player'?combat.enemy.hp.current:combat.currentHp,6);
+ }
+ const state=combatState(),combat=structuredClone(state.combat);
+ combat.enemy.hp.current=10;
+ const effects=[];
+ resolveAttack(combat,'player',{attack:8,specialAttack:6,accuracy:100,minDamagePercent:100,maxDamagePercent:100},
+  {defense:0,specialDefense:0,dodge:0},()=>0.5,effects);
+ assert.deepEqual(effects.map(e=>[e.kind,e.value]),[['physical',8],['special',2]]);
+ assert.equal(combat.enemy.hp.current,0);
+});
+
+test('damage popup colors are category-based instead of target-based',()=>{
+ const css=readFileSync(new URL('../src/styles/40-world-overrides.css',import.meta.url),'utf8');
+ for(const kind of ['physical','special','fixed','poison'])
+  assert.match(css,new RegExp('\\.battle-damage-number\\.is-'+kind+'\\{color:'));
+ assert.doesNotMatch(css,/\.battle-damage-number\.on-player\{color:/);
 });
