@@ -36,16 +36,11 @@ export function CombatClock(){
         if(deltaMs>0)store.queueOfflineProduction(deltaMs/1000);
         combatDebtMs=0;
       }else if(deltaMs>0){
-        if(deltaMs<=5000){
-          combatDebtMs+=deltaMs;
-          // Production has a separate live update; no offline time is lost.
-          store.dispatch({type:'ECONOMY_TICK',deltaMs});
-        }else{
-          // Unexpected long foreground suspension: preserve its production time,
-          // but do not manufacture offline battle victories.
-          store.queueOfflineProduction(deltaMs/1000);
-          combatDebtMs=0;
-        }
+        // All truly foreground elapsed time belongs to combat (including long stalls).
+        // Its unused portion is carried to later frames rather than discarded.
+        combatDebtMs+=deltaMs;
+        if(deltaMs<=5000)store.dispatch({type:'ECONOMY_TICK',deltaMs});
+        else store.queueOfflineProduction(deltaMs/1000);
         // Carry excess foreground simulation into later ticks, honoring engine limits.
         let chunks=0;
         while(combatDebtMs>0&&chunks++<8){
