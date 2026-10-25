@@ -42,7 +42,7 @@ function finish(state,c,type,random=Math.random) {
     const stats={...state.dittoStats};
     for(const [key,base] of Object.entries(p.rewards)){
       const value=scaledReward(key,base,count);
-      stats[key]=key==='speed'?Math.max(1,stats.speed+value):addAmount(stats[key],value);
+      stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
     const energyRewards=battleEnergyRewards(p,count);
     let rewarded=state;
@@ -135,7 +135,7 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   let remaining=Math.min(deltaMs,5000);
   const my=c.dittoAttackCooldown,foe=c.enemy.attackCooldown;
   for(let steps=0;remaining>0&&steps<1000;steps++){
-    const myPeriod=Math.max(1,my.duration),foePeriod=Math.max(1,foe.duration);
+    const myPeriod=Math.max(100,my.duration),foePeriod=Math.max(100,foe.duration);
     const toMine=Math.max(0,myPeriod-my.elapsed),toFoe=Math.max(0,foePeriod-foe.elapsed);
     const next=Math.min(toMine,toFoe,remaining);
     my.elapsed+=next;foe.elapsed+=next;remaining-=next;
@@ -143,14 +143,14 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
       const attack=resolveAttack(c,'player',playerStats,enemyStats,random);
-      my.duration=Math.max(1,playerStats.speed+attack.delayMs);
+      my.duration=Math.max(100,playerStats.speed+attack.delayMs);
       if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat',random);
       if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory',random);
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
       const attack=resolveAttack(c,'enemy',enemyStats,playerStats,random);
-      foe.duration=Math.max(1,enemyStats.speed+attack.delayMs);
+      foe.duration=Math.max(100,enemyStats.speed+attack.delayMs);
       if(compareAmount(c.currentHp,0)<=0)return finish(state,c,'defeat',random);
       if(compareAmount(c.enemy.hp.current,0)<=0)return finish(state,c,'victory',random);
     }
