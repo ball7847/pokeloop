@@ -19,6 +19,8 @@ const validInteger=(value,max)=>Number.isSafeInteger(value)&&value>=0&&value<=ma
 export function gameSnapshot(game){
   return {
     phase:game.phase,
+    // Unprocessed offline production is stored independently of wall-clock save time.
+    pendingOfflineSeconds:game.pendingOfflineSeconds??0,
     ...Object.fromEntries(progressKeys.map(key=>[key,game[key]])),
     dittoStats:Object.fromEntries(basicKeys.map(key=>[key,game.dittoStats[key]])),
     killCounts:Object.fromEntries(ALL_POKEMON.map(p=>[p.id,game.killCounts[p.id]??0])),
@@ -59,6 +61,9 @@ export function decodeSave(encoded){
   if(![PHASE.READY,PHASE.RUNNING,PHASE.PAUSED,PHASE.FINISHED].includes(original.phase))
     throw new Error('게임 진행 상태가 올바르지 않습니다.');
   const cleanGame=initialState();
+  const pending=original.pendingOfflineSeconds??0;
+  if(typeof pending!=='number'||!Number.isFinite(pending)||pending<0)throw new Error('미처리 오프라인 생산 시간이 올바르지 않습니다.');
+  cleanGame.pendingOfflineSeconds=pending;
   for(const key of progressKeys){
     if(!validInteger(original[key],MAX_COUNTER))throw new Error('진행 기록이 올바르지 않습니다: '+key);
     cleanGame[key]=original[key];
