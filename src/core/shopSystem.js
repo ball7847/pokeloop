@@ -30,7 +30,7 @@ export function effectiveDittoStats(state){
     attack:storedAmount(decimal(stats.attack).add(attackFlat).mul(attackMultiplier)),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
     poison:storedAmount(decimal(stats.poison??0).mul(decimal(1).add(decimal(levels.poisonMultiplier??0).mul(0.03)))),
-    speed:Math.max(1,stats.speed/speed)};
+    speed:Math.max(100,stats.speed/speed)};
 }
 export function buyUpgrade(state,id){
   const item=UPGRADES.find(x=>x.id===id);
