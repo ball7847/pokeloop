@@ -6,14 +6,16 @@ import {useGameStore} from '../store/useGameStore.js';
 import {REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
 import {formatBasicStat,formatStatValue,isDefaultStat,resolveStats,BASIC_STAT_KEYS,SPECIAL_STAT_KEYS} from '../core/dittoStats.js';
 
-// Row-major positions in a 2-column, 3-row grid: HP/Speed, Attack/Defense, Sp.Atk/Sp.Def.
+// Row-major positions in a 2-column, 4-row grid: six core stats and damage range.
 export const WILD_BASIC_FIELDS=Object.freeze([
   {key:'hp',label:'HP'},
   {key:'speed',label:'스피드'},
   {key:'attack',label:'공격'},
   {key:'defense',label:'방어'},
   {key:'specialAttack',label:'특수공격'},
-  {key:'specialDefense',label:'특수방어'}
+  {key:'specialDefense',label:'특수방어'},
+  {key:'minDamagePercent',label:'최소 피해량'},
+  {key:'maxDamagePercent',label:'최대 피해량'}
 ]);
 const EXTRA_LABELS=Object.freeze({
   minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독',accuracy:'명중',dodge:'회피'
