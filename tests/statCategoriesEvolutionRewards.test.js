@@ -45,7 +45,7 @@ test('special Ditto tab is rendered and both energy reward UI variants use appro
   assert.doesNotMatch(detail,/특수 능력치 시스템은 추후 연결됩니다/);
   const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
   const wild=renderToStaticMarkup(React.createElement(WildPage));
-  assert.match(wild,/title="노말 에너지 \\+1"/);
+  assert.ok(wild.includes('title="노말 에너지 +1"'));
   assert.ok(wild.includes('assets/types/normal.svg'));
   assert.ok(!wild.includes('>노말 에너지 +1</span>'));
   const {DittoBattle}=await vite.ssrLoadModule('/src/components/CombatPanel.jsx');
@@ -53,9 +53,9 @@ test('special Ditto tab is rendered and both energy reward UI variants use appro
   assert.match(combatMarkup,/ditto-battle-region/);
   const {readFileSync}=await import('node:fs');
   const combatSource=readFileSync(new URL('../src/components/CombatPanel.jsx',import.meta.url),'utf8');
-  assert.match(combatSource,/enemy\\.energyRewards/);
+  assert.ok(combatSource.includes('enemy.energyRewards'));
   assert.ok(combatSource.includes('<EnergyTypeIcon type={type}/>'));
-  assert.match(combatSource,/\\{type\\} 에너지/);
+  assert.ok(combatSource.includes('{type} 에너지'));
   const {startBattle}=await vite.ssrLoadModule('/src/core/combatEngine.js');
   const started=startBattle(initialState(),'rattata');
   assert.deepEqual(started.combat.enemy.energyRewards,{'노말':1});
