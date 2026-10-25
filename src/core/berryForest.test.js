@@ -144,7 +144,7 @@ test('berry forest battles pay configured type energy and stat rewards',()=>{
  assert.equal(s.dittoStats.hp,beforeHp+7);
  assert.equal(s.dittoStats.attack,beforeAttack);
  assert.equal(s.energyBalances.벌레,beforeEnergy.벌레+3);
- assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
+ assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
 });
 
 test('Igglybuff grants normal and fairy energy with repetition decay and special attack reward',()=>{
