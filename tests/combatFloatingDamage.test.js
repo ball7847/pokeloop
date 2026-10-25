@@ -122,3 +122,15 @@ test('damage popup colors are category-based instead of target-based',()=>{
   assert.match(css,new RegExp('\\.battle-damage-number\\.is-'+kind+'\\{color:'));
  assert.doesNotMatch(css,/\.battle-damage-number\.on-player\{color:/);
 });
+
+test('victory keeps the combat page mounted for the last damage popup lifetime',()=>{
+ const source=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
+ assert.match(source,/setTimeout\(\(\)=>setActiveTab\(/);
+ assert.match(source,/\),1200\)/);
+ assert.match(source,/clearTimeout\(timeout\)/);
+});
+test('maxed upgrades disable purchases without comparing null as an amount',()=>{
+ const source=readFileSync(new URL('../src/pages/EnergyPage.jsx',import.meta.url),'utf8');
+ assert.match(source,/cost!==null&&compareAmount\(/);
+ assert.match(source,/cost===null\?'최대 레벨'/);
+});
