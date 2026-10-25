@@ -21,8 +21,12 @@ export function App(){
   const lastCombat=useRef(false);
   useEffect(()=>{
     if(combatActive&&!lastCombat.current)setActiveTab('ditto');
-    if(!combatActive&&lastCombat.current)setActiveTab(tab=>tab==='ditto'?'wild':tab);
+    // Leave the final hit visible for the full 1.2s popup lifetime before changing tabs.
+    const finished=!combatActive&&lastCombat.current;
     lastCombat.current=combatActive;
+    if(!finished)return;
+    const timeout=setTimeout(()=>setActiveTab(tab=>tab==='ditto'?'wild':tab),1200);
+    return ()=>clearTimeout(timeout);
   },[combatActive]);
   return <div className="shell"><CombatClock/><CombatBarAnimator/><AutoSaveClock/><TopBar/>
     <div className="workspace">
