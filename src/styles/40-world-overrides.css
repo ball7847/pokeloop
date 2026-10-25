@@ -48,7 +48,6 @@
 .world-type-line small{grid-column:1/-1;white-space:normal;overflow-wrap:anywhere;line-height:1.2;font-size:9px}
 .world-layer-title strong{font-size:10px}
 .world-layer-title small{font-size:9px}
-.world-layer-head>span:nth-child(n+3){display:none}
 .wild-region-summary{display:flex;justify-content:flex-end;align-items:center;min-height:16px;margin:-3px 0 8px}
 @media(max-width:900px){
  .energy-world-content{grid-template-columns:minmax(0,1fr)}
