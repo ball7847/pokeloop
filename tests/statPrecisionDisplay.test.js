@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
-import {formatStatValue,formatBasicStat} from '../src/core/dittoStats.js';
+import {formatStatValue,formatBasicStat,statLabel,statKey} from '../src/core/dittoStats.js';
 import {eventMessage} from '../src/store/useGameStore.js';
 
 test('every stat uses a single 3-decimal display policy, never altering its underlying value',()=>{
@@ -39,4 +39,13 @@ test('wild cards use the common formatter and render existing stat units',async(
    assert.match(markup,/1,800ms/);
    assert.match(markup,/야생|시작의 평원/);
  } finally {await vite.close();}
+});
+
+test('all combat reward and log stat labels share one reversible metadata source',()=>{
+ for(const [key,label] of [['hp','HP'],['specialAttack','특수공격'],['maxDamagePercent','최대 피해량'],['antidote','해독']]){
+  assert.equal(statLabel(key),label);
+  assert.equal(statKey(label),key);
+ }
+ assert.equal(statLabel('unknown'),'unknown');
+ assert.equal(statKey('unknown'),'unknown');
 });
