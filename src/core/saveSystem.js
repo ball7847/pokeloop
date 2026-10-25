@@ -77,7 +77,7 @@ export function decodeSave(encoded){
   if(stats.speed!==0&&stats.speed<1)throw new Error('스피드 값이 올바르지 않습니다.');
   if(stats.minDamagePercent>100)throw new Error('최소 피해량이 올바르지 않습니다.');
   if(stats.maxDamagePercent<stats.minDamagePercent)throw new Error('최대 피해량이 올바르지 않습니다.');
-  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,['speed','minDamagePercent','maxDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
+  cleanGame.dittoStats=Object.fromEntries(basicKeys.map(key=>[key,key==='speed'?Math.max(100,stats[key]):['minDamagePercent','maxDamagePercent'].includes(key)?stats[key]:storedAmount(stats[key])]));
   if(!original.killCounts||typeof original.killCounts!=='object')throw new Error('처치 기록이 없습니다.');
   cleanGame.killCounts=Object.fromEntries(ALL_POKEMON.map(p=>{
     // v9 and earlier named Igglybuff's Berry Forest slot 'jigglypuff'.
