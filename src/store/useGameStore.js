@@ -35,6 +35,14 @@ export function eventMessage(event) {
 export const useGameStore=create((set,get)=>({
   ...initialPersistence(),
   logs:[],
+  // Non-persistent visual effects. The engine supplies actual values once per attack.
+  damagePopups:[],
+  nextDamagePopupId:0,
+  pruneDamagePopups:()=>set(previous=>{
+    const now=Date.now();
+    const remaining=previous.damagePopups.filter(item=>now-item.timestamp<1200);
+    return remaining.length===previous.damagePopups.length?previous:{damagePopups:remaining};
+  }),
   // UI-only filter persists across page tab unmounts, not in saved game data.
   wildRegionFilter:null,
   energySectionTab:'stats',
@@ -58,18 +66,18 @@ export const useGameStore=create((set,get)=>({
     writeAutoSaveEnabled(enabled);
     set({autoSaveEnabled:enabled});
   },
-  restoreGame:(game)=>set(previous=>({game,logs:[],saveError:null,offlineRemainingSeconds:0,
+  restoreGame:(game)=>set(previous=>({game,logs:[],damagePopups:[],saveError:null,offlineRemainingSeconds:0,
     wildRegionFilter:previous.wildRegionFilter==='all'||isRegionUnlocked(game,previous.wildRegionFilter)?previous.wildRegionFilter:REGION.id})),
   importGame:(game)=>{
     // Atomic from the player's perspective: do not replace the running game if persistence fails.
     const pending=game.pendingOfflineSeconds??0;
     const savedAt=writeLocalSave({...game,pendingOfflineSeconds:pending});
-    set(previous=>({game,logs:[],saveError:null,lastSavedAt:savedAt,offlineRemainingSeconds:pending,
+    set(previous=>({game,logs:[],damagePopups:[],saveError:null,lastSavedAt:savedAt,offlineRemainingSeconds:pending,
       wildRegionFilter:previous.wildRegionFilter==='all'||isRegionUnlocked(game,previous.wildRegionFilter)?previous.wildRegionFilter:REGION.id}));
   },
   resetSavedGame:()=>{
     clearLocalSave();
-    set({game:initialState(),logs:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null,
+    set({game:initialState(),logs:[],damagePopups:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null,
       offlineRemainingSeconds:0,wildRegionFilter:REGION.id,energySectionTab:'stats'});
   },
   dispatch:(action)=>set(previous=>{
@@ -84,7 +92,15 @@ export const useGameStore=create((set,get)=>({
       RESET:'게임 진행 상태가 초기화되었습니다.',
       MOVE_PLANET:'메타몽이 행성을 이동하고 대기 스텔라에너지를 흡수했습니다.'
     })[action.type];
-    return {game,logs:message?[message,...previous.logs].slice(0,100):previous.logs,
+    const resetVisuals=['RESET','MOVE_PLANET'].includes(action.type);
+    const now=Date.now();
+    const incoming=action.type==='COMBAT_TICK'?(game.combatVisualEvents??[]):[];
+    const retained=resetVisuals?[]:previous.damagePopups.filter(effect=>now-effect.timestamp<1200);
+    const damagePopups=[...retained,...incoming.map((effect,index)=>({
+      ...effect,id:previous.nextDamagePopupId+index+1,timestamp:now
+    }))].slice(-24);
+    return {game,damagePopups,nextDamagePopupId:previous.nextDamagePopupId+incoming.length,
+      logs:message?[message,...previous.logs].slice(0,100):previous.logs,
       ...(action.type==='MOVE_PLANET'||action.type==='RESET'?{wildRegionFilter:REGION.id,energySectionTab:'stats',offlineRemainingSeconds:0}:{})};
   })
 }));
