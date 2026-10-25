@@ -56,11 +56,11 @@ export function EnergyPage(){
         {energyTab==='stats'?UPGRADES.map(item=>{
           const level=game.energyUpgrades?.[item.id]??0;
           const cost=upgradeCost(item.id,level);
-          const affordable=compareAmount(game.energyBalances[item.type]??0,cost)>=0;
+          const affordable=cost!==null&&compareAmount(game.energyBalances[item.type]??0,cost)>=0;
           return <div className="energy-shop-item" key={item.id}>
             <div><strong>{item.name} Lv. {level} ({item.stat==='공격속도 배율'?'공격속도':item.stat} +{formatAmount(level*item.bonus*(item.unit==='flat'?1:100))}{item.unit==='flat'?'':'%'})</strong></div>
             <button type="button" disabled={!affordable||game.phase!=='running'}
-              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {formatAmount(cost)} 구매</button>
+              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {cost===null?'최대 레벨':formatAmount(cost)+' 구매'}</button>
           </div>;
         }):AUTOMATIONS.map(item=>{
           const owned=game.qolUnlocks?.includes(item.id);
