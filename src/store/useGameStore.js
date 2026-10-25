@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import { initialState, transition } from '../core/gameState.js';
+import {formatStatValue} from '../core/dittoStats.js';
 import {loadLocalSave,readAutoSaveEnabled,writeLocalSave,writeAutoSaveEnabled,clearLocalSave} from '../core/saveSystem.js';
 
 function initialPersistence(){
@@ -16,7 +17,7 @@ export function eventMessage(event) {
   if(event.type==='start')return event.name+'과(와) 전투 시작';
   if(event.type==='victory'){
     const statRewards=Object.entries(event.rewards??{}).map(([k,v])=>
-      (labels[k]??k)+' '+(v<0?'−':'+')+pretty(Math.abs(v))+(k==='speed'?'ms':k==='maxDamagePercent'?'%':''));
+      (labels[k]??k)+' '+(v<0?'−':'+')+formatStatValue(k,Math.abs(v)));
     const energyRewards=Object.entries(event.energyRewards??{}).filter(([,amount])=>compareAmount(amount,0)>0)
       .map(([type,amount])=>type+' 에너지 +'+pretty(amount));
     const details=[...statRewards,...energyRewards];
