@@ -55,12 +55,16 @@ export function visibleBasicStats(stats = {}) {
   const resolved=resolveStats(stats);
   return BASIC_STAT_FIELDS.filter(({key}) => ALWAYS_VISIBLE_DITTO_STATS.includes(key) || !isDefaultStat(key,resolved[key]));
 }
-export function formatBasicStat(key, value) {
-  if (key === 'speed') return Number.isFinite(value)?value.toLocaleString('en-US') + 'ms':'—';
-  if (key === 'accuracy'||key==='dodge')return Number.isFinite(value)?value+'%':'—';
-  if (key === 'minDamagePercent'||key==='maxDamagePercent') return Number.isFinite(value)?value + '%':'—';
-  return formatAmount(value);
+// Format-only: never round the stored stat or values used in combat.
+// All displayed stats share the same precision policy, including % and ms.
+export function formatStatValue(key,value) {
+  const formatted=formatAmount(value);
+  if(formatted==='—')return formatted;
+  const suffix=key==='speed'?'ms':
+    ['accuracy','dodge','minDamagePercent','maxDamagePercent'].includes(key)?'%':'';
+  return formatted+suffix;
 }
+export const formatBasicStat=formatStatValue;
 // One integer-percent roll from [lowerBound, 100], inclusive.
 // Only used when the future combat damage calculation is connected.
 export function rollDamagePercent(lowerBound, random = Math.random, upperBound = 100) {
