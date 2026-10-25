@@ -249,3 +249,8 @@ test('cannot buy unaffordable upgrades mid-combat',()=>{
  const before=s;
  assert.equal(buy(s,'BUY_UPGRADE','hp'),before);
 });
+
+
+test('upgrade costs beyond supported amount range are unavailable instead of throwing',()=>{
+  assert.equal(upgradeCost('hp',1000000),null);
+});
