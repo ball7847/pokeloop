@@ -11,7 +11,7 @@ function initialPersistence(){
   try{local=loadLocalSave();}catch(e){error='로컬 저장 데이터 불러오기 실패: '+e.message;}
   const elapsed=local?.savedAt?Math.max(0,(Date.now()-Date.parse(local.savedAt))/1000):0;
   return {game:local?.game??initialState(),lastSavedAt:local?.savedAt??null,
-    offlineRemainingSeconds:local?.game?.phase==='running'?elapsed:0,
+    offlineRemainingSeconds:(local?.game?.pendingOfflineSeconds??0)+(local?.game?.phase==='running'?elapsed:0),
     autoSaveEnabled:readAutoSaveEnabled(),saveError:error};
 }
 
@@ -49,8 +49,8 @@ export const useGameStore=create((set,get)=>({
   setWildRegionFilter:(filter)=>set({wildRegionFilter:filter}),
   saveLocal:()=>{
     const state=get();
-    // Saving during offline catch-up records the last fully accounted production time.
-    const savedAt=writeLocalSave(state.game,undefined,Date.now()-Math.ceil(state.offlineRemainingSeconds*1000));
+    // Persist remaining production explicitly so pauses and mid-catch-up reloads lose nothing.
+    const savedAt=writeLocalSave({...state.game,pendingOfflineSeconds:state.offlineRemainingSeconds});
     set({lastSavedAt:savedAt,saveError:null});
     return savedAt;
   },
@@ -62,8 +62,9 @@ export const useGameStore=create((set,get)=>({
     wildRegionFilter:previous.wildRegionFilter==='all'||isRegionUnlocked(game,previous.wildRegionFilter)?previous.wildRegionFilter:REGION.id})),
   importGame:(game)=>{
     // Atomic from the player's perspective: do not replace the running game if persistence fails.
-    const savedAt=writeLocalSave(game);
-    set(previous=>({game,logs:[],saveError:null,lastSavedAt:savedAt,offlineRemainingSeconds:0,
+    const pending=game.pendingOfflineSeconds??0;
+    const savedAt=writeLocalSave({...game,pendingOfflineSeconds:pending});
+    set(previous=>({game,logs:[],saveError:null,lastSavedAt:savedAt,offlineRemainingSeconds:pending,
       wildRegionFilter:previous.wildRegionFilter==='all'||isRegionUnlocked(game,previous.wildRegionFilter)?previous.wildRegionFilter:REGION.id}));
   },
   resetSavedGame:()=>{
