@@ -1,5 +1,6 @@
 import React from 'react';
 import {StatLabel} from './StatIcon.jsx';
+import {EnergyTypeIcon} from './EnergyTypeIcon.jsx';
 import {formatStatValue} from '../core/dittoStats.js';
 import {formatAmount,isAmount,decimal,compareAmount} from '../core/bigNumber.js';
 import {useGameStore} from '../store/useGameStore.js';
@@ -42,7 +43,10 @@ export function DittoBattle(){
       <div className="battle-side-panel"><div className="battle-rewards"><h3>보상</h3><div className="battle-reward-items">
         {Object.entries(enemy.rewards||{}).map(([key,value])=>
           <span key={key}><StatLabel stat={key} label={COMBAT_REWARD_LABELS[key]??key}/>
-            <strong>{value<0?'−':'+'}{formatStatValue(key,Math.abs(value))}</strong></span>)}</div></div>
+            <strong>{value<0?'−':'+'}{formatStatValue(key,Math.abs(value))}</strong></span>)}
+        {Object.entries(enemy.energyRewards??{}).map(([type,amount])=><span key={'energy-'+type}>
+          <EnergyTypeIcon type={type}/><span>{type} 에너지</span><strong>+{formatAmount(amount)}</strong></span>)}
+        </div></div>
         <button type="button" className="battle-escape" onClick={()=>dispatch({type:'FLEE'})}>도망가기</button></div>
     </div>
     <div className="combat-debuffs" aria-label="전투 상태이상">
