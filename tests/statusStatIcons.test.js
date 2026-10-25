@@ -20,7 +20,7 @@ test('paralysis and poison render with proper shared stat icons and no old text 
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  try{
   const {homeStatIconUrl,StatIcon,StatLabel,STATUS_STAT_FILES}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
-  assert.deepEqual(STATUS_STAT_FILES,{paralysis:'paralysis.svg',poison:'poison.svg'});
+  assert.deepEqual(STATUS_STAT_FILES,{paralysis:'paralysis.svg',poison:'poison.svg',antidote:'antidote.svg'});
   for(const [stat,label] of [['paralysis','마비'],['poison','독']]){
    assert.ok(homeStatIconUrl(stat).endsWith('assets/stats/'+stat+'.svg'));
    const rendered=renderToStaticMarkup(React.createElement(StatLabel,{stat,label}));
