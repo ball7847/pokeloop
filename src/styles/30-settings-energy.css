@@ -1,0 +1,83 @@
+/* PokeLoop UI style group 4/5. Original rule and breakpoint order retained. */
+
+.save-toggle span{font-weight:650;display:flex;flex-direction:column;gap:4px}
+.save-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.save-panel button{border:1px solid #d6cab8;background:#f2eee6;color:#40382e;padding:10px 12px;border-radius:7px;cursor:pointer;min-width:0}
+.save-panel button:hover{background:#e8e0d3}
+.save-panel button:focus-visible{outline:2px solid #76628a;outline-offset:2px}
+.save-panel .save-danger{color:#9a3434;border-color:#dfb9b4}
+.save-paste{display:flex;flex-direction:column;gap:8px}
+.save-paste textarea{width:100%;resize:vertical;min-height:90px;padding:8px;border:1px solid #d6cab8;border-radius:6px}
+.save-feedback{margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:430px){.save-panel{padding:12px}.save-panel button{padding:9px 5px;font-size:12px}}
+
+.wild-rare-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#efeae0;color:#908477;border:1px dashed #c6b9a7}
+.wild-rare-empty strong{font-size:12px}.wild-rare-empty small{font-size:10px}
+
+/* Energy inventory below the sidebar navigation. */
+.sidebar-energies{margin:20px 4px 0;padding:13px 6px 0;border-top:1px solid #e1dacf;min-width:0}
+.sidebar-energy-title{display:flex;justify-content:space-between;gap:4px;align-items:center;font-size:12px;color:#655e55}
+.sidebar-energy-title small{font-size:10px;color:#948578}
+.sidebar-energy-list{display:flex;flex-direction:column;gap:5px;margin-top:11px;max-height:45dvh;overflow-y:auto}
+.sidebar-energy-item{display:flex;justify-content:space-between;gap:6px;font-size:11px;min-width:0}
+.sidebar-energy-item span{overflow-wrap:anywhere}.sidebar-energy-item strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:right}
+.sidebar-energy-empty{font-size:11px;line-height:1.6;color:#948578;margin:10px 0}
+.energy-page-balances h3{display:flex;justify-content:space-between;gap:8px;align-items:center}.energy-page-balances h3 small{font-size:12px}
+.energy-balance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:15px}
+.energy-balance-item{border:1px solid #e1dacf;background:#f7f4ee;border-radius:6px;padding:12px;display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.energy-purchase-panel{margin-top:14px}.energy-purchase-tabs{display:flex;gap:8px;border-bottom:1px solid #e1dacf;padding-bottom:12px}
+.energy-purchase-tabs button{flex:1;border:1px solid #d9d0c1;border-radius:6px;background:#f4f0e9;padding:10px;cursor:pointer}
+.energy-purchase-tabs button.selected{background:#e3eade;border-color:#8ca68a;font-weight:700}
+.energy-purchase-placeholder{padding:30px 8px;text-align:center;color:#80776d;font-size:13px}
+@media(max-width:600px){.sidebar{grid-template-columns:repeat(5,minmax(0,1fr))}.sidebar-energies{grid-column:1/-1;margin:7px 4px 0;padding:8px 4px 0}.sidebar-energy-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:130px}.energy-balance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Planetary economy: compact cards that wrap instead of overflowing. */
+.energy-layer-list{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.energy-layer{background:#faf8f3;border:1px solid #dcd3c5;border-radius:8px;padding:11px}
+.energy-layer.is-locked{opacity:.65;background:#f0ede8}
+.energy-layer header{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;align-items:center}
+.energy-layer header small{font-size:11px}
+.energy-layer-type{display:grid;grid-template-columns:minmax(58px,.65fr) minmax(60px,1fr) minmax(68px,1fr);column-gap:9px;row-gap:4px;padding:7px 0;border-top:1px solid #e6ded4;align-items:center;font-size:12px}
+.energy-layer-type strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.energy-layer-type small{font-size:11px;color:#756b61;overflow-wrap:anywhere}
+.energy-layer-type small:nth-of-type(2){grid-column:1 / 3}
+.energy-layer-type small:nth-of-type(3){grid-column:3}
+.energy-overview>.panel{margin-top:15px}
+.energy-overview>.panel>p{font-size:12px;line-height:1.65}
+.energy-overview>.panel>button{padding:9px 14px;border-radius:6px;border:1px solid #99876d;background:#e8e4d9;cursor:pointer}
+.energy-overview>.panel>button:disabled{opacity:.45;cursor:not-allowed}
+.energy-balance-item{min-width:0;flex-wrap:wrap}
+.energy-balance-item strong{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+@media(max-width:700px){.energy-layer-type{grid-template-columns:minmax(50px,.6fr) minmax(70px,1fr) minmax(65px,1fr)}.energy-balance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.energy-shop-list{display:flex;flex-direction:column;gap:9px;padding:12px 0}
+.energy-shop-item{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e1dacf;border-radius:6px;background:#faf8f3;padding:11px}
+.energy-shop-item>div{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1}
+.energy-shop-item small{font-size:11px;color:#746b60;line-height:1.4}
+.energy-shop-item button,.ditto-automation-row button{padding:9px 11px;background:#e3eade;border:1px solid #8ca68a;border-radius:6px;cursor:pointer;font-size:12px}
+.energy-shop-item button:disabled,.ditto-automation-row button:disabled{cursor:not-allowed;opacity:.5}
+.ditto-automation-options{display:flex;flex-direction:column;gap:10px;padding:12px}
+.ditto-automation-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;border:1px solid #ddd4c8;padding:10px;border-radius:6px}
+.ditto-automation-row strong{white-space:nowrap}
+.ditto-automation-row small{flex:1;min-width:160px;line-height:1.5}
+.wild-recovery{margin:10px 0;padding:10px 14px;background:#fff4dc;border:1px solid #d8ba7a;border-radius:6px;font-size:13px}
+
+.wild-region-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.wild-region-tabs button{padding:9px 13px;border-radius:7px;background:#f0ebe2;border:1px solid #d3cbbd;cursor:pointer;font-size:12px}
+.wild-region-tabs button[aria-selected="true"]{background:#dde9d9;border-color:#91ad86;font-weight:700}
+.wild-region-tabs button:disabled{opacity:.48;cursor:not-allowed}
+.wild-region-progress{font-size:12px;padding:10px 12px;background:#fbf5e4;border-radius:6px;border:1px solid #e5d4ad}
+.combat-debuffs{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px;font-size:12px;background:#f6f0e5;border-radius:5px}
+
+.energy-section-tabs{margin-bottom:14px;border:1px solid #e1dacf;border-radius:8px 8px 0 0}.energy-world-content{display:flex;flex-direction:column;gap:14px}.energy-section-tabs+.energy-purchase-panel{margin-top:0}
+
+
+/* Compact energy subpages */
+.energy-shop-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:5px 0}
+.energy-shop-list>.energy-shop-item{min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;gap:9px;padding:11px}
+.energy-shop-list>.energy-shop-item>div{min-width:0;width:100%;flex:initial}
+.energy-shop-item button{width:100%;white-space:normal}
+.energy-shop-list>small{grid-column:1/-1}
+.energy-upgrade-effect{font-size:12px;font-weight:700;color:#3e5f48;overflow-wrap:anywhere}
+.world-layer-table{display:flex;flex-direction:column;gap:0;margin-top:10px;border:1px solid #e1dacf;border-radius:6px;overflow:hidden}
+.world-layer-head{display:grid;grid-template-columns:120px minmax(0,1fr) 85px 120px;gap:8px;padding:6px 10px;background:#f1ede6;font-size:10px;font-weight:700;color:#786e60}
