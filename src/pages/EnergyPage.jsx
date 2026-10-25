@@ -1,11 +1,12 @@
-import React,{useState} from 'react';
+import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {LAYERS,particleRates,particleMilestoneThreshold} from '../core/energySystem.js';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import {UPGRADES,AUTOMATIONS,upgradeCost} from '../core/shopSystem.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 export function EnergyPage(){
-  const [energyTab,setEnergyTab]=useState('stats');
+  const energyTab=useGameStore(s=>s.energySectionTab);
+  const setEnergyTab=useGameStore(s=>s.setEnergySectionTab);
   const game=useGameStore(s=>s.game);
   const dispatch=useGameStore(s=>s.dispatch);
   const rates=particleRates(game);
