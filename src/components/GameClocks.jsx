@@ -1,6 +1,7 @@
 import {useEffect} from 'react';
 import {AUTOSAVE_INTERVAL_MS} from '../core/saveSystem.js';
 import {useGameStore} from '../store/useGameStore.js';
+
 export function AutoSaveClock(){
   useEffect(()=>{
     const id=setInterval(()=>{
@@ -13,21 +14,72 @@ export function AutoSaveClock(){
   },[]);
   return null;
 }
-// The clock is mounted once above all pages. Tab switches do not affect combat.
+
+// Wall-clock idle time produces resources only. Foreground combat and recovery
+// use a bounded, carried-over elapsed-time budget, never an offline catch-up.
 export function CombatClock(){
   useEffect(()=>{
     let last=performance.now();
-    const id=setInterval(()=>{
+    let wasHidden=typeof document!=='undefined'&&document.hidden;
+    let combatDebtMs=0;
+    const run=()=>{
       const now=performance.now(),deltaMs=Math.max(0,now-last);
       last=now;
-      const {game,dispatch}=useGameStore.getState();
-      if(game.phase==='running'){
-        dispatch({type:'ECONOMY_TICK',deltaMs});
-        if(game.recoveryMs>0)dispatch({type:'RECOVERY_TICK',deltaMs});
-        if(game.combat.active)dispatch({type:'COMBAT_TICK',deltaMs});
+      const store=useGameStore.getState();
+      if(store.game.phase!=='running'){
+        combatDebtMs=0;
+        return;
       }
-    },100);
-    return ()=>clearInterval(id);
+      const hidden=typeof document!=='undefined'&&document.hidden;
+      if(hidden||wasHidden){
+        // Large or throttled hidden ticks must never simulate combat.
+        if(deltaMs>0)store.queueOfflineProduction(deltaMs/1000);
+        combatDebtMs=0;
+      }else if(deltaMs>0){
+        if(deltaMs<=5000){
+          combatDebtMs+=deltaMs;
+          // Production has a separate live update; no offline time is lost.
+          store.dispatch({type:'ECONOMY_TICK',deltaMs});
+        }else{
+          // Unexpected long foreground suspension: preserve its production time,
+          // but do not manufacture offline battle victories.
+          store.queueOfflineProduction(deltaMs/1000);
+          combatDebtMs=0;
+        }
+        // Carry excess foreground simulation into later ticks, honoring engine limits.
+        let chunks=0;
+        while(combatDebtMs>0&&chunks++<8){
+          const ms=Math.min(5000,combatDebtMs);
+          const current=useGameStore.getState().game;
+          if(current.phase!=='running')break;
+          if(current.recoveryMs>0)store.dispatch({type:'RECOVERY_TICK',deltaMs:ms});
+          if(current.combat.active)store.dispatch({type:'COMBAT_TICK',deltaMs:ms});
+          combatDebtMs-=ms;
+        }
+      }
+      wasHidden=hidden;
+      // Catch up economy in small chunks, bounded by elapsed processing time.
+      // Remaining seconds are retained in store and in autosave's logical timestamp.
+      const begin=performance.now();
+      while(useGameStore.getState().offlineRemainingSeconds>0&&performance.now()-begin<12){
+        useGameStore.getState().consumeOfflineProduction(5);
+      }
+    };
+    const id=setInterval(run,100);
+    const onVisibility=()=>{
+      // Never replay a hidden interval as foreground combat.
+      const now=performance.now();
+      const delta=Math.max(0,now-last);
+      if(wasHidden&&delta>0&&useGameStore.getState().game.phase==='running')
+        useGameStore.getState().queueOfflineProduction(delta/1000);
+      last=now;
+      wasHidden=typeof document!=='undefined'&&document.hidden;
+    };
+    if(typeof document!=='undefined')document.addEventListener('visibilitychange',onVisibility);
+    return ()=>{
+      clearInterval(id);
+      if(typeof document!=='undefined')document.removeEventListener('visibilitychange',onVisibility);
+    };
   },[]);
   return null;
 }
