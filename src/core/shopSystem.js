@@ -19,7 +19,10 @@ export const DEFAULT_AUTOMATION=Object.freeze({hunger:false,resolve:false});
 export function upgradeCost(id,level){
   const item=UPGRADES.find(x=>x.id===id);
   if(!item||!Number.isSafeInteger(level)||level<0||level>1e6)return null;
-  return storedAmount(decimal(item.base).mul(decimal(item.growth).pow(level)));
+  // A mathematically valid level may still produce a cost beyond the supported Decimal range.
+  // Treat an unrepresentable cost as maxed instead of crashing the energy tab.
+  try{return storedAmount(decimal(item.base).mul(decimal(item.growth).pow(level)));}
+  catch(error){if(error instanceof RangeError)return null;throw error;}
 }
 export function effectiveDittoStats(state){
   const stats=state.dittoStats;
