@@ -111,3 +111,12 @@ test('modular CSS keeps identical cascade content, preserves four-column cards, 
  const entry=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
  for(const name of files)assert.ok(entry.includes(name));
 });
+
+test('unprocessed offline production survives paused saves without running battles',()=>{
+ const s={...initialState(),phase:'paused',pendingOfflineSeconds:735.25};
+ const decoded=decodeSave(encodeSave(s)).game;
+ assert.equal(decoded.pendingOfflineSeconds,735.25);
+ assert.equal(decoded.phase,'paused');
+ assert.equal(decoded.victories,0);
+ assert.equal(decoded.combat.active,false);
+});
