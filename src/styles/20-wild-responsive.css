@@ -1,0 +1,86 @@
+/* PokeLoop UI style group 3/5. Original rule and breakpoint order retained. */
+
+/* At narrower widths the history moves below the game; keep natural page scrolling. */
+@media (max-width:950px) {
+  html,body,#app { height:auto; min-height:0; overflow:visible; }
+  .shell { height:auto; min-height:100dvh; overflow:visible; }
+  .workspace { height:auto; overflow:visible; }
+  .main { overflow:visible; }
+  .logs { max-height:240px; }
+}
+
+/* Wild cards: portrait + six basic-stat slots, then optional extras and rewards.
+   The reference colors are layout annotations, not game colors. */
+.wild-card,.wild-empty-cell{min-height:174px}
+.wild-card{justify-content:initial;align-items:stretch;gap:0;padding:0;overflow:hidden;text-align:left}
+.wild-card-upper{display:grid;grid-template-columns:minmax(40px,40%) minmax(0,1fr);gap:5px;min-height:86px;padding:7px 5px 6px}
+.wild-card-portrait{position:relative;min-width:0;display:grid;place-items:center;background:#ede9e2;border:1px solid #e2dbd0;border-radius:4px}
+.wild-card-portrait img{width:100%;max-width:72px;height:auto;max-height:69px;object-fit:contain;image-rendering:pixelated}
+.wild-card .wild-order{top:3px;left:5px;z-index:1}
+.wild-card-info{min-width:0;display:flex;flex-direction:column;gap:5px}
+.wild-name{font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+.wild-basic-stats{min-width:0;display:grid;grid-template-columns:minmax(0,1fr);gap:3px}
+.wild-stat-box{display:flex;align-items:center;justify-content:space-between;gap:3px;min-width:0;padding:3px 4px;border:1px solid #e1d9cd;border-radius:3px;background:#f2efe8}
+.wild-stat-box span{font-size:10px;color:#746b60;min-width:0;overflow-wrap:anywhere}
+.wild-stat-box strong{font-size:10px;color:#3e3932;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wild-extra-stats{min-height:19px;display:flex;align-items:center;flex-wrap:wrap;gap:3px;padding:4px 6px;border-top:1px solid #e6ded3;background:#f4f0e9}
+.wild-extra-stats:empty{min-height:17px}
+.wild-extra-stats .wild-stat-box{flex:1 1 auto}
+.wild-rewards{min-height:26px;display:flex;gap:3px 7px;align-items:center;flex-wrap:wrap;padding:5px 6px;border-top:1px solid #e2dbcd;background:#f0eddf}
+.wild-rewards .wild-reward{font-size:10px;color:#4d6b4b;font-weight:650}
+.wild-card-footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:2px;padding:5px 6px;border-top:1px solid #e6ded3}
+.wild-card-footer .wild-kills,.wild-card-footer .wild-state{font-size:10px;line-height:1.25}
+.wild-card-footer .wild-state{text-align:right}
+@media(max-width:1050px){.wild-card,.wild-empty-cell{min-height:165px}.wild-card-upper{grid-template-columns:minmax(32px,38%) minmax(0,1fr);gap:4px}.wild-card-portrait img{max-height:58px}.wild-stat-box{padding:3px}.wild-stat-box span,.wild-stat-box strong{font-size:9px}}
+@media(max-width:650px){.wild-card,.wild-empty-cell{min-height:154px}.wild-card-upper{grid-template-columns:minmax(28px,38%) minmax(0,1fr);padding:5px 3px}.wild-card-portrait img{width:100%;height:auto;max-height:45px}.wild-name{font-size:10px}.wild-rewards .wild-reward{font-size:9px}}
+
+/* Shared HOME ability icons. Keep the existing neutral UI palette. */
+.stat-label{display:inline-flex;align-items:center;gap:5px;min-width:0;color:inherit}
+.stat-label-text{min-width:0;overflow-wrap:anywhere}
+.home-stat-icon{display:inline-grid;place-items:center;flex:0 0 18px;width:18px;height:18px;vertical-align:middle}
+.home-stat-icon img{display:block;width:100%;height:100%;object-fit:contain}
+.home-stat-fallback{display:grid;place-items:center;width:100%;height:100%;border:1px solid #b6aa98;border-radius:50%;font-size:8px;font-weight:800;background:#e9e3d7;color:#63584c}
+.stat-box>.stat-label,.ditto-detail-stat>.stat-label{font-size:inherit;white-space:nowrap}
+.wild-stat-box>.stat-label{flex:0 0 auto}
+.wild-stat-box .home-stat-icon,.wild-reward .home-stat-icon{width:15px;height:15px;flex-basis:15px}
+.wild-reward{display:inline-flex;align-items:center;gap:2px}
+.wild-card .wild-stat-box{min-height:20px}
+@media(max-width:1050px){.wild-stat-box .home-stat-icon,.wild-reward .home-stat-icon{width:13px;height:13px;flex-basis:13px}}
+
+/* Bundled stat icons: no external requests, no circular text fallback. */
+.home-stat-icon{display:block;flex:0 0 18px;width:18px;height:18px;object-fit:contain;vertical-align:middle}
+.wild-stat-box .home-stat-icon,.wild-reward .home-stat-icon{flex-basis:15px;width:15px;height:15px}
+@media(max-width:1050px){.wild-stat-box .home-stat-icon,.wild-reward .home-stat-icon{flex-basis:14px;width:14px;height:14px}}
+
+/* Fixed 4×5 wild-region slots and fixed ability positions. */
+.wild-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.wild-card-upper{grid-template-columns:minmax(0,39%) minmax(0,1fr);align-items:start}
+.wild-card-portrait{aspect-ratio:1/1;align-self:start;min-width:0;min-height:0;overflow:hidden}
+.wild-card-portrait img{width:100%;height:100%;max-width:none;max-height:none;object-fit:contain}
+.wild-basic-stats{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(20px,auto));align-items:stretch;gap:3px}
+.wild-basic-stats .wild-stat-box{min-width:0;flex-wrap:wrap;align-content:center;justify-content:center;gap:1px 3px}
+.wild-basic-stats .wild-stat-box strong{font-size:10px}
+.wild-stat-slot-empty{min-width:0;min-height:20px}
+.stat-slot-empty{min-width:0;min-height:0}
+@media(max-width:1050px){
+  .wild-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .wild-card-upper{grid-template-columns:minmax(0,37%) minmax(0,1fr)}
+  .wild-card-portrait img{width:100%;height:100%;max-width:none;max-height:none}
+}
+@media(max-width:650px){
+  .wild-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .wild-card{padding:0}
+  .wild-card-upper{grid-template-columns:minmax(0,36%) minmax(0,1fr)}
+  .wild-card-portrait img{width:100%;height:100%;max-width:none;max-height:none}
+}
+@media(max-width:430px){
+  .wild-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+/* Save management */
+.save-panel{margin-top:16px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.save-panel h3{font-size:18px}
+.save-last{background:#f5f1e9;border:1px solid #e1dacf;border-radius:7px;padding:12px;display:flex;flex-direction:column;gap:5px}
+.save-last small,.save-toggle small{font-size:11px;color:#80776d}
+.save-last strong{font-size:14px;font-weight:650}
+.save-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px}
