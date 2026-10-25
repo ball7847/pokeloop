@@ -42,7 +42,7 @@ test('poison shows separate event, capped by actor remaining HP even when attack
  resolveAttack(c,'player',{...s.dittoStats,accuracy:0,antidote:0},c.enemy.statistics,()=>0.5,events);
  assert.deepEqual(events.map(e=>[e.kind,e.target]),[['miss','enemy'],['poison','player']]);
  assert.equal(events[1].value,2);
- assert.equal(c.currentHp,-3);
+ assert.equal(c.currentHp,0);
 });
 test('simultaneous attack timestamps deliver effects from both combatants',()=>{
  let s=combatState();
