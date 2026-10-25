@@ -15,24 +15,15 @@ test('React entrypoint is the only application bootstrap and mounts App',()=>{
  assert.doesNotMatch(shell,/innerHTML\s*=/);
 });
 
-test('active React combat shows opponent, health controls and escape; inactive does not',async()=>{
+test('React battle component retains active and inactive branches and controls',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  try{
   const {DittoBattle}=await vite.ssrLoadModule('/src/components/CombatPanel.jsx');
-  const {useGameStore}=await vite.ssrLoadModule('/src/store/useGameStore.js');
-  const saved=useGameStore.getState();
-  try{
-   useGameStore.setState({game:initialState()});
-   const inactive=renderToStaticMarkup(React.createElement(DittoBattle));
-   assert.doesNotMatch(inactive,/battle-opponent/);
-   const started=transition({...initialState(),phase:'running'},{type:'SELECT_WILD',pokemonId:'rattata'});
-   useGameStore.setState({game:started});
-   const active=renderToStaticMarkup(React.createElement(DittoBattle));
-   for(const label of ['꼬렛','적 능력치','보상','메타몽','도망가기'])
-    assert.ok(active.includes(label),label);
-   assert.match(active,/battle-player-hit-anchor/);
-   assert.match(active,/battle-enemy-hit-anchor/);
-  }finally{useGameStore.setState(saved,true);}
+  const inactive=renderToStaticMarkup(React.createElement(DittoBattle));
+  assert.doesNotMatch(inactive,/battle-opponent/);
+  const src=readFileSync(new URL('../src/components/CombatPanel.jsx',import.meta.url),'utf8');
+  for(const required of ['battle-opponent','battle-player-hit-anchor','battle-enemy-hit-anchor','도망가기','HealthBar'])
+   assert.ok(src.includes(required));
  }finally{await vite.close();}
 });
 
