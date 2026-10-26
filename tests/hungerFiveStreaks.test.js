@@ -28,9 +28,6 @@ function run(strategy){
      const bought=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
      if(bought!==s){s=bought;automationBoughtAt=ms;}
    }
-   // Purchase the second automation when earned energy permits; the hunger
-   // toggle controls explicit five-win streaks so recovery retries are not duplicated.
-   s=transition(s,{type:'BUY_AUTOMATION',id:'resolve'});
    if(strategy==='none')return;
    for(let n=0;n<40;n++){
      const order=strategy==='attack'?['attack','hp','attackMultiplier']:
