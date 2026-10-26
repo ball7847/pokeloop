@@ -14,9 +14,11 @@ const entries=[
 {id:'sentret',number:161,name:'꼬리선',types:['노말'],energyReward:15,hp:100,attack:4.6,speed:2400,rewards:{hp:16.1}},
 {id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:49,hp:225,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
 ];
-export const WILD_POKEMON=Object.freeze(entries.map(p=>Object.freeze({...p,...resolveStats(p)})));
+// Encounter codes identify regional slots independently from species IDs.
+const region1Codes=Object.freeze(['R10101','R10201','R10301','R10401','R10501','R10701','R10801','R10901','R11001','R11101']);
+export const WILD_POKEMON=Object.freeze(entries.map((p,i)=>Object.freeze({...p,...resolveStats(p),encounterCode:region1Codes[i]})));
 export const UNCOMMON_BASE_CHANCE=0;
-export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map(p=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
+export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map((p,i)=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),encounterCode:'R10602-0'+(i+1),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 const berryEntries=[
 {id:'caterpie',number:10,name:'캐터피',types:['벌레'],energyReward:3,hp:45,attack:3,speed:3000,rewards:{hp:7}},
@@ -46,9 +48,10 @@ export function evolutionChance(pokemon,state){
 }
 const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
 export const regionForPokemon=id=>berryIds.has(id)?BERRY_REGION.id:REGION.id;
+const region1Lineup=state=>[...WILD_POKEMON.slice(0,5),...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId),...WILD_POKEMON.slice(5)];
 const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
  BERRY_POKEMON.filter(p=>!p.evolvesFrom&&(p.id!=='pikachu'||state?.berryRareAppeared===true)):
- [...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId)];
+ region1Lineup(state);
 // Recursive insertion also supports later second and third evolutionary stages.
 export function appearedInRegion(state,regionId){
  const result=[];
@@ -89,7 +92,7 @@ export function rollUncommonStarter(chance=UNCOMMON_BASE_CHANCE,random=Math.rand
  return UNCOMMON_STARTERS[Math.min(2,Math.max(0,Math.floor(random()*3)))].id;
 }
 export function getActiveWildPokemon(state){
- return [...WILD_POKEMON,...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId)];
+ return region1Lineup(state);
 }
 // Existing battles award the same base to each Pokémon type. Explicit per-type
 // overrides allow partial regional rewards without silently awarding all types.
