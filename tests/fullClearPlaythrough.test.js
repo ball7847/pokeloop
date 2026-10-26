@@ -8,7 +8,7 @@ import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 // Full-clear route: only combat victories, earned currencies and legal shop purchases.
 // No preloaded stats, kill counts, injected energy or skipped recovery timers.
 const route={
-  [REGION.id]:['rattata','pidgey','spearow','mankey','zubat'],
+  [REGION.id]:['rattata','pidgey','spearow','mankey','zubat','meowth','geodude','exeggcute','sentret','tauros'],
   [BERRY_REGION.id]:['caterpie','weedle','taillow','kakuna','metapod','igglybuff','nidoran-m','nidoran-f']
 };
 function simulate(priority){
@@ -97,8 +97,8 @@ test('full-clear attempt reports reachable progress after balance changes withou
    const result=simulate(priority);
    // Stronger enemies can block a strategy; report partial progress rather than
    // assuming every balance revision is winnable without a different route.
-   assert.ok(result.totalVictories>0&&result.totalVictories<=130);
-   assert.equal(Object.keys(result.first).length,5);
+   assert.ok(result.totalVictories>0&&result.totalVictories<=180);
+   assert.equal(Object.keys(result.first).length,10);
    assert.equal(Object.keys(result.second).length,8);
    assert.ok(Object.values(result.first).every(n=>n>=0&&n<=10));
    assert.ok(Object.values(result.second).every(n=>n>=0&&n<=10));
