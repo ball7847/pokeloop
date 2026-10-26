@@ -43,7 +43,7 @@ test('default minimum damage is shared and hidden; modified values remain visibl
 });
 
 test('common stats default independently of Ditto starting overrides',()=>{
- assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,multiStrike:0,accuracy:100,dodge:0});
+ assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,regeneration:0,multiStrike:0,accuracy:100,dodge:0});
  assert.deepEqual(resolveStats({hp:6,attack:2.5}),{...DEFAULT_STATS,hp:6,attack:2.5});
  assert.equal(isDefaultStat('speed',0),true);
  assert.equal(isDefaultStat('speed',3000),false);
