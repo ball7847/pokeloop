@@ -6,7 +6,7 @@ import {effectiveDittoStats,UPGRADES,AUTOMATIONS} from '../src/core/shopSystem.j
 
 const groups=[
  [REGION.id,['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']],
- [BERRY_REGION.id,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f']]
+ [BERRY_REGION.id,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela']]
 ];
 function run(strategy){
  let s=transition(initialState(),{type:'START'}),ms=0,steps=0;
@@ -15,7 +15,7 @@ function run(strategy){
  const reportIds=[...allIds,...evolutionIds];
  const logs=[],timeline=[],firstChallenge={},firstKillSnapshots={},battles={},streaks={},failures={},pending=[];
  const purchasedAutomations=[];
- const labels={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',meowth:'나옹',geodude:'꼬마돌',exeggcute:'아라리',sentret:'꼬리선',tauros:'켄타로스',caterpie:'캐터피',weedle:'뿔충이',taillow:'테일로',igglybuff:'푸푸린','nidoran-m':'니드런♂','nidoran-f':'니드런♀',metapod:'단데기',kakuna:'딱충이'};
+ const labels={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',meowth:'나옹',geodude:'꼬마돌',exeggcute:'아라리',sentret:'꼬리선',tauros:'켄타로스',caterpie:'캐터피',weedle:'뿔충이',taillow:'테일로',igglybuff:'푸푸린','nidoran-m':'니드런♂','nidoran-f':'니드런♀',tangela:'덩쿠리',metapod:'단데기',kakuna:'딱충이'};
  const note=message=>timeline.push(message);
  let automationBoughtAt=null;
  function toggle(on){
