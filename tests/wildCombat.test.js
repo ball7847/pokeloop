@@ -5,7 +5,7 @@ import {initialState,transition} from '../src/core/gameState.js';
 const select=(s,id)=>transition(s,{type:'SELECT_WILD',pokemonId:id});
 const tick=(s,ms=100,roll=()=>0.9999)=>transition(s,{type:'COMBAT_TICK',deltaMs:ms,random:roll});
 test('starting region has 5 ordered pokemon in 20 slots',()=>{
- assert.equal(REGION.capacity,20);assert.equal(REGION.defaultKillLimit,10);
+ assert.equal(Object.hasOwn(REGION,'capacity'),false);assert.equal(REGION.defaultKillLimit,10);
  assert.deepEqual(WILD_POKEMON.map(x=>x.name),['꼬렛','구구','망키','깨비참','주뱃']);
  assert.equal(WILD_POKEMON.length,5);
 });
