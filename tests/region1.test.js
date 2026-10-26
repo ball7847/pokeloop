@@ -33,7 +33,7 @@ test('starter slot defaults absent and requires single chosen species',()=>{
  assert.equal(rollUncommonStarter(1,()=>0.999),'squirtle');
  const s=initialState();assert.equal(getActiveWildPokemon(s).length,10);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
- s.uncommonStarterId='charmander';s.killCounts.rattata=1;s.killCounts.pidgey=1;s.killCounts.mankey=1;
+ s.uncommonStarterId='charmander';s.killCounts.rattata=1;s.killCounts.pidgey=1;s.killCounts.mankey=1;s.killCounts.spearow=1;s.killCounts.zubat=1;s.killCounts.meowth=1;s.killCounts.geodude=1;s.killCounts.exeggcute=1;
  assert.equal(getActiveWildPokemon(s).length,11);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'charmander'}).combat.enemy.name,'파이리');
@@ -64,10 +64,10 @@ test('unique first defeats unlock next in encounter order, including non-sequent
 });
 test('absent uncommon slot is excluded and present starter requires another distinct first victory',()=>{
  const kills={rattata:1,pidgey:1,mankey:1};
- assert.equal(unlockedPokemonCount(kills),5);
+ assert.equal(unlockedPokemonCount(kills),6);
  assert.equal(isPokemonUnlocked(kills,'charmander'),false,'absent starter cannot be selected');
  assert.equal(unlockedPokemonCount(kills,'charmander'),6);
- assert.equal(isPokemonUnlocked(kills,'charmander','charmander'),true);
+ assert.equal(isPokemonUnlocked(kills,'charmander','charmander'),false);
  assert.equal(isPokemonUnlocked(kills,'bulbasaur','charmander'),false);
 });
 test('first victories survive saves and the unlock count restores automatically',()=>{
