@@ -4,10 +4,10 @@ import {REGION,WILD_POKEMON,rewardMultiplier,isPokemonUnlocked} from '../src/cor
 import {initialState,transition} from '../src/core/gameState.js';
 const select=(s,id)=>transition(s,{type:'SELECT_WILD',pokemonId:id});
 const tick=(s,ms=100,roll=()=>0.9999)=>transition(s,{type:'COMBAT_TICK',deltaMs:ms,random:roll});
-test('starting region has 5 ordered pokemon in 20 slots',()=>{
+test('starting region has 10 ordered pokemon without a cap',()=>{
  assert.equal(Object.hasOwn(REGION,'capacity'),false);assert.equal(REGION.defaultKillLimit,10);
- assert.deepEqual(WILD_POKEMON.map(x=>x.name),['꼬렛','구구','망키','깨비참','주뱃']);
- assert.equal(WILD_POKEMON.length,5);
+ assert.deepEqual(WILD_POKEMON.map(x=>x.name),['꼬렛','구구','망키','깨비참','주뱃','나옹','꼬마돌','아라리','꼬리선','켄타로스']);
+ assert.equal(WILD_POKEMON.length,10);
 });
 test('reward formula matches Rejected Draft diminishing returns',()=>{
  assert.equal(rewardMultiplier(0),1);assert.equal(rewardMultiplier(1),0.5);
