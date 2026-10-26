@@ -300,3 +300,47 @@ test('HP multiplier can be purchased mid-battle without healing current HP',()=>
  assert.equal(s.combat.maxHp,10.4);
  assert.equal(s.combat.dittoHp.max,10.4);
 });
+
+test('dual energy upgrade purchases require both currencies and create matching particles',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,불꽃:10,격투:10,물:10,땅:10,강철:10,에스퍼:10,페어리:10}};
+ const {energyBalances:before}=s;
+ s=buy(s,'BUY_UPGRADE','attackMultiplier');
+ assert.equal(s.energyBalances.불꽃,0);
+ assert.equal(s.energyBalances.격투,0);
+ assert.equal(s.particleBank.불꽃,10);
+ assert.equal(s.particleBank.격투,10);
+ assert.equal(s.energyUpgrades.attackMultiplier,1);
+ assert.equal(buy(s,'BUY_UPGRADE','attackMultiplier'),s);
+ s=buy(s,'BUY_UPGRADE','hpMultiplier');
+ assert.equal(s.energyBalances.물,0);
+ assert.equal(s.energyBalances.땅,0);
+ assert.equal(s.particleBank.물,10);
+ assert.equal(s.particleBank.땅,10);
+ assert.equal(buy(s,'BUY_UPGRADE','defenseMultiplier'),s);
+ s=buy(s,'BUY_UPGRADE','specialAttackMultiplier');
+ assert.equal(s.energyBalances.에스퍼,0);
+ assert.equal(s.energyBalances.페어리,0);
+ assert.equal(s.particleBank.에스퍼,10);
+ assert.equal(s.particleBank.페어리,10);
+ assert.equal(buy(s,'BUY_UPGRADE','specialDefenseMultiplier'),s);
+ assert.equal(before.강철,10);
+ assert.equal(s.energyBalances.강철,10);
+ const oneSided={...funded(),energyBalances:{...funded().energyBalances,강철:10,땅:9}};
+ assert.equal(buy(oneSided,'BUY_UPGRADE','defenseMultiplier'),oneSided);
+ assert.equal(oneSided.energyBalances.강철,10);
+ const both={...oneSided,energyBalances:{...oneSided.energyBalances,땅:10}};
+ const purchased=buy(both,'BUY_UPGRADE','defenseMultiplier');
+ assert.equal(purchased.energyBalances.강철,0);
+ assert.equal(purchased.energyBalances.땅,0);
+ assert.equal(purchased.particleBank.강철,10);
+ assert.equal(purchased.particleBank.땅,10);
+ assert.equal(decodeSave(encodeSave(purchased)).game.energyUpgrades.defenseMultiplier,1);
+});
+test('defense and special stats use flat increases before 4 percent amplifiers',()=>{
+ let s={...funded(),dittoStats:{...funded().dittoStats,defense:5,specialDefense:2,specialAttack:10},energyUpgrades:{defense:2,specialDefense:3,specialAttack:4,defenseMultiplier:2,specialDefenseMultiplier:2,specialAttackMultiplier:2}};
+ const stats=effectiveDittoStats(s);
+ assert.ok(Math.abs(stats.defense-7.56)<1e-8);
+ assert.ok(Math.abs(stats.specialDefense-5.4)<1e-8);
+ assert.ok(Math.abs(stats.specialAttack-15.12)<1e-8);
+ assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,defense:0},energyUpgrades:{defenseMultiplier:3}}).defense,0);
+});
