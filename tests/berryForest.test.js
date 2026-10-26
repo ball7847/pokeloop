@@ -14,14 +14,14 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['weedle',80,14,0,0,3500,0,0,100,100],
  ['kakuna',160,20,0,10,5000,0,0,100,100],
  ['taillow',80,11,0,0,1100,0,0,100,100],
- ['igglybuff',180,6,20,0,2900,0,0,100,100],
+ ['igglybuff',180,6,20,0,2000,0,0,100,100],
  ['pikachu',250,25,25,0,1025,250,0,100,100],
- ['nidoran-m',200,57,0,0,2730,0,0,80,150],
- ['nidoran-f',220,21,0,0,2750,0,8,100,100]
+ ['nidoran-m',230,57,0,0,2730,0,0,80,150],
+ ['nidoran-f',220,21,0,0,2750,0,10,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
- {hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:3.2,maxDamagePercent:3.2},{hp:12.9,poison:1}
+ {hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:5.7,maxDamagePercent:3.2},{hp:12.9,poison:1}
  ]);
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{벌레:3});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='weedle')),{벌레:3,독:3});
@@ -36,6 +36,12 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
    assert.deepEqual(battleEnergyRewards(p,0),{독:6.9});
    assert.deepEqual(battleEnergyRewards(p,1),{독:3.45});
  }
+});
+test('male Nidoran minimum damage 50% and max 150%',()=>{
+ const n=BERRY_POKEMON.find(p=>p.id==='nidoran-m');
+ assert.equal(n.minDamagePercent,50);
+ assert.equal(n.maxDamagePercent,150);
+ assert.equal(n.accuracy,80);
 });
 test('region 2 unlocks after 70% of appeared unique regional species and first three only',()=>{
  let s=state();
@@ -172,7 +178,7 @@ test('Igglybuff grants normal and fairy energy with repetition decay and special
 });
 
 test('Nidoran males and females grant poison energy with normal diminishing returns and keep stat rewards',()=>{
- for(const [id,rewardField,rewardValue] of [['nidoran-m','attack',3.2],['nidoran-f','hp',12.9]]){
+ for(const [id,rewardField,rewardValue] of [['nidoran-m','attack',5.7],['nidoran-f','hp',12.9]]){
    let s=state();
    s={...s,activeRegionId:BERRY_REGION.id,
      killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1,caterpie:1,weedle:1,kakuna:1,metapod:1,igglybuff:1},
