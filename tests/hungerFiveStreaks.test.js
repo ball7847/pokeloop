@@ -13,7 +13,9 @@ function run(strategy){
  const allIds=groups.flatMap(([,ids])=>ids);
  const evolutionIds=['metapod','kakuna'];
  const reportIds=[...allIds,...evolutionIds];
- const logs=[],firstChallenge={},battles={},streaks={},failures={},pending=[];
+ const logs=[],timeline=[],firstChallenge={},battles={},streaks={},failures={},pending=[];
+ const labels={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',meowth:'나옹',geodude:'꼬마돌',exeggcute:'아라리',sentret:'꼬리선',tauros:'켄타로스',caterpie:'캐터피',weedle:'뿔충이',taillow:'테일로',igglybuff:'푸푸린','nidoran-m':'니드런♂','nidoran-f':'니드런♀',metapod:'단데기',kakuna:'딱충이'};
+ const note=message=>timeline.push(message);
  let automationBoughtAt=null;
  function toggle(on){
    // The first victory is needed to earn the one Normal energy for this automation.
@@ -26,7 +28,7 @@ function run(strategy){
  function shop(){
    if(automationBoughtAt===null){
      const bought=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
-     if(bought!==s){s=bought;automationBoughtAt=ms;}
+     if(bought!==s){s=bought;automationBoughtAt=ms;note('끝없는 허기 구매');}
    }
    if(strategy==='none')return;
    for(let n=0;n<40;n++){
@@ -36,7 +38,7 @@ function run(strategy){
      let purchased=false;
      for(const id of order){
        const next=transition(s,{type:'BUY_UPGRADE',id});
-       if(next!==s){s=next;purchased=true;break;}
+       if(next!==s){s=next;purchased=true;note('강화 '+id+' Lv'+(s.energyUpgrades[id]??0));break;}
      }
      if(!purchased)break;
    }
@@ -74,6 +76,7 @@ function run(strategy){
    if(s.combat.active)throw Error('combat timed out '+id);
    let result=s.combat.lastEvent?.type;
    if(result==='defeat')failures[id]=(failures[id]??0)+1;
+   note(labels[id]+' 연속 '+wins+'승 / '+result+' / 누적 '+(s.killCounts[id]??0)+'회');
    if(result!=='defeat'&&result!=='victory')throw Error('unexpected '+id+': '+result);
    (streaks[id]??=[]).push({wins,result,atMs:ms,remainingHp:s.combat.currentHp});
    return {wins,result};
@@ -96,13 +99,13 @@ function run(strategy){
      target(id,10);
      extra+=(s.killCounts[id]??0)-old;
    }
-   if(extra)logs.push({event:'farm',blocked,extra,atMs:ms});
+   if(extra){logs.push({event:'farm',blocked,extra,atMs:ms});note(labels[blocked]+' 재도전 위해 이전 적 '+extra+'회 추가 파밍');}
  }
  function retry(reason){
    for(const id of [...pending]){
      const saved=s.activeRegionId;
      const result=target(id);
-     logs.push({event:'retry',target:id,reason,result,kills:s.killCounts[id]??0,atMs:ms});
+     logs.push({event:'retry',target:id,reason,result,kills:s.killCounts[id]??0,atMs:ms});note(labels[id]+' 보류 대상 재도전: '+result);
      if(result==='cleared')pending.splice(pending.indexOf(id),1);
      if(s.activeRegionId!==saved)s=transition(s,{type:'SELECT_REGION',regionId:saved});
    }
@@ -110,13 +113,14 @@ function run(strategy){
  for(let g=0;g<groups.length;g++){
    const [region,ids]=groups[g];
    if(g>0){
-     if(!isRegionUnlocked(s,region)){logs.push({event:'region-locked',region});break;}
-     s=transition(s,{type:'SELECT_REGION',regionId:region});
+     if(!isRegionUnlocked(s,region)){logs.push({event:'region-locked',region});note('베리숲 잠김');break;}
+     s=transition(s,{type:'SELECT_REGION',regionId:region});note('베리숲 해금 및 진입');
    }
    const earlier=groups.slice(0,g).flatMap(([,species])=>species);
    for(let i=0;i<ids.length;i++){
      const id=ids[i];
      if(!isPokemonUnlockedInState(s,id)){logs.push({event:'unavailable',pokemon:id});continue;}
+     note(labels[id]+' 목표 5회 도전');
      let result=target(id);
      if(result!=='cleared'){
        logs.push({event:'blocked',pokemon:id,result,atMs:ms,kills:s.killCounts[id]??0});
@@ -124,7 +128,8 @@ function run(strategy){
        result=target(id);
        logs.push({event:'after-farm',pokemon:id,result,kills:s.killCounts[id]??0,atMs:ms});
      }
-     if(result!=='cleared'&&!pending.includes(id))pending.push(id);
+     if(result!=='cleared'&&!pending.includes(id)){pending.push(id);note(labels[id]+' 보류');}
+     if(result==='cleared')note(labels[id]+' 5회 달성');
      if(result==='cleared'&&pending.length)retry('after '+id+' 5 wins');
    }
    if(pending.length)retry('end '+region);
@@ -148,7 +153,7 @@ function run(strategy){
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
    firstTaillow:firstChallenge.taillow??null,unresolved:pending,events:logs,
-   stats:effectiveDittoStats(s),upgrades:s.energyUpgrades,steps};
+   stats:effectiveDittoStats(s),upgrades:s.energyUpgrades,steps,timeline};
  console.log('HUNGER_FIVE_'+strategy.toUpperCase()+' '+JSON.stringify(result));
  return result;
 }
@@ -158,7 +163,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
-   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({strategy,minutes:result.minutes,automationBoughtAt:result.automationBoughtAt,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades}));
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({strategy,minutes:result.minutes,automationBoughtAt:result.automationBoughtAt,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,timeline:result.timeline}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
