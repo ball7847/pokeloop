@@ -10,18 +10,18 @@ const state=()=>({...initialState(),phase:'running'});
 test('berry forest roster, stats, rewards and energy payout',()=>{
  assert.deepEqual(BERRY_POKEMON.map(p=>[p.id,p.hp,p.attack,p.specialAttack,p.defense,p.speed,p.paralysis,p.poison,p.accuracy,p.maxDamagePercent]),[
  ['caterpie',90,12,0,0,3000,0,0,100,100],
+ ['metapod',150,20,0,11,4500,0,0,100,100],
  ['weedle',80,14,0,0,3500,0,0,100,100],
  ['kakuna',160,20,0,10,5000,0,0,100,100],
- ['metapod',150,20,0,11,4500,0,0,100,100],
  ['taillow',80,11,0,0,1100,0,0,100,100],
- ['pikachu',250,25,25,0,1025,250,0,100,100],
  ['igglybuff',180,6,8,0,2900,0,0,100,100],
+ ['pikachu',250,25,25,0,1025,250,0,100,100],
  ['nidoran-m',230,57,0,0,4400,0,0,80,150],
  ['nidoran-f',220,14,0,0,4100,0,7,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
- {hp:7},{hp:7},{hp:10,defense:1},{hp:10,defense:1},{attack:2.76,speed:-20},
- {attack:25,paralysis:25},{hp:18,specialAttack:5},{attack:3.2,maxDamagePercent:3.2},{hp:12.9,poison:1}
+ {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
+ {hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:3.2,maxDamagePercent:3.2},{hp:12.9,poison:1}
  ]);
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{벌레:3});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='weedle')),{벌레:3,독:3});
@@ -137,7 +137,7 @@ test('berry forest battles pay configured type energy and stat rewards',()=>{
  s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
  s=transition(s,{type:'SELECT_WILD',pokemonId:'caterpie'});
  assert.equal(s.combat.active,true);
- assert.equal(s.combat.enemy.hp.max,45);
+ assert.equal(s.combat.enemy.hp.max,90);
  const beforeHp=s.dittoStats.hp;
  const beforeAttack=s.dittoStats.attack;
  const beforeEnergy={...s.energyBalances};
@@ -157,18 +157,18 @@ test('Igglybuff grants normal and fairy energy with repetition decay and special
  const before={...s.energyBalances};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
  assert.equal(s.combat.active,true);
- assert.equal(s.combat.enemy.hp.max,90);
+ assert.equal(s.combat.enemy.hp.max,180);
  s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
  assert.equal(s.killCounts.igglybuff,1);
- assert.equal(s.energyBalances.노말,before.노말+17.4);
- assert.equal(s.energyBalances.페어리,before.페어리+17.4);
- assert.equal(s.dittoStats.specialAttack,2);
+ assert.equal(s.energyBalances.노말,before.노말+39);
+ assert.equal(s.energyBalances.페어리,before.페어리+39);
+ assert.equal(s.dittoStats.specialAttack,5);
  s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
  assert.equal(s.killCounts.igglybuff,2);
- assert.ok(Math.abs(s.energyBalances.노말-(before.노말+26.1))<1e-8);
- assert.ok(Math.abs(s.energyBalances.페어리-(before.페어리+26.1))<1e-8);
- assert.equal(s.dittoStats.specialAttack,3);
+ assert.ok(Math.abs(s.energyBalances.노말-(before.노말+58.5))<1e-8);
+ assert.ok(Math.abs(s.energyBalances.페어리-(before.페어리+58.5))<1e-8);
+ assert.equal(s.dittoStats.specialAttack,7.5);
 });
 
 test('Nidoran males and females grant poison energy with normal diminishing returns and keep stat rewards',()=>{
@@ -182,7 +182,7 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
    for(let count=1;count<=2;count++){
      s=transition(s,{type:'SELECT_WILD',pokemonId:id});
      assert.equal(s.combat.active,true);
-     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?28.5:14.7);
+     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?57:14);
      s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
      assert.equal(s.killCounts[id],count);
      assert.equal(s.combat.active,false);
