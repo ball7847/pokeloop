@@ -270,7 +270,7 @@ test('new water and grass upgrades use confirmed costs, correct stat order, ener
  const stats=effectiveDittoStats(s);
  assert.ok(Math.abs(stats.hp-112.32)<1e-9);
  assert.equal(stats.specialAttack,6);
- assert.equal(stats.regeneration,5.3);
+ assert.ok(Math.abs(stats.regeneration-5.3)<1e-9);
  assert.equal(s.energyBalances.물,72.5);
  assert.equal(s.energyBalances.풀,75);
  assert.equal(s.particleBank.물,27.5);
