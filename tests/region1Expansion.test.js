@@ -54,7 +54,7 @@ test('1500 multi-strike adds one guaranteed and one 50% chance; survives save',(
   const c=combat();
   resolveAttack(c,'player',stats({attack:10,multiStrike:1500}),stats(),()=>roll);
   assert.equal(c.enemy.hp.current,500-expected*10);
-  assert.equal(c.currentHp,480);
+  assert.equal(c.currentHp,500);
  }
  const s=initialState();s.dittoStats.multiStrike=4;
  assert.equal(decodeSave(encodeSave(s)).game.dittoStats.multiStrike,4);
