@@ -17,7 +17,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['igglybuff',180,6,8,0,2900,0,0,100,100],
  ['pikachu',250,25,25,0,1025,250,0,100,100],
  ['nidoran-m',230,57,0,0,2730,0,0,80,150],
- ['nidoran-f',220,14,0,0,2750,0,5,100,100]
+ ['nidoran-f',220,21,0,0,2750,0,6,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
@@ -182,7 +182,7 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
    for(let count=1;count<=2;count++){
      s=transition(s,{type:'SELECT_WILD',pokemonId:id});
      assert.equal(s.combat.active,true);
-     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?57:14);
+     assert.equal(s.combat.enemy.statistics.attack,id==='nidoran-m'?57:21);
      s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
      assert.equal(s.killCounts[id],count);
      assert.equal(s.combat.active,false);

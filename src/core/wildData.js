@@ -29,7 +29,7 @@ const berryEntries=[
 {id:'igglybuff',number:174,name:'푸푸린',types:['노말','페어리'],energyReward:39,hp:180,attack:6,specialAttack:8,specialDefense:2,speed:2900,rewards:{hp:18,specialAttack:5}},
 {id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',energyReward:25,hp:250,attack:25,specialAttack:25,speed:1025,paralysis:250,rewards:{attack:25,paralysis:25}},
 {id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:230,attack:57,speed:2730,accuracy:80,maxDamagePercent:150,rewards:{attack:3.2,maxDamagePercent:3.2}},
-{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:220,attack:14,speed:2750,poison:5,rewards:{hp:12.9,poison:1}}
+{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:220,attack:21,speed:2750,poison:6,rewards:{hp:12.9,poison:1}}
 ];
 // Region 2 slots remain fixed even when conditional Pokémon have not appeared.
 // Evolutions inherit their parent's slot and use -E1 for the first evolution.
