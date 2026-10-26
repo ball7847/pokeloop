@@ -41,8 +41,8 @@ function run(strategy){
    }
    if(strategy==='none')return;
    for(let n=0;n<120;n++){
-     const order=strategy==='attack'?['attack','hp','attackMultiplier','speed','antidote','poisonMultiplier']:
-       strategy==='hp'?['hp','attack','attackMultiplier','speed','antidote','poisonMultiplier']:
+     const order=strategy==='attack'?['attack','hp','attackMultiplier','speed','antidote','poisonMultiplier','specialAttack','hpMultiplier','regenerationMultiplier']:
+       strategy==='hp'?['hp','attack','attackMultiplier','speed','antidote','poisonMultiplier','specialAttack','hpMultiplier','regenerationMultiplier']:
        [...UPGRADES].sort((a,b)=>(s.energyUpgrades[a.id]??0)-(s.energyUpgrades[b.id]??0)).map(item=>item.id);
      let purchased=false;
      for(const id of order){
