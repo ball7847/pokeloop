@@ -32,7 +32,8 @@ const berryEntries=[
 {id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:220,attack:21,speed:2750,poison:10,rewards:{hp:12.9,poison:1}},
 {id:'tangela',number:114,name:'덩쿠리',types:['풀'],energyReward:11.4,hp:195,specialAttack:15.5,regeneration:5,speed:1600,rewards:{hp:11.4,regeneration:1.14}},
 {id:'bidoof',number:399,name:'비버니',types:['노말'],energyReward:40,hp:390,attack:25,specialAttack:15,speed:2900,rewards:{hp:20,attack:4}},
-{id:'surskit',number:283,name:'비구술',types:['벌레','물'],energyReward:28,hp:40,attack:30,defense:32,specialAttack:50,specialDefense:52,speed:650,rewards:{speed:-28}}
+{id:'surskit',number:283,name:'비구술',types:['벌레','물'],energyReward:28,hp:40,attack:30,defense:32,specialAttack:50,specialDefense:52,speed:650,rewards:{speed:-28}},
+{id:'tropius',number:357,name:'트로피우스',types:['풀','비행'],energyReward:100,hp:990,attack:68,specialAttack:72,regeneration:35.7,speed:10000,rewards:{hp:50,attack:10,specialAttack:10,regeneration:10}}
 ];
 // Region 2 slots remain fixed even when conditional Pokémon have not appeared.
 // Evolutions inherit their parent's slot and use -E1 for the first evolution.
@@ -40,7 +41,7 @@ const berryEncounterCodes=Object.freeze({
   caterpie:'R20101',metapod:'R20101-E1',
   weedle:'R20201',kakuna:'R20201-E1',
   taillow:'R20301',pikachu:'R20502',
-  igglybuff:'R20401','nidoran-m':'R20601','nidoran-f':'R20701',tangela:'R20801',bidoof:'R20901',surskit:'R21001'
+  igglybuff:'R20401','nidoran-m':'R20601','nidoran-f':'R20701',tangela:'R20801',bidoof:'R20901',surskit:'R21001',tropius:'R21101'
 });
 // Region 2 awards each configured energyReward to each of the Pokémon's types.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
