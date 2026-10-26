@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
-import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon} from '../src/core/wildData.js';
+import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon,appearedInRegion} from '../src/core/wildData.js';
 import {effectiveDittoStats,UPGRADES,AUTOMATIONS} from '../src/core/shopSystem.js';
 
 const groups=[
@@ -126,14 +126,16 @@ function run(strategy){
      s=transition(s,{type:'SELECT_REGION',regionId:region});note('베리숲 해금 및 진입');
    }
    const earlier=groups.slice(0,g).flatMap(([,species])=>species);
-   for(let i=0;i<ids.length;i++){
-     const id=ids[i];
+   // Re-read live encounter order after each Pokémon's first victory.
+   // Newly appeared evolutions are inserted directly after their parent.
+   for(let i=0;i<appearedInRegion(s,region).length;i++){
+     const id=appearedInRegion(s,region)[i].id;
      if(!isPokemonUnlockedInState(s,id)){logs.push({event:'unavailable',pokemon:id});continue;}
      note(labels[id]+' 목표 5회 도전');
      let result=target(id);
      if(result!=='cleared'){
        logs.push({event:'blocked',pokemon:id,result,atMs:ms,kills:s.killCounts[id]??0});
-       farm([...earlier,...ids.slice(0,i)],id);
+       farm([...earlier,...appearedInRegion(s,region).slice(0,i).map(p=>p.id)],id);
        result=target(id);
        logs.push({event:'after-farm',pokemon:id,result,kills:s.killCounts[id]??0,atMs:ms});
      }
@@ -142,20 +144,6 @@ function run(strategy){
      if(result==='cleared'&&pending.length)retry('after '+id+' 5 wins');
    }
    if(pending.length)retry('end '+region);
- }
- // Evolved enemies only appear after a parent's tenth victory. If unlocked,
- // include each in the completion probe rather than silently omitting them.
- for(const id of evolutionIds){
-   if(!isPokemonUnlockedInState(s,id))continue;
-   let outcome=target(id);
-   if(outcome!=='cleared'){
-     logs.push({event:'blocked-evolution',pokemon:id,result:outcome,atMs:ms});
-     farm(allIds,id);
-     outcome=target(id);
-   }
-   if(outcome!=='cleared'&&!pending.includes(id))pending.push(id);
-   logs.push({event:'evolution-result',pokemon:id,result:outcome,kills:s.killCounts[id]??0,atMs:ms});
-   if(outcome==='cleared'&&pending.length)retry('after '+id+' evolution wins');
  }
  const result={strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
