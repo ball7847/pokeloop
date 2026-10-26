@@ -6,10 +6,13 @@ import {purchaseWithEnergy} from './energySystem.js';
 export const UPGRADES=Object.freeze([
   {id:'hp',name:'HP 증가',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
   {id:'attack',name:'공격 증가',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
-  {id:'attackMultiplier',name:'공격 증폭',type:'격투',base:1,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
+  {id:'specialAttack',name:'특수공격 증가',type:'물',base:1,growth:1.5,bonus:1,unit:'flat',stat:'특수공격'},
+  {id:'hpMultiplier',name:'HP 증폭',type:'물',base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'HP'},
+  {id:'attackMultiplier',name:'공격 증폭',type:'격투',base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
   {id:'speed',name:'공격속도 증폭',type:'비행',base:20,growth:1000,bonus:0.01,unit:'percent',stat:'공격속도 배율'},
   {id:'antidote',name:'해독 증가',type:'독',base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
-  {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'}
+  {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'},
+  {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'}
 ]);
 export const AUTOMATIONS=Object.freeze([
   {id:'hunger',name:'끝없는 허기',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
@@ -28,8 +31,10 @@ export function effectiveDittoStats(state){
   const stats=state.dittoStats;
   const levels=state.energyUpgrades??{};
   const hpFlat=decimal(levels.hp??0).mul(4),attackFlat=decimal(levels.attack??0);
-  const attackMultiplier=1+(levels.attackMultiplier??0)*0.04,speed=1+(levels.speed??0)*0.01;
-  return {...stats,hp:storedAmount(decimal(stats.hp).add(hpFlat)),
+  const attackMultiplier=1+(levels.attackMultiplier??0)*0.04,hpMultiplier=1+(levels.hpMultiplier??0)*0.04,speed=1+(levels.speed??0)*0.01;
+  return {...stats,hp:storedAmount(decimal(stats.hp).add(hpFlat).mul(hpMultiplier)),
+    specialAttack:storedAmount(decimal(stats.specialAttack??0).add(levels.specialAttack??0)),
+    regeneration:storedAmount(decimal(stats.regeneration??0).mul(decimal(1).add(decimal(levels.regenerationMultiplier??0).mul(0.03)))),
     attack:storedAmount(decimal(stats.attack).add(attackFlat).mul(attackMultiplier)),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
     poison:storedAmount(decimal(stats.poison??0).mul(decimal(1).add(decimal(levels.poisonMultiplier??0).mul(0.03)))),

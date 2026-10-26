@@ -4,7 +4,7 @@ import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
 import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
-import {DEFAULT_AUTOMATION} from './shopSystem.js';
+import {DEFAULT_AUTOMATION,UPGRADES} from './shopSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
@@ -156,7 +156,7 @@ export function decodeSave(encoded){
   // v4 and earlier did not implement these features; new runs default to no cooldown and no purchases.
   if(data.version>=5){
     const levels=original.energyUpgrades??{};
-    if(!levels||typeof levels!=='object'||Array.isArray(levels)||Object.keys(levels).some(k=>!['hp','attack','attackMultiplier','speed','antidote','poisonMultiplier'].includes(k))||
+    if(!levels||typeof levels!=='object'||Array.isArray(levels)||Object.keys(levels).some(k=>!UPGRADES.some(upgrade=>upgrade.id===k))||
       Object.values(levels).some(v=>!validInteger(v,1000000)))throw new Error('강화 레벨이 올바르지 않습니다.');
     const owned=original.qolUnlocks??[];
     if(owned.some(k=>!['hunger','resolve'].includes(k)))throw new Error('자동화 해금 데이터가 올바르지 않습니다.');
