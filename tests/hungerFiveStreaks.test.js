@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
 import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon} from '../src/core/wildData.js';
-import {effectiveDittoStats} from '../src/core/shopSystem.js';
+import {effectiveDittoStats,UPGRADES,AUTOMATIONS} from '../src/core/shopSystem.js';
 
 const groups=[
  [REGION.id,['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']],
@@ -14,6 +14,7 @@ function run(strategy){
  const evolutionIds=['metapod','kakuna'];
  const reportIds=[...allIds,...evolutionIds];
  const logs=[],timeline=[],firstChallenge={},battles={},streaks={},failures={},pending=[];
+ const purchasedAutomations=[];
  const labels={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',meowth:'나옹',geodude:'꼬마돌',exeggcute:'아라리',sentret:'꼬리선',tauros:'켄타로스',caterpie:'캐터피',weedle:'뿔충이',taillow:'테일로',igglybuff:'푸푸린','nidoran-m':'니드런♂','nidoran-f':'니드런♀',metapod:'단데기',kakuna:'딱충이'};
  const note=message=>timeline.push(message);
  let automationBoughtAt=null;
@@ -30,11 +31,16 @@ function run(strategy){
      const bought=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
      if(bought!==s){s=bought;automationBoughtAt=ms;note('끝없는 허기 구매');}
    }
+   for(const item of AUTOMATIONS){
+     if(s.qolUnlocks.includes(item.id))continue;
+     const bought=transition(s,{type:'BUY_AUTOMATION',id:item.id});
+     if(bought!==s){s=bought;purchasedAutomations.push(item.id);note('자동화 '+item.name+' 구매');}
+   }
    if(strategy==='none')return;
-   for(let n=0;n<40;n++){
-     const order=strategy==='attack'?['attack','hp','attackMultiplier']:
-       strategy==='hp'?['hp','attack','attackMultiplier']:
-       (s.energyUpgrades.hp??0)<=(s.energyUpgrades.attack??0)?['hp','attack','attackMultiplier']:['attack','hp','attackMultiplier'];
+   for(let n=0;n<120;n++){
+     const order=strategy==='attack'?['attack','hp','attackMultiplier','speed','antidote','poisonMultiplier']:
+       strategy==='hp'?['hp','attack','attackMultiplier','speed','antidote','poisonMultiplier']:
+       [...UPGRADES].sort((a,b)=>(s.energyUpgrades[a.id]??0)-(s.energyUpgrades[b.id]??0)).map(item=>item.id);
      let purchased=false;
      for(const id of order){
        const next=transition(s,{type:'BUY_UPGRADE',id});
@@ -152,7 +158,7 @@ function run(strategy){
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
-   firstTaillow:firstChallenge.taillow??null,unresolved:pending,events:logs,
+   firstTaillow:firstChallenge.taillow??null,unresolved:pending,events:logs,purchasedAutomations,
    stats:effectiveDittoStats(s),upgrades:s.energyUpgrades,steps,timeline};
  console.log('HUNGER_FIVE_'+strategy.toUpperCase()+' '+JSON.stringify(result));
  return result;
@@ -163,7 +169,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
-   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({strategy,minutes:result.minutes,automationBoughtAt:result.automationBoughtAt,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,timeline:result.timeline}));
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({strategy,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
