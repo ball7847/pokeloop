@@ -529,7 +529,7 @@ test('poison amplification 3 percent progression: affordable timing, payoff, rep
  const basePoison=options.antidote2ThenPoison1.ordinary.basePoison;
  const rawPoison=options.antidote2.ordinary.basePoison;
  assert.ok(bought>=1,'a poison level should be affordable after 10 female kills');
- const {resolveAttack}=await import('../src/core/combatEngine.js');
+ const {resolveAttack,advanceBattle,startBattle}=await import('../src/core/combatEngine.js');
  const combatCase=(poison)=>{
    const c={currentHp:100000,dittoHp:{current:100000,max:100000},playerStatus:{poison:0,paralysis:0},
      enemyStatus:{poison:0,paralysis:0},enemy:{hp:{current:100000,max:100000}}};
@@ -539,7 +539,14 @@ test('poison amplification 3 percent progression: affordable timing, payoff, rep
      resolveAttack(c,'player',attacking,defending,()=>0.5);
      resolveAttack(c,'enemy',{attack:0,specialAttack:0,poison:0,accuracy:100,minDamagePercent:100},defending,()=>0.5);
    }
-   return {stack:c.enemyStatus.poison,damage:100000-c.enemy.hp.current};
+   let battle=startBattle({...initialState(),phase:'running'},'rattata');
+   battle={...battle,combat:{...battle.combat,enemyStatus:{...battle.combat.enemyStatus,poison:c.enemyStatus.poison},
+     enemy:{...battle.combat.enemy,hp:{current:100000,max:100000},
+       statistics:{...battle.combat.enemy.statistics,attack:0,specialAttack:0,regeneration:0}},
+     dittoAttackCooldown:{elapsed:0,duration:5000},
+     playerStatus:{paralysis:0,poison:0}}};
+   battle=advanceBattle(battle,1000,()=>0.5);
+   return {stack:c.enemyStatus.poison,damage:100000-battle.combat.enemy.hp.current};
  };
  const damageComparison={raw:combatCase(rawPoison),amplified:combatCase(basePoison*(1+bought*.03))};
  console.log('POISON_3_PERCENT_VIRTUAL '+JSON.stringify({initialRegionalKills:results.region2,beforeFemale,options,damageComparison}));
