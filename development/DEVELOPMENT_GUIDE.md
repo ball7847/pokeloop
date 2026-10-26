@@ -1,69 +1,208 @@
-# PokeLoop 개발 가이드
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {initialState,transition} from '../src/core/gameState.js';
+import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon,appearedInRegion,ALL_POKEMON,battleEnergyRewards} from '../src/core/wildData.js';
+import {effectiveDittoStats,UPGRADES,AUTOMATIONS} from '../src/core/shopSystem.js';
 
-> 문서 최초 작성: 2026-10-26 | 코드 대조 기준: `main` 커밋 `d32cd151fe38876064dc7e7b82c07a21e3ced992`
-> 이 문서는 프로젝트 규칙과 개요를 기술한다. 상세한 **현재 구현**은 [IMPLEMENTED_SYSTEMS.md](./IMPLEMENTED_SYSTEMS.md), **개발 예정**은 [PLANNED_SYSTEMS.md](./PLANNED_SYSTEMS.md) 참고.
-
-## 1. 프로젝트
-
-- 게임: **PokeLoop** — Pokémon 테마의 자동 전투·성장·재화 생산 기반 방치형 게임.
-- 개발 저장소: https://github.com/ball7847/pokeloop
-- 실행 주소: https://ball7847.github.io/pokeloop/
-- 참고 원작: **Rejected Draft**, https://github.com/ball7847/pokeloop2 (실행: https://ball7847.github.io/pokeloop2/).
-- 원작 저장소는 **읽기·분석·비교 용도만 허용**하며 수정·커밋·PR·병합 금지. 원작의 구조를 참고하되 PokeLoop의 확정된 포켓몬/밸런스 규칙을 임의 변경하지 않는다.
-
-## 2. 기술 구성 / 실제 코드 위치
-
-- Vite 7, React 19, Zustand 5, break_eternity.js 2.1; JavaScript ES Modules.
-- React 진입점: `src/main.jsx` → `src/App.jsx`; 예전 `src/main.js`와 `src/ui/`는 제거됨.
-- 상태 및 액션: `src/store/useGameStore.js`, `src/core/gameState.js`.
-- 전투: `src/core/combatEngine.js`, `src/core/combatVisualEvents.js`, `src/components/CombatPanel.jsx`, `src/components/CombatBarAnimator.jsx`.
-- 포켓몬/지역: `src/core/wildData.js`; 성장·표시: `src/core/dittoStats.js`.
-- 타입 에너지·입자·행성 이동: `src/core/energySystem.js`; 강화·자동화: `src/core/shopSystem.js`.
-- 저장: `src/core/saveSystem.js`; 시계: `src/components/GameClocks.jsx`.
-- 화면: `src/pages/`, `src/components/`; CSS: `src/styles/`, `src/style.css`; 테스트: `tests/`.
-- CI: `.github/workflows/verify.yml`; GitHub Pages: `.github/workflows/deploy.yml`.
-
-## 3. 개발 작업 규칙
-
-1. **현재 `main` 코드와 이 문서 3개를 먼저 확인**한다. 구현 여부는 코드가 최우선 근거다. 문서와 코드가 충돌하면 확인 후 문서를 정정하며, 문서에 맞춘다는 이유만으로 코드를 임의 수정하지 않는다.
-2. 새로운 기능의 확정/예정/미확정을 분리한다. 과거 대화의 아이디어를 확인 없이 확정된 기능으로 승격하지 않는다.
-3. 기능 수정은 `main`에서 분기한 별도 브랜치에서 수행하고 PR을 만든다. **`main` 직접 푸시 금지**. 작은 변경 단위, 최소 영향 범위, 회귀 테스트 우선.
-4. `npm test` 및 `npm run build` 성공을 확인한 뒤 PR을 병합한다. 실패 시 원인을 해결하고 다시 검증한다. 통과하지 않은 작업을 완료로 보고하지 않는다.
-5. 사용자가 변경을 **사전 검토**하도록 요청했다면 분석/보고만 하고 승인 전 수정하지 않는다. 명시적으로 진행을 승인하면 개발할 수 있다.
-6. 전투 공식·보상·진행 규칙·세이브 호환성·UI 레이아웃에 대한 임의 변경을 피한다. 리팩터링은 기존 동작을 유지하는 것이 기본이다.
-7. 검증 결과를 보고할 때는 **코드 변경 / 테스트 / 빌드 / PR / 병합 / 배포 / 실제 브라우저 검증**을 각각 구분한다. CI 통과가 브라우저 실사용 검증을 의미하지는 않는다.
-8. 원작 분석 시 저장소에 있는 배포용 압축 코드는 원본 개발 소스와 다를 수 있다. 확인한 사실과 추정한 설계를 구분한다.
-
-## 4. 문서 운영 규칙
-
-- 기본은 **세 파일만 유지**. 필요할 때만 세분화한다.
-- `개발 문서 읽어`: 본 문서 → IMPLEMENTED_SYSTEMS → PLANNED_SYSTEMS 순으로 읽고 `main`의 현재 상태와 대조한다.
-- `개발 문서 최신화`: 세 문서를 읽고 최신 코드/새로 확정된 기획과 비교한 다음 **변경이 필요한 문서만** 브랜치+PR로 갱신한다.
-- 기능 구현 완료 시 IMPLEMENTED_SYSTEMS를 갱신하고, 계획했던 기능이라면 PLANNED_SYSTEMS에도 완료/이관 상태를 남기거나 삭제 사유를 기록한다.
-- 파일 내 **코드 대조 기준 커밋·검증일** 갱신. 단순 문서 변경으로 게임 시스템이 구현됐다고 서술하지 않는다.
-- 문서 수준: 공식, 기본값, 보상, 해금 조건, 관련 파일, 알려진 미연결 사항을 명시. 코드가 아닌 대화 정보는 별도 출처/확정 상태를 표시한다.
-
-## 5. 야생 지역 가상 플레이 검증 규칙 (확정: 2026-10-26)
-
-포켓몬 또는 지역 추가·밸런스 수정 후 가능한 한 **실제 게임 상태 전이(`transition`)와 전투 엔진으로** 가상 시뮬레이션을 진행한다. 적 스탯·포켓몬 해금·재화·HP·독 상태를 임의 조작해 유리한 결과를 만들지 않는다.
-
-1. **자동화:** 획득한 타입 에너지로 구매 가능한 자동화는 가능한 대로 구매한다. 특히 **끝없는 허기**를 구매·활성화하여 승리 후 **남은 HP와 상태이상이 이월되는 실제 연속 전투**를 수행한다. 자동화의 해금 조건과 비용, 재시도·회복 시간을 준수한다.
-2. **기본 순회:** 각 포켓몬은 우선 **5회 처치**를 목표로 하고, 목표 달성 시 다음으로 진행한다. 다섯 번째 승리에서 자동 반복이 더 진행되지 않도록 토글을 관리한다. 포켓몬당 실제 게임 처치 상한은 10회.
-3. **연속 전투 측정:** 대상마다 한 번의 전투 시작에서 자동 반복으로 이어진 **최대 연속 승리 횟수**와 전투 시도별 연속 승리·패배, 현재 누적 처치 수를 기록한다. 도전 성공 전 HP·독이 초기화되는 별도의 전투 시도들을 합산해 하나의 연속 기록으로 보고하지 않는다.
-4. **패배 시 파밍:** 먼저 처치했던 접근 가능한 포켓몬들을 최대 **10회 누적 처치**까지 추가로 잡아 성장하고, 패배했던 포켓몬에 재도전한다. 파밍 과정의 처치와 연속 승리도 기록한다.
-5. **재도전 실패:** 추가 파밍 후에도 패배하면 대상은 보류하고 **도전 가능한 다음 포켓몬을 5회 처치**한 뒤 보류한 대상으로 돌아와 다시 시도한다. 진화체나 확률 등장 등 실제로 나타나지 않거나 잠긴 포켓몬은 임의 활성화하지 않는다.
-6. **구매 정책:** **끝없는 허기·불굴의 의지 두 자동화 모두** 재화가 충족되는 즉시 구매하고, 연속 전투 기록을 위한 끝없는 허기를 기본 활성화한다. 불굴의 의지의 자동 재도전은 일반적인 전투 실패 후 파밍·보류 우선순위를 깨뜨리지 않도록 토글을 관리한다. 강화는 **HP·공격·공격 증폭·속도 증폭·해독·독 증폭의 6종 전체**를 대상으로, **구매 가능한 항목 중 강화 레벨이 낮은 순서**로 시도해 고르게 구매한다. 필요한 타입 에너지가 부족하면 해당 항목을 건너뛰되 재화 확보 시 다시 시도하며, 실제 획득 재화만 사용한다.
-7. **지역 해금:** 실제 등장한 **비진화 포켓몬 전체(확률 등장 포함)의 70% 이상 서로 다른 종 첫 처치**로만 다음 지역을 해금한다. 진화체는 분모와 분자에서 제외한다.
-8. **순서형 타임라인(필수):** 보고서에는 **경과 시간/시각을 넣지 않고**, 발생 순서대로 자동화 구매·강화·적 도전·연속 처치·실패·이전 적 10회 파밍·재도전·보류·다음 적 5회·복귀·지역 해금 과정을 기록한다. 연속 승리 횟수는 개별 전투 시작 단위로 명시하고 5회 목표 중단과 구별한다. 시간 측정값이 필요하면 별도 선택 지표로만 제공한다.
-9. **결과 보고:** 지역/포켓몬별 첫 승리, 목표 5회 달성, 최대 연속 승리, 추가 파밍 횟수, 패배 횟수, 보류·재도전·미해결 목록, 자동화/강화 구매, 지역 해금 및 순서형 타임라인을 기록한다. RNG 방식(고정 난수/시드), 시뮬레이션 제한과 테스트 불확실성을 밝힌다. 5회까지 달성하지 못한 포켓몬을 성공으로 표기하지 않는다.
-10. **회귀 검증:** 게임 로직 변경 시 `npm test` 및 `npm run build`를 통과시키고, 이전 5종 지역 편성처럼 오래된 수치에 종속된 테스트와 **실제 진행 불가 버그**를 구별하여 수정한다. 검증 기준을 낮추어 통과 처리해서는 안 된다.
-
-## 6. 새 대화용 명령
-
-`GitHub ball7847/pokeloop의 development/ 폴더에 있는 개발 문서 3개를 읽고 최신 main 코드와 대조한 뒤 현재 개발을 이어서 진행해. 원작 ball7847/pokeloop2는 읽기 전용이야.`
-
-## 7. 현재 주의사항
-
-- 로컬 저장 세이브는 유저 데이터이므로 저장 버전을 함부로 바꾸거나 마이그레이션을 제거하지 않는다.
-- 원작 시스템 전체가 PokeLoop에 구현된 것은 아니다. 특히 동화도/보너스와 고정 피해 경로는 계획 문서의 상태를 먼저 확인한다.
-- 일부 CSS 덮어쓰기 구조는 남아 있으며, 화면 회귀 확인 없이 광범위하게 삭제하지 않는다.
+const groups=[
+ [REGION.id,['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']],
+ [BERRY_REGION.id,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f']]
+];
+function run(strategy){
+ let s=transition(initialState(),{type:'START'}),ms=0,steps=0;
+ const allIds=groups.flatMap(([,ids])=>ids);
+ const evolutionIds=['metapod','kakuna'];
+ const reportIds=[...allIds,...evolutionIds];
+ const logs=[],timeline=[],firstChallenge={},firstKillSnapshots={},battles={},streaks={},failures={},pending=[];
+ const purchasedAutomations=[];
+ const labels={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',meowth:'나옹',geodude:'꼬마돌',exeggcute:'아라리',sentret:'꼬리선',tauros:'켄타로스',caterpie:'캐터피',weedle:'뿔충이',taillow:'테일로',igglybuff:'푸푸린','nidoran-m':'니드런♂','nidoran-f':'니드런♀',metapod:'단데기',kakuna:'딱충이'};
+ const note=message=>timeline.push(message);
+ let automationBoughtAt=null;
+ function toggle(on){
+   // The first victory is needed to earn the one Normal energy for this automation.
+   if(!s.qolUnlocks.includes('hunger'))return;
+   if(s.automation.hunger!==on){
+     s=transition(s,{type:'TOGGLE_AUTOMATION',id:'hunger'});
+     if(s.automation.hunger!==on)throw Error('could not change hunger toggle');
+   }
+ }
+ function shop(){
+   if(automationBoughtAt===null){
+     const bought=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
+     if(bought!==s){s=bought;automationBoughtAt=ms;note('끝없는 허기 구매');}
+   }
+   for(const item of AUTOMATIONS){
+     if(s.qolUnlocks.includes(item.id))continue;
+     const bought=transition(s,{type:'BUY_AUTOMATION',id:item.id});
+     if(bought!==s){s=bought;purchasedAutomations.push(item.id);note('자동화 '+item.name+' 구매');
+       // The simulation handles defeats with farming/revisit rules rather than automatic retry.
+       if(item.id==='resolve'){s=transition(s,{type:'TOGGLE_AUTOMATION',id:'resolve'});note('불굴의 의지 자동 재도전 일시 중지(파밍 규칙 우선)');}
+     }
+   }
+   if(strategy==='none')return;
+   for(let n=0;n<120;n++){
+     const order=strategy==='attack'?['attack','hp','attackMultiplier','speed','antidote','poisonMultiplier']:
+       strategy==='hp'?['hp','attack','attackMultiplier','speed','antidote','poisonMultiplier']:
+       [...UPGRADES].sort((a,b)=>(s.energyUpgrades[a.id]??0)-(s.energyUpgrades[b.id]??0)).map(item=>item.id);
+     let purchased=false;
+     for(const id of order){
+       const next=transition(s,{type:'BUY_UPGRADE',id});
+       if(next!==s){s=next;purchased=true;note('강화 '+id+' Lv'+(s.energyUpgrades[id]??0));break;}
+     }
+     if(!purchased)break;
+   }
+ }
+ function recover(){
+   while(s.recoveryMs>0){
+     const delta=Math.min(5000,s.recoveryMs);
+     s=transition(s,{type:'RECOVERY_TICK',deltaMs:delta});ms+=delta;
+   }
+ }
+ function ensureRegion(id){
+   const region=regionForPokemon(id);
+   if(s.activeRegionId!==region)s=transition(s,{type:'SELECT_REGION',regionId:region});
+   if(s.activeRegionId!==region)throw Error('failed region switch '+id);
+ }
+ // One continuous streak always carries HP forward, without resetting by hand.
+ // Stop automatic continuation before the LAST win needed for the goal.
+ function streak(id,goal){
+   ensureRegion(id);recover();shop();
+   if(!firstChallenge[id])firstChallenge[id]={atMs:ms,stats:effectiveDittoStats(s),upgrades:{...s.energyUpgrades},
+     kills:Object.fromEntries(allIds.map(x=>[x,s.killCounts[x]??0]))};
+   toggle((s.killCounts[id]??0)<goal-1);
+   s=transition(s,{type:'SELECT_WILD',pokemonId:id});
+   if(!s.combat.active)return {wins:0,result:'unavailable'};
+   battles[id]=(battles[id]??0)+1;
+   let wins=0,elapsed=0,lastKills=s.killCounts[id]??0,activeTicks=0;
+   while(s.combat.active&&elapsed<180000&&activeTicks++<2000){
+     // Disable hunger on reaching goal-1 while retaining the currently active battle.
+     if((s.killCounts[id]??0)>=goal-1&&s.automation.hunger)toggle(false);
+     const beforeFirstKill=(id==='nidoran-m'||id==='nidoran-f')&&!firstKillSnapshots[id]&&lastKills===0
+       ? {stats:effectiveDittoStats(s),upgrades:{...s.energyUpgrades},baseStats:{...s.dittoStats}}:null;
+     const next=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>0.5});
+     s=next;ms+=500;elapsed+=500;steps++;
+     const now=s.killCounts[id]??0;
+     if(now>lastKills){
+       if(beforeFirstKill)firstKillSnapshots[id]={...beforeFirstKill,afterStats:effectiveDittoStats(s),afterBaseStats:{...s.dittoStats},killCount:now};
+       wins+=now-lastKills;lastKills=now;
+     }
+   }
+   if(s.combat.active)throw Error('combat timed out '+id);
+   let result=s.combat.lastEvent?.type;
+   if(result==='defeat')failures[id]=(failures[id]??0)+1;
+   note(labels[id]+' 연속 '+wins+'승 / '+result+' / 누적 '+(s.killCounts[id]??0)+'회');
+   if(result!=='defeat'&&result!=='victory')throw Error('unexpected '+id+': '+result);
+   (streaks[id]??=[]).push({wins,result,atMs:ms,remainingHp:s.combat.currentHp});
+   return {wins,result};
+ }
+ function target(id,goal=5){
+   if(!isPokemonUnlockedInState(s,id))return 'unavailable';
+   let guard=0;
+   while((s.killCounts[id]??0)<goal&&guard++<25){
+     const x=streak(id,goal);
+     if(x.result!=='victory')return x.result;
+   }
+   if(guard>=25)throw Error('stalled '+id);
+   return 'cleared';
+ }
+ function farm(ids,blocked){
+   let extra=0;
+   for(const id of ids){
+     if((s.killCounts[id]??0)>=10||!isPokemonUnlockedInState(s,id))continue;
+     const old=s.killCounts[id]??0;
+     target(id,10);
+     extra+=(s.killCounts[id]??0)-old;
+   }
+   if(extra){logs.push({event:'farm',blocked,extra,atMs:ms});note(labels[blocked]+' 재도전 위해 이전 적 '+extra+'회 추가 파밍');}
+ }
+ function retry(reason){
+   for(const id of [...pending]){
+     const saved=s.activeRegionId;
+     const result=target(id);
+     logs.push({event:'retry',target:id,reason,result,kills:s.killCounts[id]??0,atMs:ms});note(labels[id]+' 보류 대상 재도전: '+result);
+     if(result==='cleared')pending.splice(pending.indexOf(id),1);
+     if(s.activeRegionId!==saved)s=transition(s,{type:'SELECT_REGION',regionId:saved});
+   }
+ }
+ for(let g=0;g<groups.length;g++){
+   const [region,ids]=groups[g];
+   if(g>0){
+     if(!isRegionUnlocked(s,region)){logs.push({event:'region-locked',region});note('베리숲 잠김');break;}
+     s=transition(s,{type:'SELECT_REGION',regionId:region});note('베리숲 해금 및 진입');
+   }
+   const earlier=groups.slice(0,g).flatMap(([,species])=>species);
+   // Re-read live encounter order after each Pokémon's first victory.
+   // Newly appeared evolutions are inserted directly after their parent.
+   for(let i=0;i<appearedInRegion(s,region).length;i++){
+     const id=appearedInRegion(s,region)[i].id;
+     if(!isPokemonUnlockedInState(s,id)){logs.push({event:'unavailable',pokemon:id});continue;}
+     note(labels[id]+' 목표 5회 도전');
+     let result=target(id);
+     if(result!=='cleared'){
+       logs.push({event:'blocked',pokemon:id,result,atMs:ms,kills:s.killCounts[id]??0});
+       farm([...earlier,...appearedInRegion(s,region).slice(0,i).map(p=>p.id)],id);
+       result=target(id);
+       logs.push({event:'after-farm',pokemon:id,result,kills:s.killCounts[id]??0,atMs:ms});
+     }
+     if(result!=='cleared'&&!pending.includes(id)){pending.push(id);note(labels[id]+' 보류');}
+     if(result==='cleared')note(labels[id]+' 5회 달성');
+     if(result==='cleared'&&pending.length)retry('after '+id+' 5 wins');
+   }
+   if(pending.length)retry('end '+region);
+ }
+ // Second pass starts only when every appeared and unlocked enemy has at least five kills.
+ const appearedIds=groups.flatMap(([region])=>appearedInRegion(s,region).filter(p=>isPokemonUnlockedInState(s,p.id)).map(p=>p.id));
+ const fiveCleared=appearedIds.every(id=>(s.killCounts[id]??0)>=5)&&pending.length===0;
+ const secondPassPending=[];
+ if(fiveCleared){
+   note('전 포켓몬 5회 달성 → 최대 10회 채우기 시작');
+   for(const id of appearedIds){
+     if((s.killCounts[id]??0)>=10)continue;
+     note(labels[id]+' 최대 10회 도전');
+     let outcome=target(id,10);
+     if(outcome!=='cleared'){
+       logs.push({event:'second-pass-blocked',pokemon:id,result:outcome,kills:s.killCounts[id]??0});
+       farm(appearedIds.slice(0,appearedIds.indexOf(id)),id);
+       outcome=target(id,10);
+     }
+     if(outcome!=='cleared')secondPassPending.push(id);
+     else note(labels[id]+' 최대 10회 달성');
+   }
+   // Revisit blocked species after other opponents have been fully farmed.
+   for(let pass=0;secondPassPending.length&&pass<appearedIds.length;pass++){
+     let progressed=false;
+     for(const id of [...secondPassPending]){
+       const before=s.killCounts[id]??0;
+       const outcome=target(id,10);
+       if((s.killCounts[id]??0)>before)progressed=true;
+       note(labels[id]+' 최대 횟수 보류 후 재도전: '+outcome);
+       if(outcome==='cleared')secondPassPending.splice(secondPassPending.indexOf(id),1);
+     }
+     if(!progressed)break;
+   }
+ }
+ const totalEnergy=Object.fromEntries(Object.keys(s.energyBalances).map(type=>[type,0]));
+ for(const pokemon of ALL_POKEMON){
+   for(let i=0;i<(s.killCounts[pokemon.id]??0);i++){
+     for(const [type,value] of Object.entries(battleEnergyRewards(pokemon,i)))totalEnergy[type]+=value;
+   }
+ }
+ const result={fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
+   victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
+   battles,failures,streaks,
+   maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
+   firstTaillow:firstChallenge.taillow??null,firstChallengeNidoran:{male:firstChallenge['nidoran-m'],female:firstChallenge['nidoran-f']},firstKillSnapshots,unresolved:pending,events:logs,purchasedAutomations,
+   stats:effectiveDittoStats(s),upgrades:s.energyUpgrades,steps,timeline};
+ console.log('HUNGER_FIVE_'+strategy.toUpperCase()+' '+JSON.stringify(result));
+ return result;
+}
+test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery and skip/retry',()=>{
+ for(const strategy of ['balanced','attack','hp','none']){
+   const result=run(strategy); // Re-run virtual progression after Nidoran speed and poison tuning.
+   assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
+   assert.ok(result.victories>0);
+   if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({fiveCleared:result.fiveCleared,secondPassPending:result.secondPassPending,appearedIds:result.appearedIds,totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,firstChallengeNidoran:result.firstChallengeNidoran,firstKillSnapshots:result.firstKillSnapshots,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
+   assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
+ }
+});
