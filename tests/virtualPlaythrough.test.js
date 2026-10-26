@@ -5,7 +5,7 @@ import {isPokemonUnlockedInState,isRegionUnlocked,REGION,BERRY_REGION,BERRY_POKE
 import {effectiveDittoStats} from '../src/core/shopSystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
-const first=['rattata','pidgey','spearow','mankey','zubat'];
+const first=['rattata','pidgey','spearow','mankey','zubat','meowth','geodude','exeggcute','sentret','tauros'];
 const second=['caterpie','weedle','taillow','kakuna','metapod','igglybuff','nidoran-m','nidoran-f'];
 function battle(s,id,seed=0.5){
  s=transition(s,{type:'SELECT_WILD',pokemonId:id});
