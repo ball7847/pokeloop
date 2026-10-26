@@ -84,7 +84,7 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
    assert.ok(html.indexOf('wild-basic-stats')<html.indexOf('wild-extra-stats'));
    assert.ok(html.indexOf('wild-extra-stats')<html.indexOf('wild-rewards'));
    assert.match(html,/2,100ms/);
-   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,34);
+   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,35);
    assert.deepEqual(visibleWildBasicStats({hp:3,attack:0,speed:2000}).map(x=>x.key),['hp','speed']);
    assert.deepEqual(visibleWildExtraStats({extraStats:{dodge:0,critChance:12}}),[['critChance',12]]);
    assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
@@ -118,7 +118,7 @@ test('six local user-supplied stat silhouettes appear without duplicate text',as
    assert.match(header,/speed\.svg/);
    assert.match(detail,/attack\.svg/);
    assert.match(wild,/speed\.svg/);
-   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,34);
+   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,35);
    assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,0);
  } finally { await vite.close(); }
 });
