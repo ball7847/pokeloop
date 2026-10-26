@@ -28,7 +28,7 @@ function run(strategy){
      const bought=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
      if(bought!==s){s=bought;automationBoughtAt=ms;}
    }
-   if(strategy==='none')return;
+   // Purchase the second automation when earned energy permits; the hunger\n   // toggle controls explicit five-win streaks so recovery retries are not duplicated.\n   s=transition(s,{type:'BUY_AUTOMATION',id:'resolve'});\n   if(strategy==='none')return;
    for(let n=0;n<40;n++){
      const order=strategy==='attack'?['attack','hp','attackMultiplier']:
        strategy==='hp'?['hp','attack','attackMultiplier']:
@@ -157,7 +157,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    const result=run(strategy);
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
-   if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
+   if(strategy!=='none')assert.ok(result.firstTaillow?.stats);\n   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({strategy,minutes:result.minutes,automationBoughtAt:result.automationBoughtAt,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
