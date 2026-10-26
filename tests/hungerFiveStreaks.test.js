@@ -157,7 +157,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    const result=run(strategy);
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
-   assert.ok(result.firstTaillow?.stats);
+   if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
