@@ -77,10 +77,15 @@ function run(strategy){
    while(s.combat.active&&elapsed<180000&&activeTicks++<2000){
      // Disable hunger on reaching goal-1 while retaining the currently active battle.
      if((s.killCounts[id]??0)>=goal-1&&s.automation.hunger)toggle(false);
-     const beforeFirstKill=(id==='nidoran-m'||id==='nidoran-f')&&!firstKillSnapshots[id]&&lastKills===0\n       ? {stats:effectiveDittoStats(s),upgrades:{...s.energyUpgrades},baseStats:{...s.dittoStats}}:null;\n     const next=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>0.5});
+     const beforeFirstKill=(id==='nidoran-m'||id==='nidoran-f')&&!firstKillSnapshots[id]&&lastKills===0
+       ? {stats:effectiveDittoStats(s),upgrades:{...s.energyUpgrades},baseStats:{...s.dittoStats}}:null;
+     const next=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>0.5});
      s=next;ms+=500;elapsed+=500;steps++;
      const now=s.killCounts[id]??0;
-     if(now>lastKills){\n       if(beforeFirstKill)firstKillSnapshots[id]={...beforeFirstKill,afterStats:effectiveDittoStats(s),afterBaseStats:{...s.dittoStats},killCount:now};\n       wins+=now-lastKills;lastKills=now;\n     }
+     if(now>lastKills){
+       if(beforeFirstKill)firstKillSnapshots[id]={...beforeFirstKill,afterStats:effectiveDittoStats(s),afterBaseStats:{...s.dittoStats},killCount:now};
+       wins+=now-lastKills;lastKills=now;
+     }
    }
    if(s.combat.active)throw Error('combat timed out '+id);
    let result=s.combat.lastEvent?.type;
