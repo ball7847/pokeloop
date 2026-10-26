@@ -46,6 +46,8 @@ test('region 2 unlocks after 70% of appeared unique regional species and first t
  }
  assert.equal(isRegionUnlocked(s,BERRY_REGION.id),false);
  s={...s,killCounts:{...s.killCounts,spearow:1}};
+ assert.equal(isRegionUnlocked(s,BERRY_REGION.id),false);
+ s={...s,killCounts:{...s.killCounts,meowth:1,geodude:1,exeggcute:1}};
  assert.equal(isRegionUnlocked(s,BERRY_REGION.id),true);
  s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
  assert.equal(s.activeRegionId,BERRY_REGION.id);
@@ -63,7 +65,7 @@ test('region 2 unlocks after 70% of appeared unique regional species and first t
  assert.equal(appearedInRegion(s,BERRY_REGION.id).length,6);
  assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,7);
  let rare={...state(),uncommonStarterId:'bulbasaur'};
- assert.equal(isRegionUnlocked({...rare,killCounts:{...rare.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}},BERRY_REGION.id),false);
+ assert.equal(isRegionUnlocked({...rare,killCounts:{...rare.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1}},BERRY_REGION.id),false);
 });
 function combat(){
  return {currentHp:500,dittoHp:{current:500,max:500},enemy:{hp:{current:500,max:500}},
@@ -116,7 +118,7 @@ test('poison is flat end-of-action damage even on miss or paralysis trigger',()=
 test('v6 region, new stat rewards, and berry first victories survive save',()=>{
  let s=state();
  s={...s,activeRegionId:BERRY_REGION.id,
- killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1},
+ killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1,caterpie:1},
  dittoStats:{...s.dittoStats,poison:1.5,paralysis:3.2,specialAttack:4.5},
  berryRareAppeared:true};
  const restored=decodeSave(encodeSave(s)).game;
@@ -131,7 +133,7 @@ test('v6 region, new stat rewards, and berry first victories survive save',()=>{
 test('berry forest battles pay configured type energy and stat rewards',()=>{
  let s=state();
  s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},
-  killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}};
+  killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1}};
  s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
  s=transition(s,{type:'SELECT_WILD',pokemonId:'caterpie'});
  assert.equal(s.combat.active,true);
@@ -150,7 +152,7 @@ test('berry forest battles pay configured type energy and stat rewards',()=>{
 test('Igglybuff grants normal and fairy energy with repetition decay and special attack reward',()=>{
  let s=state();
  s={...s,activeRegionId:BERRY_REGION.id,
-   killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1},
+   killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1,caterpie:1,weedle:1,kakuna:1,metapod:1},
    dittoStats:{...s.dittoStats,attack:10000,speed:1}};
  const before={...s.energyBalances};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
@@ -173,7 +175,7 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
  for(const [id,rewardField,rewardValue] of [['nidoran-m','attack',3.2],['nidoran-f','hp',12.9]]){
    let s=state();
    s={...s,activeRegionId:BERRY_REGION.id,
-     killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,kakuna:1,metapod:1,igglybuff:1},
+     killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1,caterpie:1,weedle:1,kakuna:1,metapod:1,igglybuff:1},
      dittoStats:{...s.dittoStats,hp:10000,attack:10000,speed:1}};
    const initialEnergy={...s.energyBalances};
    const initialReward=s.dittoStats[rewardField];
@@ -238,7 +240,7 @@ test('antidote is saved and older v7 saves default to 0',()=>{
 test('Caterpie and Weedle grant HP +7 without attack rewards, with diminishing returns',()=>{
  for(const id of ['caterpie','weedle']){
   let s=state();
-  s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1}};
+  s={...s,dittoStats:{...s.dittoStats,attack:1000,speed:1},killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1}};
   s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
   const initialHp=s.dittoStats.hp,initialAttack=s.dittoStats.attack;
   for(let i=0;i<2;i++){
