@@ -10,13 +10,15 @@ export const UPGRADES=Object.freeze([
   {id:'hpMultiplier',name:'HP 증폭',types:['물','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'HP'},
   {id:'defense',name:'방어 증가',type:'바위',base:1,growth:1.5,bonus:1,unit:'flat',stat:'방어'},
   {id:'specialDefense',name:'특수방어 증가',type:'페어리',base:1,growth:1.5,bonus:1,unit:'flat',stat:'특수방어'},
-  {id:'specialAttackMultiplier',name:'특수공격 증폭',types:['에스퍼','페어리'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수공격'},
+  {id:'specialAttackMultiplier',name:'특수공격 증폭',types:['에스퍼','악'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수공격'},
   {id:'defenseMultiplier',name:'방어 증폭',types:['강철','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'방어'},
   {id:'specialDefenseMultiplier',name:'특수방어 증폭',types:['강철','에스퍼'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수방어'},
   {id:'attackMultiplier',name:'공격 증폭',types:['불꽃','격투'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
-  {id:'speed',name:'공격속도 증폭',type:'비행',base:20,growth:1000,bonus:0.01,unit:'percent',stat:'공격속도 배율'},
+  {id:'speedFlat',name:'스피드 증가',type:'전기',base:10,growth:100,bonus:10,unit:'ms',stat:'스피드'},
+  {id:'speed',name:'스피드 증폭',types:['격투','비행'],base:10,growth:100,bonus:0.01,unit:'percent',stat:'스피드'},
   {id:'antidote',name:'해독 증가',type:'독',base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
   {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'},
+  {id:'regeneration',name:'회복 증가',types:['풀','페어리'],base:10,growth:1.5,bonus:1,unit:'flat',stat:'회복'},
   {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'}
 ]);
 export const AUTOMATIONS=Object.freeze([
@@ -47,11 +49,11 @@ export function effectiveDittoStats(state){
     specialAttack:storedAmount(decimal(stats.specialAttack??0).add(levels.specialAttack??0).mul(1+(levels.specialAttackMultiplier??0)*0.04)),
     defense:storedAmount(decimal(stats.defense??0).add(levels.defense??0).mul(1+(levels.defenseMultiplier??0)*0.04)),
     specialDefense:storedAmount(decimal(stats.specialDefense??0).add(levels.specialDefense??0).mul(1+(levels.specialDefenseMultiplier??0)*0.04)),
-    regeneration:storedAmount(decimal(stats.regeneration??0).mul(decimal(1).add(decimal(levels.regenerationMultiplier??0).mul(0.03)))),
+    regeneration:storedAmount(decimal(stats.regeneration??0).add(levels.regeneration??0).mul(decimal(1).add(decimal(levels.regenerationMultiplier??0).mul(0.03)))),
     attack:storedAmount(decimal(stats.attack).add(attackFlat).mul(attackMultiplier)),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
     poison:storedAmount(decimal(stats.poison??0).mul(decimal(1).add(decimal(levels.poisonMultiplier??0).mul(0.03)))),
-    speed:Math.max(100,stats.speed/speed)};
+    speed:Math.max(100,(stats.speed-(levels.speedFlat??0)*10)/speed)};
 }
 export function buyUpgrade(state,id){
   const item=UPGRADES.find(x=>x.id===id);

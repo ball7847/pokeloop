@@ -231,10 +231,12 @@ test('upgrade shop titles display cumulative bonus and use increase/amplify nami
  try {
    const {EnergyPage}=await vite.ssrLoadModule('/src/pages/EnergyPage.jsx');
    const {UPGRADES}=await vite.ssrLoadModule('/src/core/shopSystem.js');
-   assert.deepEqual(UPGRADES.map(item=>item.name),['HP 증가','공격 증가','특수공격 증가','HP 증폭','방어 증가','특수방어 증가','특수공격 증폭','방어 증폭','특수방어 증폭','공격 증폭','공격속도 증폭','해독 증가','독 증폭','회복 증폭']);
+   assert.deepEqual(UPGRADES.map(item=>item.name),['HP 증가','공격 증가','특수공격 증가','HP 증폭','방어 증가','특수방어 증가','특수공격 증폭','방어 증폭','특수방어 증폭','공격 증폭','스피드 증가','스피드 증폭','해독 증가','독 증폭','회복 증가','회복 증폭']);
    const html=renderToStaticMarkup(React.createElement(EnergyPage));
    assert.match(html,/HP 증가 Lv\. 0 \(HP \+0\)/);
    assert.match(html,/공격 증폭 Lv\. 0 \(공격 \+0%\)/);
+   assert.match(html,/스피드 증가 Lv\. 0 \(스피드 -0ms\)/);
+   assert.match(html,/스피드 증폭 Lv\. 0 \(스피드 \+0%\)/);
    assert.doesNotMatch(html,/레벨당|현재 적용:/);
  } finally {await vite.close();}
 });

@@ -14,14 +14,14 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
     ['defense','바위',1,1.5,1],['specialDefense','페어리',1,1.5,1],
     ['specialAttackMultiplier',undefined,10,1.5,.04],
     ['defenseMultiplier',undefined,10,1.5,.04],['specialDefenseMultiplier',undefined,10,1.5,.04],
-    ['attackMultiplier',undefined,10,1.5,.04],['speed','비행',20,1000,.01],
+    ['attackMultiplier',undefined,10,1.5,.04],['speedFlat','전기',10,100,10],['speed',undefined,10,100,.01],
     ['antidote','독',10,1.5,1],['poisonMultiplier','독',10,1.5,.03],
-    ['regenerationMultiplier','풀',10,1.5,.03]
+    ['regeneration',undefined,10,1.5,1],['regenerationMultiplier','풀',10,1.5,.03]
   ]);
   assert.equal(upgradeCost('hp',1),1.5);
   assert.equal(upgradeCost('attack',2),2.25);
   assert.equal(upgradeCost('attackMultiplier',1),15);
-  assert.equal(upgradeCost('speed',1),20000);
+  assert.equal(upgradeCost('speed',1),1000);
   let s=funded();
   for(const id of ['hp','hp','attack','attackMultiplier','speed'])s=buy(s,'BUY_UPGRADE',id);
   const stats=effectiveDittoStats(s);
@@ -29,13 +29,13 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
   assert.equal(stats.attack,2.08);
   assert.ok(Math.abs(stats.speed-(3000/1.01))<1e-8);
   assert.equal(s.energyBalances.노말,996.5);
-  assert.equal(s.energyBalances.격투,990);
+  assert.equal(s.energyBalances.격투,980);
   assert.equal(s.energyBalances.불꽃,990);
-  assert.equal(s.energyBalances.비행,980);
+  assert.equal(s.energyBalances.비행,990);
   assert.equal(s.particleBalances.노말,3.5);
-  assert.equal(s.particleBank.격투,10);
+  assert.equal(s.particleBank.격투,20);
   assert.equal(s.particleBank.불꽃,10);
-  assert.equal(s.particleBank.비행,20);
+  assert.equal(s.particleBank.비행,10);
   assert.equal(s.energyUpgrades.hp,2);
   assert.equal(s.energyUpgrades.attack,1);
   assert.equal(s.energyUpgrades.attackMultiplier,1);
@@ -240,7 +240,7 @@ test('speed upgrades bought repeatedly wait until attack and use latest level',(
  s=transition(s,{type:'COMBAT_TICK',deltaMs:1500,random:()=>0.5});
  s=buy(s,'BUY_UPGRADE','speed');
  // Supplement real flying energy for the rapidly increasing second level cost.
- s={...s,energyBalances:{...s.energyBalances,비행:30000}};
+ s={...s,energyBalances:{...s.energyBalances,비행:30000,격투:30000}};
  s=buy(s,'BUY_UPGRADE','speed');
  assert.equal(s.energyUpgrades.speed,2);
  assert.equal(s.combat.dittoAttackCooldown.duration,3000);
@@ -302,7 +302,7 @@ test('HP multiplier can be purchased mid-battle without healing current HP',()=>
 });
 
 test('dual energy upgrade purchases require both currencies and create matching particles',()=>{
- let s={...funded(),energyBalances:{...funded().energyBalances,불꽃:10,격투:10,물:10,땅:10,강철:10,에스퍼:10,페어리:10}};
+ let s={...funded(),energyBalances:{...funded().energyBalances,불꽃:10,격투:10,물:10,땅:10,강철:10,에스퍼:10,악:10,페어리:10}};
  const {energyBalances:before}=s;
  s=buy(s,'BUY_UPGRADE','attackMultiplier');
  assert.equal(s.energyBalances.불꽃,0);
@@ -319,9 +319,9 @@ test('dual energy upgrade purchases require both currencies and create matching 
  assert.equal(buy(s,'BUY_UPGRADE','defenseMultiplier'),s);
  s=buy(s,'BUY_UPGRADE','specialAttackMultiplier');
  assert.equal(s.energyBalances.에스퍼,0);
- assert.equal(s.energyBalances.페어리,0);
+ assert.equal(s.energyBalances.악,0);
  assert.equal(s.particleBank.에스퍼,10);
- assert.equal(s.particleBank.페어리,10);
+ assert.equal(s.particleBank.악,10);
  assert.equal(buy(s,'BUY_UPGRADE','specialDefenseMultiplier'),s);
  assert.equal(before.강철,10);
  assert.equal(s.energyBalances.강철,10);
@@ -343,4 +343,49 @@ test('defense and special stats use flat increases before 4 percent amplifiers',
  assert.ok(Math.abs(stats.specialDefense-5.4)<1e-8);
  assert.ok(Math.abs(stats.specialAttack-15.12)<1e-8);
  assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,defense:0},energyUpgrades:{defenseMultiplier:3}}).defense,0);
+});
+
+
+test('flat electric speed and dual-type speed amplifier apply add then divide and clamp at 100ms',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,전기:1010,격투:1010,비행:1010}};
+ assert.equal(upgradeCost('speedFlat',0),10);
+ assert.equal(upgradeCost('speedFlat',1),1000);
+ assert.equal(upgradeCost('speed',0),10);
+ assert.equal(upgradeCost('speed',1),1000);
+ s=buy(s,'BUY_UPGRADE','speedFlat');
+ assert.equal(effectiveDittoStats(s).speed,2990);
+ s=buy(s,'BUY_UPGRADE','speed');
+ assert.ok(Math.abs(effectiveDittoStats(s).speed-2990/1.01)<1e-8);
+ assert.equal(s.energyBalances.전기,1000);
+ assert.equal(s.energyBalances.격투,1000);
+ assert.equal(s.energyBalances.비행,1000);
+ s=buy(s,'BUY_UPGRADE','speedFlat');
+ s=buy(s,'BUY_UPGRADE','speed');
+ assert.ok(Math.abs(effectiveDittoStats(s).speed-2980/1.02)<1e-8);
+ assert.equal(s.energyBalances.전기,0);
+ assert.equal(s.energyBalances.격투,0);
+ assert.equal(s.energyBalances.비행,0);
+ assert.equal(s.particleBank.전기,1010);
+ assert.equal(s.particleBank.격투,1010);
+ assert.equal(s.particleBank.비행,1010);
+ assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.speedFlat,2);
+ assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,speed:50}}).speed,100);
+});
+
+test('flat grass-fairy regeneration applies before grass multiplier with atomic costs',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,풀:50,페어리:50},dittoStats:{...funded().dittoStats,regeneration:5}};
+ assert.equal(upgradeCost('regeneration',0),10);
+ assert.equal(upgradeCost('regeneration',1),15);
+ s=buy(s,'BUY_UPGRADE','regeneration');
+ s=buy(s,'BUY_UPGRADE','regeneration');
+ s=buy(s,'BUY_UPGRADE','regenerationMultiplier');
+ assert.ok(Math.abs(effectiveDittoStats(s).regeneration-7.21)<1e-8);
+ assert.equal(s.energyBalances.풀,15);
+ assert.equal(s.energyBalances.페어리,25);
+ assert.equal(s.particleBank.풀,35);
+ assert.equal(s.particleBank.페어리,25);
+ assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.regeneration,2);
+ const missingFairy={...s,energyBalances:{...s.energyBalances,페어리:0}};
+ assert.equal(buy(missingFairy,'BUY_UPGRADE','regeneration'),missingFairy);
+ assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,regeneration:0}}).regeneration,2.06);
 });
