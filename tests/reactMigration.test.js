@@ -218,7 +218,7 @@ test('region filter combines only appeared Pokemon and keeps not-yet-unlocked ca
    const state=initialState();
    const ids=filter=>visiblePokemonForRegion(state,filter).map(p=>p.id);
    assert.deepEqual(ids('starting-plains'),['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']);
-   assert.deepEqual(ids('berry-forest'),['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela']);
+   assert.deepEqual(ids('berry-forest'),['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit']);
    assert.deepEqual(ids('all'),[...ids('starting-plains'),...ids('berry-forest')]);
    for(const id of ['pikachu','bulbasaur','metapod','kakuna'])assert.equal(ids('all').includes(id),false);
    const appeared={...state,berryRareAppeared:true,uncommonStarterId:'charmander',evolutionResults:{metapod:true,kakuna:true}};
