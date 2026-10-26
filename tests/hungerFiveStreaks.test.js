@@ -158,6 +158,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({strategy,minutes:result.minutes,automationBoughtAt:result.automationBoughtAt,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
