@@ -88,14 +88,14 @@ test('economic and rare encounter reachability, game default rules',()=>{
  assert.equal(s.berryRareAppeared,false);
  assert.equal(UNCOMMON_BASE_CHANCE,0);
  assert.equal(BERRY_POKEMON.find(p=>p.id==='caterpie').energyReward,3);
- assert.equal(BERRY_POKEMON.find(p=>p.id==='taillow').energyReward,10);
- assert.equal(BERRY_POKEMON.find(p=>p.id==='igglybuff').energyReward,17.4);
+ assert.equal(BERRY_POKEMON.find(p=>p.id==='taillow').energyReward,27.6);
+ assert.equal(BERRY_POKEMON.find(p=>p.id==='igglybuff').energyReward,39);
  // Under the current capped first region, total normal energy available is finite.
  const H10=Array.from({length:10},(_,i)=>1/(i+1)).reduce((a,b)=>a+b,0);
  const maxNormal=H10*(1+2+3);
  assert.ok(maxNormal<1025);
  console.log('VIRTUAL_ECONOMY '+JSON.stringify({maxNormalFromRegion1:maxNormal,normalMilestone:1025,
-  berriesAwardEnergy:'igglybuff normal/fairy 17.4 each; nidoran male/female poison 6.9 each',secondRegionRareAppearsWithoutExplicitStateChange:false}));
+  berriesAwardEnergy:'igglybuff normal/fairy 39 each; nidoran male/female poison 6.9 each',secondRegionRareAppearsWithoutExplicitStateChange:false}));
 });
 
 test('region 2 late encounters: Monte Carlo first-win viability after all accessible stat farming',()=>{
