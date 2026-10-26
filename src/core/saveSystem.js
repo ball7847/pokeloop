@@ -12,7 +12,7 @@ export const SAVE_VERSION=10;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
-const basicKeys=['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','maxDamagePercent','paralysis','poison','antidote','multiStrike','accuracy','dodge'];
+const basicKeys=['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','maxDamagePercent','paralysis','poison','antidote','regeneration','multiStrike','accuracy','dodge'];
 const progressKeys=['floor','encounterIndex','victories','runId','eventSerial'];
 const validInteger=(value,max)=>Number.isSafeInteger(value)&&value>=0&&value<=max;
 
