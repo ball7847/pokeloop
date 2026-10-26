@@ -2,7 +2,7 @@ import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
 import {LAYERS,particleRates,particleMilestoneThreshold} from '../core/energySystem.js';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
-import {UPGRADES,AUTOMATIONS,upgradeCost} from '../core/shopSystem.js';
+import {UPGRADES,AUTOMATIONS,upgradeCosts} from '../core/shopSystem.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 export function EnergyPage(){
   const energyTab=useGameStore(s=>s.energySectionTab);
@@ -55,12 +55,12 @@ export function EnergyPage(){
       <div className="energy-shop-list">
         {energyTab==='stats'?UPGRADES.map(item=>{
           const level=game.energyUpgrades?.[item.id]??0;
-          const cost=upgradeCost(item.id,level);
-          const affordable=cost!==null&&compareAmount(game.energyBalances[item.type]??0,cost)>=0;
+          const costs=upgradeCosts(item.id,level);
+          const affordable=costs!==null&&Object.entries(costs).every(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)>=0);
           return <div className="energy-shop-item" key={item.id}>
             <div><strong>{item.name} Lv. {level} ({item.stat==='공격속도 배율'?'공격속도':item.stat} +{formatAmount(level*item.bonus*(item.unit==='flat'?1:100))}{item.unit==='flat'?'':'%'})</strong></div>
             <button type="button" disabled={!affordable||game.phase!=='running'}
-              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {cost===null?'최대 레벨':formatAmount(cost)+' 구매'}</button>
+              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{costs===null?'최대 레벨':<>{Object.entries(costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</>}</button>
           </div>;
         }):AUTOMATIONS.map(item=>{
           const owned=game.qolUnlocks?.includes(item.id);
