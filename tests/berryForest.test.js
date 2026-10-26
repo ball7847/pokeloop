@@ -18,7 +18,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['pikachu',250,25,25,0,1025,250,0,100,100],
  ['nidoran-m',230,57,0,0,2730,0,0,80,150],
  ['nidoran-f',220,21,0,0,2750,0,10,100,100],
- ['tangela',130,0,15.5,0,1600,0,0,100,100]
+ ['tangela',195,0,15.5,0,1600,0,0,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
@@ -32,6 +32,8 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff')),{노말:39,페어리:39});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff'),1),{노말:19.5,페어리:19.5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='pikachu')),{전기:25});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela')),{풀:11.4});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela'),1),{풀:5.7});
  for(const id of ['nidoran-m','nidoran-f']){
    const p=BERRY_POKEMON.find(p=>p.id===id);
    assert.deepEqual(battleEnergyRewards(p,0),{독:6.9});
