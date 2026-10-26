@@ -4,7 +4,7 @@ import {ALL_POKEMON,WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,appearedInRegio
 import {initialState} from '../src/core/gameState.js';
 
 test('every registered Pokémon has a unique stable regional encounter code',()=>{
- assert.equal(ALL_POKEMON.length,23);
+ assert.equal(ALL_POKEMON.length,25);
  const codes=ALL_POKEMON.map(p=>p.encounterCode);
  assert.ok(codes.every(code=>typeof code==='string'&&/^R\d+\d{2}\d{2}(?:-\d{2}|-E\d+)?$/.test(code)));
  assert.equal(new Set(codes).size,codes.length);
@@ -21,15 +21,15 @@ test('region 2 conditional and evolved species inherit fixed region slots',()=>{
  assert.deepEqual(codes,{
   caterpie:'R20101',weedle:'R20201',kakuna:'R20201-E1',
   metapod:'R20101-E1',taillow:'R20301',pikachu:'R20502',
-  igglybuff:'R20401','nidoran-m':'R20601','nidoran-f':'R20701',tangela:'R20801'
+  igglybuff:'R20401','nidoran-m':'R20601','nidoran-f':'R20701',tangela:'R20801',bidoof:'R20901',surskit:'R21001'
  });
  const base=initialState();
  assert.deepEqual(appearedInRegion(base,BERRY_REGION.id).map(p=>p.encounterCode),[
-  'R20101','R20201','R20301','R20401','R20601','R20701','R20801'
+  'R20101','R20201','R20301','R20401','R20601','R20701','R20801','R20901','R21001'
  ]);
  const appeared={...base,berryRareAppeared:true,evolutionResults:{metapod:true,kakuna:true}};
  assert.deepEqual(appearedInRegion(appeared,BERRY_REGION.id).map(p=>p.encounterCode),[
  'R20101','R20101-E1','R20201','R20201-E1','R20301',
- 'R20401','R20502','R20601','R20701','R20801']);
+ 'R20401','R20502','R20601','R20701','R20801','R20901','R21001']);
  assert.equal(appearedInRegion(base,REGION.id).length,10);
 });
