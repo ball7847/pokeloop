@@ -1,6 +1,6 @@
 import {resolveStats} from './dittoStats.js';
-export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',capacity:20,defaultKillLimit:10,rewardDecay:1});
-export const BERRY_REGION=Object.freeze({id:'berry-forest',name:'베리숲',capacity:20,defaultKillLimit:10,rewardDecay:1});
+export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',defaultKillLimit:10,rewardDecay:1});
+export const BERRY_REGION=Object.freeze({id:'berry-forest',name:'베리숲',defaultKillLimit:10,rewardDecay:1});
 export const REGIONS=Object.freeze([REGION,BERRY_REGION]);
 const entries=[
 {id:'rattata',number:19,name:'꼬렛',types:['노말'],energyReward:1,hp:3,attack:2,speed:2100,rewards:{attack:1}},
@@ -27,7 +27,8 @@ const berryEntries=[
 // Region 2 awards each configured energyReward to each of the Pokémon's types.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
-// Evolution children are stored in the Pokémon catalog but never consume base-region slots.
+// Evolution children are stored separately from the 24 regular-rarity lineup.
+// Regions have no population cap; evolved, legendary and divine encounters may be added independently.
 export const EVOLUTIONS=Object.freeze(ALL_POKEMON.filter(p=>p.evolvesFrom));
 const evolutionByParent=new Map(EVOLUTIONS.map(p=>[p.evolvesFrom,p]));
 export const evolutionFor=id=>evolutionByParent.get(id)??null;
