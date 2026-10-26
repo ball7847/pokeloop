@@ -41,13 +41,13 @@ test('70% uses appeared non-evolution species; uncommon encounter changes denomi
 });
 const stats=(fields={})=>({attack:0,specialAttack:0,defense:0,specialDefense:0,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0,minDamagePercent:100,maxDamagePercent:100,multiStrike:0,...fields});
 const combat=()=>({currentHp:500,dittoHp:{current:500,max:500},enemy:{hp:{current:500,max:500}},playerStatus:{paralysis:0,poison:20},enemyStatus:{paralysis:0,poison:0}});
-test('1000 multi-strike gives one immediate bonus hit with one poison tick',()=>{
+test('1000 multi-strike gives one immediate bonus hit without attack-end poison',()=>{
  const c=combat(),events=[];
  resolveAttack(c,'player',stats({attack:10,multiStrike:1000}),stats(),()=>0.5,events);
  assert.equal(c.enemy.hp.current,480);
- assert.equal(c.currentHp,480);
+ assert.equal(c.currentHp,500);
  assert.equal(events.filter(x=>x.kind==='physical').length,2);
- assert.equal(events.filter(x=>x.kind==='poison').length,1);
+ assert.equal(events.filter(x=>x.kind==='poison').length,0);
 });
 test('1500 multi-strike adds one guaranteed and one 50% chance; survives save',()=>{
  for(const [roll,expected] of [[0.2,3],[0.8,2]]){
