@@ -9,7 +9,7 @@ import {encodeSave,decodeSave,SAVE_VERSION} from '../src/core/saveSystem.js';
 test('Taillow occupies the slot between Weedle and Igglybuff (evolutions excluded)',()=>{
  const s=initialState();
  const ids=appearedInRegion(s,BERRY_REGION.id).map(p=>p.id);
- assert.deepEqual(ids,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f']);
+ assert.deepEqual(ids,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela']);
  assert.equal(getWildPokemon('jigglypuff'),null);
  assert.equal(getWildPokemon('igglybuff').number,174);
  assert.equal(getWildPokemon('taillow').number,276);
