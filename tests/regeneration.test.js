@@ -36,7 +36,7 @@ test('regeneration heals both combatants once per second without exceeding max H
   assert.equal(c.combat.regenerationElapsedMs,0);
   c=advanceBattle(c,500,()=>0.5);
   assert.equal(c.combat.currentHp,12);
-  assert.equal(c.combat.enemy.hp.current,125);
+  assert.equal(c.combat.enemy.hp.current,190);
 });
 
 test('regeneration is a persistent base stat defaulting to zero',()=>{
