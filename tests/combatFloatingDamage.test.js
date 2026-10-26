@@ -33,16 +33,17 @@ test('attacks emit miss and blocked events without changing actual HP',()=>{
  assert.equal(blocked[0].value,0);
  assert.equal(c.enemy.hp.current,3);
 });
-test('poison shows separate event, capped by actor remaining HP even when attack misses',()=>{
- let s=combatState(),c=structuredClone(s.combat);
- c.currentHp=2;
- c.dittoHp.current=2;
- c.playerStatus.poison=5;
- const events=[];
- resolveAttack(c,'player',{...s.dittoStats,accuracy:0,antidote:0},c.enemy.statistics,()=>0.5,events);
- assert.deepEqual(events.map(e=>[e.kind,e.target]),[['miss','enemy'],['poison','player']]);
- assert.equal(events[1].value,2);
- assert.equal(c.currentHp,0);
+test('poison damage emits a separate capped event on the one-second boundary',()=>{
+ let s=combatState();
+ s={...s,dittoStats:{...s.dittoStats,accuracy:0,attack:0}};
+ s.combat.currentHp=2;
+ s.combat.dittoHp.current=2;
+ s.combat.playerStatus.poison=5;
+ const next=advanceBattle(s,1000,()=>0.5);
+ assert.equal(next.combat.lastEvent.type,'defeat');
+ assert.deepEqual(next.combatVisualEvents.map(e=>[e.kind,e.target]),[['poison','player']]);
+ assert.equal(next.combatVisualEvents[0].value,2);
+ assert.equal(next.combat.currentHp,0);
 });
 test('simultaneous attack timestamps deliver effects from both combatants',()=>{
  let s=combatState();
