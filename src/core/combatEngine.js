@@ -6,7 +6,7 @@ import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './b
 import {appendDamageEvents,appendStatusDamageEvent} from './combatVisualEvents.js';
 export const emptyCombat = hp=>({
   active:false, enemy:null, currentHp:hp, maxHp:hp,
-  dittoHp:{current:hp,max:hp}, dittoAttackCooldown:null,
+  dittoHp:{current:hp,max:hp}, dittoAttackCooldown:null, regenerationElapsedMs:0,
   playerStatus:{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0},
   lastEvent:null
 });
@@ -163,12 +163,28 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   c.playerStatus??=freshStatus();c.enemyStatus??=freshStatus();
   const playerStats=effectiveDittoStats(state),enemyStats=c.enemy.statistics??getWildPokemon(c.pokemonId);
   let remaining=Math.min(deltaMs,5000);
+  c.regenerationElapsedMs??=0;
+  const regenerate=(elapsed)=>{
+    c.regenerationElapsedMs+=elapsed;
+    while(c.regenerationElapsedMs>=1000){
+      c.regenerationElapsedMs-=1000;
+      for(const [stats,getHp,setHp,maxHp] of [
+        [playerStats,()=>c.currentHp,v=>{c.currentHp=v;c.dittoHp.current=v;},playerStats.hp],
+        [enemyStats,()=>c.enemy.hp.current,v=>{c.enemy.hp.current=v;},c.enemy.hp.max]
+      ]){
+        if(compareAmount(stats.regeneration??0,0)<=0||compareAmount(getHp(),0)<=0||compareAmount(getHp(),maxHp)>=0)continue;
+        const restored=addAmount(getHp(),stats.regeneration);
+        setHp(compareAmount(restored,maxHp)>0?maxHp:restored);
+      }
+    }
+  };
   const my=c.dittoAttackCooldown,foe=c.enemy.attackCooldown;
   for(let steps=0;remaining>0&&steps<1000;steps++){
     const myPeriod=Math.max(100,my.duration),foePeriod=Math.max(100,foe.duration);
     const toMine=Math.max(0,myPeriod-my.elapsed),toFoe=Math.max(0,foePeriod-foe.elapsed);
     const next=Math.min(toMine,toFoe,remaining);
     my.elapsed+=next;foe.elapsed+=next;remaining-=next;
+    regenerate(next);
     if(my.elapsed<myPeriod&&foe.elapsed<foePeriod)break;
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
