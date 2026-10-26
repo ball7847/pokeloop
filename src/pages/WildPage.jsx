@@ -18,7 +18,7 @@ export const WILD_BASIC_FIELDS=Object.freeze([
   {key:'maxDamagePercent',label:'최대 피해량'}
 ]);
 const EXTRA_LABELS=Object.freeze({
-  minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독',accuracy:'명중',dodge:'회피'
+  minDamagePercent:'최소 피해량',maxDamagePercent:'최대 피해량',paralysis:'마비',poison:'독',multiStrike:'연타',accuracy:'명중',dodge:'회피'
 });
 const rewardText=(stat,value)=>(value<0?'−':'+')+formatStatValue(stat,Math.abs(value));
 const format=formatAmount;
