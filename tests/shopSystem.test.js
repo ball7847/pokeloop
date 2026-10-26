@@ -6,12 +6,15 @@ import {grantBattleEnergy} from '../src/core/energySystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 const buy=(state,type,id)=>transition(state,{type,id});
-const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,비행:1000}});
+const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,불꽃:1000,물:1000,땅:1000,비행:1000}});
 test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
-    ['specialAttack','물',1,1.5,1],['hpMultiplier','물',10,1.5,.04],
-    ['attackMultiplier','격투',10,1.5,.04],['speed','비행',20,1000,.01],
+    ['specialAttack','물',1,1.5,1],['hpMultiplier',undefined,10,1.5,.04],
+    ['defense','바위',1,1.5,1],['specialDefense','페어리',1,1.5,1],
+    ['specialAttackMultiplier',undefined,10,1.5,.04],
+    ['defenseMultiplier',undefined,10,1.5,.04],['specialDefenseMultiplier',undefined,10,1.5,.04],
+    ['attackMultiplier',undefined,10,1.5,.04],['speed','비행',20,1000,.01],
     ['antidote','독',10,1.5,1],['poisonMultiplier','독',10,1.5,.03],
     ['regenerationMultiplier','풀',10,1.5,.03]
   ]);
@@ -27,9 +30,11 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
   assert.ok(Math.abs(stats.speed-(3000/1.01))<1e-8);
   assert.equal(s.energyBalances.노말,996.5);
   assert.equal(s.energyBalances.격투,990);
+  assert.equal(s.energyBalances.불꽃,990);
   assert.equal(s.energyBalances.비행,980);
   assert.equal(s.particleBalances.노말,3.5);
   assert.equal(s.particleBank.격투,10);
+  assert.equal(s.particleBank.불꽃,10);
   assert.equal(s.particleBank.비행,20);
   assert.equal(s.energyUpgrades.hp,2);
   assert.equal(s.energyUpgrades.attack,1);
