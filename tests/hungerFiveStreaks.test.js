@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
-import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon,appearedInRegion} from '../src/core/wildData.js';
+import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon,appearedInRegion,ALL_POKEMON,battleEnergyRewards} from '../src/core/wildData.js';
 import {effectiveDittoStats,UPGRADES,AUTOMATIONS} from '../src/core/shopSystem.js';
 
 const groups=[
@@ -145,7 +145,13 @@ function run(strategy){
    }
    if(pending.length)retry('end '+region);
  }
- const result={strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
+ const totalEnergy=Object.fromEntries(Object.keys(s.energyBalances).map(type=>[type,0]));
+ for(const pokemon of ALL_POKEMON){
+   for(let i=0;i<(s.killCounts[pokemon.id]??0);i++){
+     for(const [type,value] of Object.entries(battleEnergyRewards(pokemon,i)))totalEnergy[type]+=value;
+   }
+ }
+ const result={totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
@@ -160,7 +166,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
-   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({strategy,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
