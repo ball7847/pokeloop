@@ -10,12 +10,14 @@ const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialS
 test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
-    ['attackMultiplier','격투',1,1.5,.04],['speed','비행',20,1000,.01],
-    ['antidote','독',10,1.5,1],['poisonMultiplier','독',10,1.5,.03]
+    ['specialAttack','물',1,1.5,1],['hpMultiplier','물',10,1.5,.04],
+    ['attackMultiplier','격투',10,1.5,.04],['speed','비행',20,1000,.01],
+    ['antidote','독',10,1.5,1],['poisonMultiplier','독',10,1.5,.03],
+    ['regenerationMultiplier','풀',10,1.5,.03]
   ]);
   assert.equal(upgradeCost('hp',1),1.5);
   assert.equal(upgradeCost('attack',2),2.25);
-  assert.equal(upgradeCost('attackMultiplier',1),1.5);
+  assert.equal(upgradeCost('attackMultiplier',1),15);
   assert.equal(upgradeCost('speed',1),20000);
   let s=funded();
   for(const id of ['hp','hp','attack','attackMultiplier','speed'])s=buy(s,'BUY_UPGRADE',id);
@@ -24,10 +26,10 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
   assert.equal(stats.attack,2.08);
   assert.ok(Math.abs(stats.speed-(3000/1.01))<1e-8);
   assert.equal(s.energyBalances.노말,996.5);
-  assert.equal(s.energyBalances.격투,999);
+  assert.equal(s.energyBalances.격투,990);
   assert.equal(s.energyBalances.비행,980);
   assert.equal(s.particleBalances.노말,3.5);
-  assert.equal(s.particleBank.격투,1);
+  assert.equal(s.particleBank.격투,10);
   assert.equal(s.particleBank.비행,20);
   assert.equal(s.energyUpgrades.hp,2);
   assert.equal(s.energyUpgrades.attack,1);
@@ -129,7 +131,7 @@ test('legacy v6 fighting attack upgrade levels migrate without becoming flat att
  assert.equal(loaded.energyUpgrades.hp,1);
  assert.equal(loaded.energyUpgrades.attack,0);
  assert.equal(loaded.energyUpgrades.attackMultiplier,2);
- assert.equal(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier),2.25);
+ assert.equal(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier),22.5);
  assert.equal(effectiveDittoStats(loaded).attack,1.08);
 });
 
@@ -253,4 +255,43 @@ test('cannot buy unaffordable upgrades mid-combat',()=>{
 
 test('upgrade costs beyond supported amount range are unavailable instead of throwing',()=>{
   assert.equal(upgradeCost('hp',1000000),null);
+});
+
+
+test('new water and grass upgrades use confirmed costs, correct stat order, energy spending and persistence',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,물:100,풀:100},dittoStats:{...funded().dittoStats,hp:100,specialAttack:4,regeneration:5}};
+ assert.equal(upgradeCost('specialAttack',0),1);
+ assert.equal(upgradeCost('specialAttack',1),1.5);
+ assert.equal(upgradeCost('hpMultiplier',0),10);
+ assert.equal(upgradeCost('hpMultiplier',1),15);
+ assert.equal(upgradeCost('regenerationMultiplier',0),10);
+ assert.equal(upgradeCost('regenerationMultiplier',1),15);
+ for(const id of ['hp','specialAttack','specialAttack','hpMultiplier','hpMultiplier','regenerationMultiplier','regenerationMultiplier'])s=buy(s,'BUY_UPGRADE',id);
+ const stats=effectiveDittoStats(s);
+ assert.ok(Math.abs(stats.hp-112.32)<1e-9);
+ assert.equal(stats.specialAttack,6);
+ assert.equal(stats.regeneration,5.3);
+ assert.equal(s.energyBalances.물,72.5);
+ assert.equal(s.energyBalances.풀,75);
+ assert.equal(s.particleBank.물,27.5);
+ assert.equal(s.particleBank.풀,25);
+ assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.hpMultiplier,2);
+ assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.specialAttack,2);
+ assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.regenerationMultiplier,2);
+ assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,regeneration:0}}).regeneration,0);
+ const noFunds={...s,energyBalances:{...s.energyBalances,물:0,풀:0}};
+ assert.equal(buy(noFunds,'BUY_UPGRADE','specialAttack'),noFunds);
+ assert.equal(buy(noFunds,'BUY_UPGRADE','hpMultiplier'),noFunds);
+ assert.equal(buy(noFunds,'BUY_UPGRADE','regenerationMultiplier'),noFunds);
+});
+
+test('HP multiplier can be purchased mid-battle without healing current HP',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,물:10}};
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'rattata'});
+ s={...s,combat:{...s.combat,currentHp:6,dittoHp:{...s.combat.dittoHp,current:6}}};
+ s=buy(s,'BUY_UPGRADE','hpMultiplier');
+ assert.equal(s.combat.currentHp,6);
+ assert.equal(s.combat.dittoHp.current,6);
+ assert.equal(s.combat.maxHp,10.4);
+ assert.equal(s.combat.dittoHp.max,10.4);
 });
