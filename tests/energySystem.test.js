@@ -148,3 +148,48 @@ test('actual repeated battles grant decaying type energy, not fixed payouts',()=
   assert.equal(state.particleBalances['노말'],0);
   assert.equal(transition(state,{type:'SELECT_WILD',pokemonId:'rattata'}),state);
 });
+
+
+test('point circulation purchase is atomic, one-time, and banks locked type particles',()=>{
+ let s={...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:10,벌레:10,비행:9}};
+ assert.equal(transition(s,{type:'BUY_CIRCULATION',id:'point'}),s);
+ assert.equal(s.particleBalances.노말,0);
+ s={...s,energyBalances:{...s.energyBalances,비행:10}};
+ const purchased=transition(s,{type:'BUY_CIRCULATION',id:'point'});
+ assert.equal(purchased.pointCirculationUnlocked,true);
+ for(const type of ['노말','벌레','비행'])assert.equal(purchased.energyBalances[type],0);
+ assert.equal(purchased.particleBalances.노말,10);
+ assert.equal(purchased.particleEarned.노말,10);
+ assert.equal(purchased.particleBank.벌레,10);
+ assert.equal(purchased.particleBank.비행,10);
+ assert.equal(purchased.particleEarned.벌레,0);
+ assert.equal(transition(purchased,{type:'BUY_CIRCULATION',id:'point'}),purchased);
+ assert.equal(transition({...s,phase:'paused'},{type:'BUY_CIRCULATION',id:'point'}).pointCirculationUnlocked,false);
+});
+test('point circulation produces 0.3 normal energy per second without battle or first milestone',()=>{
+ let s={...initialState(),phase:'running',pointCirculationUnlocked:true};
+ s=transition(s,{type:'ECONOMY_TICK',deltaMs:1000});
+ assert.equal(s.energyBalances.노말,0.3);
+ assert.equal(s.unlockedLayer,1);
+ assert.equal(s.particleBalances.노말,0);
+ s=tickEconomy(s,5);
+ assert.equal(s.energyBalances.노말,1.8);
+ assert.equal(s.particleBalances.노말,0);
+ const paused=transition({...s,phase:'paused'},{type:'ECONOMY_TICK',deltaMs:1000});
+ assert.equal(paused.energyBalances.노말,1.8);
+ assert.equal(tickEconomy(initialState(),1).energyBalances.노말,0);
+});
+test('point circulation survives save, old saves default off, planet move clears it',()=>{
+ let s={...initialState(),phase:'running',pointCirculationUnlocked:true};
+ const restored=decodeSave(encodeSave(s)).game;
+ assert.equal(restored.pointCirculationUnlocked,true);
+ const raw=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(s)),c=>c.charCodeAt(0))));
+ raw.version=10;
+ delete raw.game.pointCirculationUnlocked;
+ const oldEncoded=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(raw))));
+ assert.equal(decodeSave(oldEncoded).game.pointCirculationUnlocked,false);
+ raw.version=11;
+ const missing=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(raw))));
+ assert.throws(()=>decodeSave(missing),/순환/);
+ assert.equal(transition(restored,{type:'MOVE_PLANET'}).pointCirculationUnlocked,false);
+});
