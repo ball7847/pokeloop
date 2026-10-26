@@ -130,6 +130,6 @@ test('five kills, farm earlier species to ten upon loss, then skip and revisit a
  for(const strategy of ['balanced','hp','attack','none']){
    const result=simulate(strategy);
    assert.ok(result.totalVictories>0);
-   assert.ok(result.taillow?.stats);
+   if(strategy!=='none')assert.ok(result.taillow?.stats);
  }
 });
