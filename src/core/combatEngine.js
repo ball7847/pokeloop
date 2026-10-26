@@ -85,11 +85,6 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   const player=attacker==='player';
   const actingStatus=player?c.playerStatus:c.enemyStatus;
   const targetStatus=player?c.enemyStatus:c.playerStatus;
-  const actingHp=player?()=>c.currentHp:()=>c.enemy.hp.current;
-  const setActingHp=value=>{
-    if(player){c.currentHp=value;c.dittoHp.current=value;}
-    else c.enemy.hp.current=value;
-  };
   const defenderHp=player?()=>c.enemy.hp.current:()=>c.currentHp;
   const setDefenderHp=value=>{
     if(player)c.enemy.hp.current=value;
@@ -137,21 +132,6 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
     for(let i=0;i<guaranteed&&compareAmount(defenderHp(),0)>0;i++)strike();
     if(compareAmount(defenderHp(),0)>0&&random()<multi.mod(1000).div(1000).toNumber())strike();
   }
-  // Detoxify before paying poison damage at the end of EVERY attack action,
-  // including misses or attacks that trigger paralysis delay.
-  if(compareAmount(actingStatus.poison,0)>0){
-    const antidote=attackerStats.antidote??0;
-    if(compareAmount(antidote,0)>0){
-      const remaining=subtractAmount(actingStatus.poison,antidote);
-      actingStatus.poison=compareAmount(remaining,0)>0?remaining:0;
-    }
-    if(compareAmount(actingStatus.poison,0)>0){
-      const before=actingHp();
-      setActingHp(subtractAmount(before,actingStatus.poison));
-      const actual=compareAmount(before,actingStatus.poison)<0?before:actingStatus.poison;
-      appendStatusDamageEvent(visualEvents,player?'player':'enemy','poison',actual);
-    }
-  }
   return {hit,cancelled:false,paralysisTriggered:triggered,delayMs};
 }
 export function advanceBattle(state,deltaMs,random=Math.random) {
@@ -164,15 +144,28 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   const playerStats=effectiveDittoStats(state),enemyStats=c.enemy.statistics??getWildPokemon(c.pokemonId);
   let remaining=Math.min(deltaMs,5000);
   c.regenerationElapsedMs??=0;
-  const regenerate=(elapsed)=>{
-    c.regenerationElapsedMs+=elapsed;
-    while(c.regenerationElapsedMs>=1000){
-      c.regenerationElapsedMs-=1000;
-      for(const [stats,getHp,setHp,maxHp] of [
-        [playerStats,()=>c.currentHp,v=>{c.currentHp=v;c.dittoHp.current=v;},playerStats.hp],
-        [enemyStats,()=>c.enemy.hp.current,v=>{c.enemy.hp.current=v;},c.enemy.hp.max]
-      ]){
-        if(compareAmount(stats.regeneration??0,0)<=0||compareAmount(getHp(),0)<=0||compareAmount(getHp(),maxHp)>=0)continue;
+  // Shared second boundary: antidote -> poison damage -> regeneration.
+  // Status ticks are independent of attack speed and paralysis.
+  const applySecond=()=>{
+    for(const [stats,status,getHp,setHp,maxHp,target] of [
+      [playerStats,c.playerStatus,()=>c.currentHp,v=>{c.currentHp=v;c.dittoHp.current=v;},playerStats.hp,'player'],
+      [enemyStats,c.enemyStatus,()=>c.enemy.hp.current,v=>{c.enemy.hp.current=v;},c.enemy.hp.max,'enemy']
+    ]){
+      if(compareAmount(getHp(),0)<=0)continue;
+      const antidote=stats.antidote??0;
+      if(compareAmount(status.poison??0,0)>0&&compareAmount(antidote,0)>0){
+        const leftover=subtractAmount(status.poison,antidote);
+        status.poison=compareAmount(leftover,0)>0?leftover:0;
+      }
+      if(compareAmount(status.poison??0,0)>0){
+        const before=getHp();
+        const damage=status.poison;
+        setHp(subtractAmount(before,damage));
+        appendStatusDamageEvent(visualEvents,target,'poison',compareAmount(before,damage)<0?before:damage);
+      }
+      // Poison death is final; healing cannot revive the combatant.
+      if(compareAmount(getHp(),0)<=0)continue;
+      if(compareAmount(stats.regeneration??0,0)>0&&compareAmount(getHp(),maxHp)<0){
         const restored=addAmount(getHp(),stats.regeneration);
         setHp(compareAmount(restored,maxHp)>0?maxHp:restored);
       }
@@ -182,9 +175,16 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   for(let steps=0;remaining>0&&steps<1000;steps++){
     const myPeriod=Math.max(100,my.duration),foePeriod=Math.max(100,foe.duration);
     const toMine=Math.max(0,myPeriod-my.elapsed),toFoe=Math.max(0,foePeriod-foe.elapsed);
-    const next=Math.min(toMine,toFoe,remaining);
+    const untilSecond=Math.max(0,1000-c.regenerationElapsedMs);
+    const next=Math.min(toMine,toFoe,untilSecond,remaining);
     my.elapsed+=next;foe.elapsed+=next;remaining-=next;
-    regenerate(next);
+    c.regenerationElapsedMs+=next;
+    if(c.regenerationElapsedMs>=1000){
+      c.regenerationElapsedMs-=1000;
+      applySecond();
+      if(compareAmount(c.currentHp,0)<=0)return withEffects(finish(state,c,'defeat',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(finish(state,c,'victory',random));
+    }
     if(my.elapsed<myPeriod&&foe.elapsed<foePeriod)break;
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
