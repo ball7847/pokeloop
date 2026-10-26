@@ -1,6 +1,6 @@
 import React from 'react';
 import {useGameStore} from '../store/useGameStore.js';
-import {LAYERS,particleRates,particleMilestoneThreshold} from '../core/energySystem.js';
+import {LAYERS,particleRates,particleMilestoneThreshold,POINT_CIRCULATION} from '../core/energySystem.js';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import {UPGRADES,AUTOMATIONS,upgradeCosts} from '../core/shopSystem.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
@@ -12,7 +12,7 @@ export function EnergyPage(){
   const rates=particleRates(game);
   return <div className="energy-overview">
     <div className="ditto-info-tabs energy-section-tabs" role="tablist" aria-label="에너지 분류">
-      {[['stats','강화'],['automation','자동화'],['world','내부세계']].map(([id,label])=><button key={id} type="button" role="tab"
+      {[['stats','강화'],['circulation','순환'],['automation','자동화'],['world','내부세계']].map(([id,label])=><button key={id} type="button" role="tab"
         aria-selected={energyTab===id} className={'ditto-info-tab '+(energyTab===id?'is-active':'')}
         onClick={()=>setEnergyTab(id)}>{label}</button>)}
     </div>
@@ -53,7 +53,12 @@ export function EnergyPage(){
     </aside>
     </div>:<section className="panel energy-purchase-panel" role="tabpanel">
       <div className="energy-shop-list">
-        {energyTab==='stats'?UPGRADES.map(item=>{
+        {energyTab==='circulation'?<div className="energy-shop-item">
+          <div><strong>{POINT_CIRCULATION.name}</strong><small>노말 에너지 +0.3/초</small></div>
+          {game.pointCirculationUnlocked?<button type="button" disabled>구매 완료</button>:
+            <button type="button" disabled={game.phase!=='running'||Object.entries(POINT_CIRCULATION.costs).some(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)<0)}
+              onClick={()=>dispatch({type:'BUY_CIRCULATION',id:POINT_CIRCULATION.id})}>{Object.entries(POINT_CIRCULATION.costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</button>}
+        </div>:energyTab==='stats'?UPGRADES.map(item=>{
           const level=game.energyUpgrades?.[item.id]??0;
           const costs=upgradeCosts(item.id,level);
           const affordable=costs!==null&&Object.entries(costs).every(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)>=0);

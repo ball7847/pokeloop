@@ -8,7 +8,7 @@ import {DEFAULT_AUTOMATION,UPGRADES} from './shopSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=10;
+export const SAVE_VERSION=11;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -33,7 +33,7 @@ export function gameSnapshot(game){
     recoveryMs:game.recoveryMs??0,retryPokemonId:game.retryPokemonId??null,
     ...Object.fromEntries(['energyBalances','particleBalances','particleEarned','particleBank','particleMilestones','unlockedLayer',
       'normalFirstMilestonePermanent','pendingStellar','stellar','totalStellarEarned','planetMoves','energyUpgrades',
-      'qolUnlocks','permanentUpgrades'].map(key=>[key,game[key]]))
+      'qolUnlocks','permanentUpgrades','pointCirculationUnlocked'].map(key=>[key,game[key]]))
   };
 }
 export function encodeSave(game,now=Date.now()){
@@ -53,7 +53,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,8,9,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,9,10,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -154,6 +154,10 @@ export function decodeSave(encoded){
     Object.assign(cleanGame,eco);
   }
   // v4 and earlier did not implement these features; new runs default to no cooldown and no purchases.
+  if(data.version>=11){
+    if(typeof original.pointCirculationUnlocked!=='boolean')throw new Error('순환 해금 정보가 올바르지 않습니다.');
+    cleanGame.pointCirculationUnlocked=original.pointCirculationUnlocked;
+  }
   if(data.version>=5){
     const levels=original.energyUpgrades??{};
     if(!levels||typeof levels!=='object'||Array.isArray(levels)||Object.keys(levels).some(k=>!UPGRADES.some(upgrade=>upgrade.id===k))||

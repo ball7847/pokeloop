@@ -1,7 +1,7 @@
 import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
-import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy} from './energySystem.js';
+import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
 import {buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION} from './shopSystem.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
@@ -20,6 +20,7 @@ export function transition(state, action) {
     case 'PAUSE': return state.phase===PHASE.RUNNING ? {...state,phase:PHASE.PAUSED}:state;
     case 'RESUME': return state.phase===PHASE.PAUSED ? {...state,phase:PHASE.RUNNING}:state;
     case 'RESET': return {...initialState(),runId:state.runId+1};
+    case 'BUY_CIRCULATION': return state.phase===PHASE.RUNNING?buyPointCirculation(state):state;
     case 'BUY_UPGRADE': return state.phase===PHASE.RUNNING?buyUpgrade(state,action.id):state;
     case 'BUY_AUTOMATION': return state.phase===PHASE.RUNNING?buyAutomation(state,action.id):state;
     case 'TOGGLE_AUTOMATION': return toggleAutomation(state,action.id);

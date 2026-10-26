@@ -15,13 +15,20 @@ export const LAYERS=Object.freeze([
   {name:'초월',types:['페어리']}
 ].map((layer,index)=>Object.freeze({...layer,level:index+1,types:Object.freeze(layer.types)})));
 export const FIRST_MILESTONE=1025;
+export const POINT_CIRCULATION=Object.freeze({id:'point',name:'점의 순환',costs:Object.freeze({노말:10,벌레:10,비행:10}),production:Object.freeze({노말:0.3})});
+export function buyPointCirculation(state){
+  if(state.pointCirculationUnlocked)return state;
+  const purchased=purchaseWithEnergy(state,POINT_CIRCULATION.costs);
+  return purchased===state?state:{...purchased,pointCirculationUnlocked:true};
+}
+
 const layerByType=new Map(LAYERS.flatMap(layer=>layer.types.map(type=>[type,layer.level])));
 export const typeLayer=type=>layerByType.get(type)??0;
 const zeros=()=>Object.fromEntries(TYPES.map(type=>[type,0]));
 export function initialEconomy(){
   return {energyBalances:zeros(),particleBalances:zeros(),particleEarned:zeros(),particleBank:zeros(),particleMilestones:zeros(),
     unlockedLayer:1,normalFirstMilestonePermanent:false,pendingStellar:0,stellar:0,totalStellarEarned:0,planetMoves:0,
-    energyUpgrades:{},qolUnlocks:[],permanentUpgrades:{}};
+    energyUpgrades:{},qolUnlocks:[],permanentUpgrades:{},pointCirculationUnlocked:false};
 }
 export function particleMilestoneThreshold(level){
   if(level<=0)return FIRST_MILESTONE;
@@ -127,7 +134,7 @@ export function tickEconomy(state,seconds){
   if(!state.particleBalances)return state;
   // An untouched first layer has no producer and cannot generate stellar energy.
   // Avoid 20 Decimal-heavy substeps and a no-op Zustand update each tick.
-  if(state.unlockedLayer===1&&(state.particleMilestones?.['노말']??0)===0)return state;
+  if(state.unlockedLayer===1&&(state.particleMilestones?.['노말']??0)===0&&!state.pointCirculationUnlocked)return state;
   const particles={...state.particleBalances},earned={...state.particleEarned};
   // Time-stepped cascading particle production with fixed milestone multipliers.
   // Dividing into short steps captures cascading output without tying gains to UI frame rate.
@@ -147,7 +154,10 @@ export function tickEconomy(state,seconds){
       }
     }
   }
-  return processMilestones({...state,particleBalances:particles,particleEarned:earned,pendingStellar:pending});
+  const energy=state.pointCirculationUnlocked?
+    {...state.energyBalances,노말:addAmount(state.energyBalances['노말']??0,multiplyAmount(POINT_CIRCULATION.production['노말'],seconds))}:
+    state.energyBalances;
+  return processMilestones({...state,energyBalances:energy,particleBalances:particles,particleEarned:earned,pendingStellar:pending});
 }
 export function movePlanet(state){
   const base=initialEconomy(),carry=state.normalFirstMilestonePermanent||state.particleMilestones['노말']>=1;
