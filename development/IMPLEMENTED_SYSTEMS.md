@@ -1,90 +1,134 @@
-# PokeLoop 구현된 게임 시스템
-
-> 최초 정리: 2026-10-26 | 코드 대조 기준 `d32cd151fe38876064dc7e7b82c07a21e3ced992`
-> **실제 코드에서 확인된 기능만** 적는다. 기획/미연결 사항: [PLANNED_SYSTEMS.md](./PLANNED_SYSTEMS.md). 규칙: [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md).
-
-## 1. 실행·상태·화면
-
-- React + Zustand 게임. `src/main.jsx` → `src/App.jsx`; 메타몽, 야생, 도감, 에너지, 설정 화면. 도감 화면은 아직 안내 수준.
-- 게임 상태: `ready / running / paused / finished`; 액션은 `src/core/gameState.js`의 `transition`을 통과한다.
-- 주기적으로 실시간 전투/회복과 입자 경제 업데이트를 처리한다(`src/components/GameClocks.jsx`).
-- 전투 시작 시 메타몽 탭으로 자동 이동하고, 일반 전투 종료 시 마지막 피해 팝업이 보이도록 약 1.2초 후 야생 탭으로 돌아간다(`src/App.jsx`).
-- 화면 관련 구현: `src/pages/`, `src/components/`, `src/styles/`. 구형 직접 DOM 렌더러는 제거됨.
-
-## 2. 메타몽 기본 능력치 및 표시
-
-- 초기 메타몽: **HP 10 / 공격 1 / 공격 주기 3000ms**. 일반 기본값: 방어·특수공격·특수방어·마비·독·해독 0, 명중 100%, 회피 0, 최소 피해 85%, 최대 피해 100% (`src/core/dittoStats.js`).
-- 기본 능력치 8종: HP, 공격, 방어, 특수공격, 특수방어, 스피드, 최소 피해량, 최대 피해량. 특별 능력치: 마비, 독, 해독, 명중, 회피.
-- 기본값인 능력치는 대부분 숨기되 핵심 초기 능력치는 표시. 표시 수치의 소수 자릿수와 단위는 `formatStatValue`/큰 수 포맷터가 담당한다.
-- 능력치 표시 문자열은 `dittoStats.js`의 공통 메타데이터/라벨 함수가 담당한다. SVG 상태/타입 아이콘은 `public/assets/` 활용.
-
-## 3. 자동 전투·피해·상태이상
-
-- `src/core/combatEngine.js`의 `startBattle → advanceBattle → resolveAttack → finish` 흐름. 명시 선택한 포켓몬과 실시간 공격 주기 기반 자동 전투. 동시에 공격 가능하면 **플레이어 먼저** 처리.
-- 명중 확률: `accuracy<=0`이면 0; 그 외 `max(0,min(1,(min(accuracy,100)-scaledDodge)/100))`, `scaledDodge=dodge/(accuracy/100)`(accuracy>100), 아니면 dodge.
-- 물리 피해 채널: `max(0, 공격 × 피해 배율 - 방어)`; 특수: `max(0, 특수공격 × 피해 배율 - 특수방어)`. 각 채널의 피해 배율은 최소~최대 피해 퍼센트 범위에서 **정수 퍼센트 난수**로 개별 판정. 두 채널 합계를 HP에 적용한다. 타입 상성/STAB/동화도는 이 함수에 직접 연결되어 있지 않다.
-- 전투 중 공격속도 최소 간격 100ms. `advanceBattle`의 한 번 처리 간격은 최대 5000ms; 시간에 따른 공격 순서를 반복 시뮬레이션한다.
-- **연타**: 능력치 × 0.1%로 즉시 추가 타격; 1000당 1회 확정, 잔여 수치만큼 추가 1회 확률. 추가 타격의 명중/피해 난수는 독립 처리하고 행동 종료 독 피해는 1회만 적용.\n- **마비**: 공격 시 누적 마비가 있으면 25% 확률로 누적치 전부를 소모하고 다음 공격 주기를 누적치(ms)만큼 연장한다. 현재 공격 자체는 취소되지 않는다.
-- **독**: 명중하면 상대에게 누적. **해독**: 매 공격 행동 종료 시 자신에게 누적된 독에서 해독 수치만큼 차감하고, 남은 독 수치만큼 자기 HP 피해 발생. 빗나가거나 마비가 발동한 공격 후에도 해독 및 독 피해 처리.
-- 메타몽/적에 동일한 물리·특수·독 전투 계산 경로 적용. 전투 HP와 기본 능력치 HP는 구별됨.
-- 전투 피해 시각 이벤트(`src/core/combatVisualEvents.js`, `src/components/CombatPanel.jsx`): **물리 빨강 / 특수 파랑 / 독 보라 / 고정 흰색 CSS만 준비**; 명중 실패 MISS, 무피해 0. 물리/특수는 숫자 별도 생성. 과잉 피해는 실제 잃은 HP까지만 표시. 팝업 유지 시간 약 1.2초.
-- 공격바는 `CombatBarAnimator.jsx`의 `requestAnimationFrame`으로 부드럽게 표현하되 실제 전투 상태는 바꾸지 않는다.
-
-## 4. 지역·포켓몬·진행
-
-- 데이터 단일 원천: `src/core/wildData.js`. 지역 수용량 하드 상한은 없으며, `appearedInRegion`에서 구성된 포켓몬 전체를 야생 카드로 표시한다. 24마리 기본 비율과 별개로 진화체·상위 희귀도 개체를 추가할 수 있다.
-- **시작의 평원**(`starting-plains`): 꼬렛 → 구구 → 망키 → 깨비참 → 주뱃 → [6번 안흔한 스타터 슬롯: 이상해씨/파이리/꼬부기 중 등장한 1종] → 나옹 → 꼬마돌 → 아라리 → 꼬리선 → 켄타로스. 스타터 슬롯은 미등장 시 빈칸 없이 생략하며, 나옹부터 고정 순서 7~11번이다. 코드는 스타터 `R10602-01`~`R10602-03`, 나옹 `R10701`~켄타로스 `R11101`로 지정했다. 안흔한 스타터 데이터는 있으나 `UNCOMMON_BASE_CHANCE=0`이므로 초기 자연 발생하지 않는다.
-- 시작 기본 세 포켓몬만 도전 가능. 서로 **다른 종의 첫 승리** 때마다 해당 지역의 다음 기본 포켓몬이 1마리씩 해금된다. 반복 처치로 추가 해금되지 않는다.
-- **등장 코드 전체 적용:** 모든 등록 포켓몬은 `encounterCode`를 갖는다. 형식은 `R지역번호(1자리) + 지역 슬롯(2자리) + 희귀도(2자리)`, 동일 슬롯의 복수 후보는 `-01` 등의 후보 번호, 진화형은 부모 슬롯을 공유하며 `-E1` 등의 진화 단계 suffix를 사용한다. 슬롯은 조건부 미등장 시에도 고정되고 종 ID 및 저장 키와 별개다. 2지역 코드는 캐터피 `R20101`, 단데기 `R20101-E1`, 뿔충이 `R20201`, 딱충이 `R20201-E1`, 테일로 `R20301`, 피카츄 `R20402`, 푸푸린 `R20501`, 니드런♂ `R20601`, 니드런♀ `R20701`이다. 피카츄는 기존처럼 조건부로만 등장한다.\n- **베리숲**(`berry-forest`): 캐터피, 뿔충이, 테일로, 푸푸린, 니드런♂, 니드런♀; 딱충이(뿔충이 진화), 단데기(캐터피 진화) 데이터 포함. 피카츄는 특별 등장 플래그가 있어야 노출.
-- 베리숲 해금: 시작의 평원 **기본 라인업의 70% 이상**을 서로 다른 종 첫 승리로 처치(현재 기본 10종 기준 7종).
-- 각 지역 포켓몬당 **최대 10회 처치**. 처치 보상: `기본 보상 / (1+기존 처치 횟수)`. 타입 에너지도 동일 감소 규칙. `scaledReward` 참조.
-- 시작 평원 예시: 꼬렛 공격+1; 구구 HP+1; 망키 HP+5.6/공격+2(공격 주기 1800ms); 깨비참 HP+2.1/공격+1; 주뱃 공격+1/스피드-20.
-- 진화: 진화 전 포켓몬을 **첫 승리**할 때 자식 진화형 등장 여부 1회 판정하고 `evolutionResults`에 저장; 현재 일반 진화형 확률은 1. 진화형은 원래 기본 지역 슬롯/독립 첫 승리 해금 수에 포함되지 않고 부모 근처에 별도 표시된다.
-- 포켓몬 스프라이트: PokeAPI 원격 이미지 URL. 타입별 보상 기본값은 각 타입에 같은 기본 `energyReward`를 지급.
-
-## 5. 승리·패배·도주와 자동화
-
-- 승리 시 메타몽 스탯 보상, 타입 에너지, 종별 처치 수, 전체 승리 횟수, 도감 발견 상태 갱신. 보상은 **승리 1회당 1번** 적용.
-- **끝없는 허기**(`hunger`): 노말 에너지 1로 해금. 승리 후 남은 현재 HP와 자신에게 걸린 상태이상을 유지하고 동일 적에 즉시 재도전; 종별 10회 제한 준수.
-- **불굴의 의지**(`resolve`): 노말 에너지 5로 해금. 패배 후 10초 회복 시 동일 적 자동 재도전; 도주는 5초 대기. 재도전 지역은 해당 적의 소속 지역으로 복귀.
-- 자동화 해금·토글: `src/core/shopSystem.js`; `src/core/gameState.js`.
-
-## 6. 에너지, 입자, 내부세계와 강화
-
-- 총 18 Pokémon 타입을 **서로 독립된 타입 에너지 통화**로 사용. 전투 승리는 **타입 에너지만** 주고 입자는 직접 생성하지 않는다.
-- 강화/자동화 구매 시 타입 에너지를 소비하며, 소비량과 같은 양의 해당 타입 **입자**가 만들어진다. 미해금 계층의 입자는 은행(`particleBank`)에 100% 축적됐다가 해당 계층 해금 시 지급.
-- 내부세계 **10계층**(`src/core/energySystem.js`):
-  1. 세계—노말
-  2. 탄생—불꽃·물·풀
-  3. 에너지—전기
-  4. 생태계—벌레·비행
-  5. 대지—땅·바위
-  6. 전쟁—격투·에스퍼·악
-  7. 진보—강철·독
-  8. 죽음—얼음·고스트
-  9. 불멸—드래곤
-  10. 초월—페어리
-- 첫 입자 이정표는 누적 **1025개**. 이후 문턱은 `1025×1000^현재 이정표 레벨` 방식(코드에 임시 진행식이라고 명시). 각 타입 이정표 0~10, 현재 계층 중 하나 이상의 타입이 첫 이정표 도달 시 다음 계층 해금.
-- 상위 계층 입자는 하위 계층 생산에 기여한다. 여러 타입은 평균 생산값을 사용; 짧은 시간 간격(0.05초 단위)으로 연쇄 생산.
-- 노말 입자는 대기 스텔라에너지를 생성한다. 일정량 이상에 소프트캡 적용. 행성 이동 시 대기 스텔라를 흡수, 일반 능력치/타입 재화 초기화; `permanentUpgrades`와 노말 첫 이정표 보존 조건은 승계.
-- 강화(`src/core/shopSystem.js`):
-  - HP 증가: 노말, 시작 비용 1, 성장 1.5배, Lv당 HP+4.
-  - 공격 증가: 노말, 시작 비용 1, 성장 1.5배, Lv당 공격+1.
-  - 공격 증폭: 격투, 시작 비용 1, 성장 1.5배, Lv당 공격 ×(1+0.04×Lv).
-  - 공격속도 증폭: 비행, 시작 비용 20, 성장 1000배, Lv당 공격속도 배율 +1%.
-  - 해독 증가: 독, 시작 비용 10, 성장 1.5배, Lv당 해독+1.
-  - 독 증폭: 독, 시작 비용 10, 성장 1.5배, Lv당 독 +3%씩.
-- 강화 비용은 지원 수치 범위를 초과하거나 레벨 상한을 넘으면 구매 불가 처리. 최소 전투 주기 100ms.
-
-## 7. 저장·오프라인·큰 수
-
-- `src/core/saveSystem.js`: Base64 텍스트 세이브, LocalStorage 자동저장 기본 ON(30초), 수동 저장/내보내기/가져오기/초기화 지원. 저장 포맷 **v10**, 이전 **v1~v9** 읽기·검증·마이그레이션 코드 포함.
-- 전투 상태 자체는 저장되지 않는다. 불러오면 전투가 없는 상태로 복구된다. 미처리 오프라인 생산 시간은 따로 저장된다.
-- 숨겨진 탭/백그라운드 동안 전투는 재현하지 않고 생산만 추후 적용. 오프라인 생산 대기 시간은 작은 조각(최대 5초)으로 소비하며 저장 중 미처리 시간을 보존. NaN/Infinity/음수 시간의 큐 추가는 차단됨.
-- `src/core/bigNumber.js`: 큰 수는 `break_eternity.js`로 계산하고 JSON에 안전한 Number 또는 문자열로 저장. 최대 표현 범위 `1e10000`.
-
-## 8. 검증 및 최근 안정화 작업
-
-- `npm test` / `npm run build`를 PR CI에서 수행. 마지막 기록된 PR #70 자동 테스트 **167 통과 / 실패 0**, 빌드 성공.
-- PR #61 물리·특수 팝업 분리, #62~#64 종료 팝업·강화비용·오프라인 시간 안정화, #65 능력치 공통 라벨, #66 시각 이벤트 분리, #67 구형 UI 정리, #68~#70 CSS 일부 중복 및 테스트 경로 정리.
-- **주의**: CI 통과는 실제 브라우저·모바일·장시간 플레이 완전 검증과 다르다. CSS는 부분 정리만 완료.
+import {resolveStats} from './dittoStats.js';
+export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',defaultKillLimit:10,rewardDecay:1});
+export const BERRY_REGION=Object.freeze({id:'berry-forest',name:'베리숲',defaultKillLimit:10,rewardDecay:1});
+export const REGIONS=Object.freeze([REGION,BERRY_REGION]);
+const entries=[
+{id:'rattata',number:19,name:'꼬렛',types:['노말'],energyReward:1,hp:3,attack:2,speed:2100,rewards:{attack:1}},
+{id:'pidgey',number:16,name:'구구',types:['노말','비행'],energyReward:2,hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
+{id:'mankey',number:56,name:'망키',types:['격투'],energyReward:2,hp:24,attack:7,speed:1800,rewards:{hp:5.6,attack:2}},
+{id:'spearow',number:21,name:'깨비참',types:['노말','비행'],energyReward:3,hp:13.3,attack:2,speed:1300,rewards:{hp:2.1,attack:1}},
+{id:'zubat',number:41,name:'주뱃',types:['독','비행'],energyReward:3,hp:10,attack:1.2,speed:800,rewards:{attack:1,speed:-20}},
+{id:'meowth',number:52,name:'나옹',types:['노말'],energyReward:10,hp:20,attack:1.8,speed:1100,multiStrike:1000,rewards:{attack:1.5,multiStrike:4}},
+{id:'geodude',number:74,name:'꼬마돌',types:['바위','땅'],energyReward:1,hp:40,attack:20,defense:10,speed:6000,rewards:{attack:2,defense:1}},
+{id:'exeggcute',number:102,name:'아라리',types:['풀','에스퍼'],energyReward:1,hp:60,attack:4,specialAttack:30,speed:4700,rewards:{specialAttack:3}},
+{id:'sentret',number:161,name:'꼬리선',types:['노말'],energyReward:15,hp:100,attack:4.6,speed:2400,rewards:{hp:16.1}},
+{id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:49,hp:225,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
+];
+// Encounter codes identify regional slots independently from species IDs.
+const region1Codes=Object.freeze(['R10101','R10201','R10301','R10401','R10501','R10701','R10801','R10901','R11001','R11101']);
+export const WILD_POKEMON=Object.freeze(entries.map((p,i)=>Object.freeze({...p,...resolveStats(p),encounterCode:region1Codes[i]})));
+export const UNCOMMON_BASE_CHANCE=0;
+export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map((p,i)=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),encounterCode:'R10602-0'+(i+1),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
+export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
+const berryEntries=[
+{id:'caterpie',number:10,name:'캐터피',types:['벌레'],energyReward:3,hp:90,attack:12,speed:3000,rewards:{hp:7}},
+{id:'metapod',evolvesFrom:'caterpie',rarity:'common',number:11,name:'단데기',types:['벌레'],energyReward:5,hp:150,attack:20,defense:11,speed:4500,rewards:{hp:10,defense:1}},
+{id:'weedle',number:13,name:'뿔충이',types:['벌레','독'],energyReward:3,hp:80,attack:14,speed:3500,rewards:{hp:7}},
+{id:'kakuna',evolvesFrom:'weedle',rarity:'common',number:14,name:'딱충이',types:['벌레','독'],energyReward:5,hp:160,attack:20,defense:10,speed:5000,rewards:{hp:10,defense:1}},
+{id:'taillow',number:276,name:'테일로',types:['노말','비행'],energyReward:27.6,hp:80,attack:11,speed:1100,rewards:{attack:2.76,speed:-20}},
+{id:'igglybuff',number:174,name:'푸푸린',types:['노말','페어리'],energyReward:39,hp:180,attack:6,specialAttack:8,specialDefense:2,speed:2900,rewards:{hp:18,specialAttack:5}},
+{id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',energyReward:25,hp:250,attack:25,specialAttack:25,speed:1025,paralysis:250,rewards:{attack:25,paralysis:25}},
+{id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:230,attack:57,speed:4400,accuracy:80,maxDamagePercent:150,rewards:{attack:3.2,maxDamagePercent:3.2}},
+{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:220,attack:14,speed:4100,poison:7,rewards:{hp:12.9,poison:1}}
+];
+// Region 2 slots remain fixed even when conditional Pokémon have not appeared.
+// Evolutions inherit their parent's slot and use -E1 for the first evolution.
+const berryEncounterCodes=Object.freeze({
+  caterpie:'R20101',metapod:'R20101-E1',
+  weedle:'R20201',kakuna:'R20201-E1',
+  taillow:'R20301',pikachu:'R20502',
+  igglybuff:'R20401','nidoran-m':'R20601','nidoran-f':'R20701'
+});
+// Region 2 awards each configured energyReward to each of the Pokémon's types.
+export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
+export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
+// Evolution children are stored separately from the 24 regular-rarity lineup.
+// Regions have no population cap; evolved, legendary and divine encounters may be added independently.
+export const EVOLUTIONS=Object.freeze(ALL_POKEMON.filter(p=>p.evolvesFrom));
+const evolutionByParent=new Map(EVOLUTIONS.map(p=>[p.evolvesFrom,p]));
+export const evolutionFor=id=>evolutionByParent.get(id)??null;
+export function evolutionChance(pokemon,state){
+  if(!pokemon)return 0;
+  if(!pokemon.rarity||pokemon.rarity==='common')return 1;
+  if(pokemon.rarity==='uncommon')return state.uncommonChance??UNCOMMON_BASE_CHANCE;
+  // Future rarities require an explicitly configured probability; no invented defaults.
+  return 0;
+}
+const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
+export const regionForPokemon=id=>berryIds.has(id)?BERRY_REGION.id:REGION.id;
+const region1Lineup=state=>[...WILD_POKEMON.slice(0,5),...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId),...WILD_POKEMON.slice(5)];
+const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
+ BERRY_POKEMON.filter(p=>!p.evolvesFrom&&(p.id!=='pikachu'||state?.berryRareAppeared===true)):
+ region1Lineup(state);
+// Recursive insertion also supports later second and third evolutionary stages.
+export function appearedInRegion(state,regionId){
+ const result=[];
+ const insert=p=>{
+   result.push(p);
+   const next=evolutionFor(p.id);
+   if(next&&state?.evolutionResults?.[next.id]===true&&regionForPokemon(next.id)===regionId)insert(next);
+ };
+ baseLineup(state,regionId).forEach(insert);
+ return result;
+}
+export const regionUnlockRequirement=state=>Math.ceil(baseLineup(state,REGION.id).length*.7);
+export const isRegionUnlocked=(state,regionId)=>regionId===REGION.id||
+ (regionId===BERRY_REGION.id&&baseLineup(state,REGION.id)
+  .filter(p=>(state.killCounts?.[p.id]??0)>0).length>=regionUnlockRequirement(state));
+export function unlockedCountInRegion(state,regionId){
+ const lineup=baseLineup(state,regionId);
+ const distinct=lineup.filter(p=>(state.killCounts?.[p.id]??0)>0).length;
+ return Math.min(lineup.length,INITIAL_UNLOCK_COUNT+distinct);
+}
+export function isPokemonUnlockedInState(state,id){
+ const region=regionForPokemon(id);
+ if(!isRegionUnlocked(state,region))return false;
+ const pokemon=getWildPokemon(id);
+ if(!pokemon)return false;
+ if(pokemon.evolvesFrom){
+   return state.evolutionResults?.[id]===true&&isPokemonUnlockedInState(state,pokemon.evolvesFrom);
+ }
+ const lineup=baseLineup(state,region);
+ const index=lineup.findIndex(p=>p.id===id);
+ return index>=0&&index<unlockedCountInRegion(state,region);
+}
+// Call at a future reincarnation event, once per cycle; do not reroll on page visits.
+export function rollUncommonStarter(chance=UNCOMMON_BASE_CHANCE,random=Math.random){
+ if(!Number.isFinite(chance)||chance<0||chance>1)throw new RangeError('Invalid uncommon chance');
+ if(chance===0)return null;
+ if(chance<1&&random()>=chance)return null;
+ return UNCOMMON_STARTERS[Math.min(2,Math.max(0,Math.floor(random()*3)))].id;
+}
+export function getActiveWildPokemon(state){
+ return region1Lineup(state);
+}
+// Existing battles award the same base to each Pokémon type. Explicit per-type
+// overrides allow partial regional rewards without silently awarding all types.
+export function battleEnergyRewards(pokemon,count=0){
+  const rewards=pokemon.energyRewards??(pokemon.energyReward===undefined?{}:
+    Object.fromEntries(pokemon.types.map(type=>[type,pokemon.energyReward])));
+  return Object.fromEntries(Object.entries(rewards).map(([type,amount])=>[type,scaledReward('energy',amount,count)]));
+}
+export const spriteUrl=number=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+number+'.png';
+const pokemonById=new Map(ALL_POKEMON.map(p=>[p.id,p]));
+export const getWildPokemon=id=>pokemonById.get(id)??null;
+export const INITIAL_UNLOCK_COUNT=3;
+// The number of available encounters depends on UNIQUE first victories,
+// not total victories and not the identity of a specific starter Pokemon.
+export function unlockedPokemonCount(kills={},starterId=null){
+ const lineup=getActiveWildPokemon({uncommonStarterId:starterId});
+ const distinctVictories=lineup.reduce((count,p)=>count+((kills[p.id]||0)>0?1:0),0);
+ return Math.min(lineup.length,INITIAL_UNLOCK_COUNT+distinctVictories);
+}
+export function isPokemonUnlocked(kills,id,starterId=null){
+ const lineup=getActiveWildPokemon({uncommonStarterId:starterId});
+ const index=lineup.findIndex(p=>p.id===id);
+ return index>=0&&index<unlockedPokemonCount(kills,starterId);
+}
+export function rewardMultiplier(previousVictories,decay=REGION.rewardDecay){
+ return 1/(1+Math.max(0,previousVictories)*decay);
+}
+export function scaledReward(stat,value,count){
+ const divisor=1+count*REGION.rewardDecay;
+ return stat==='speed'?value/divisor: value/divisor;
+}
