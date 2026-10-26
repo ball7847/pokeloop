@@ -20,7 +20,7 @@ test('exactly eight basic stats, remaining stats special, and default display ru
 test('first parent win alone rolls evolution; no subsequent reroll and save persists',()=>{
  let s=initialState();
  s={...s,phase:'running',activeRegionId:'berry-forest',
- killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1},
+ killCounts:{...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1},
  dittoStats:{...s.dittoStats,hp:1000,attack:1000,speed:100}};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'caterpie'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>0.5});
