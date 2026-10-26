@@ -162,7 +162,7 @@ function run(strategy){
 }
 test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery and skip/retry',()=>{
  for(const strategy of ['balanced','attack','hp','none']){
-   const result=run(strategy);
+   const result=run(strategy); // Re-run virtual progression after Nidoran speed and poison tuning.
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
