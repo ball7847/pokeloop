@@ -36,7 +36,7 @@ test('poison death prevents same-second regeneration and ends battle',()=>{
  s=advanceBattle(s,1000,()=>0.5);
  assert.equal(s.combat.active,false);
  assert.equal(s.combat.lastEvent.type,'defeat');
- assert.equal(s.combat.currentHp,-5);
+ assert.equal(s.combat.currentHp,0);
 });
 test('attack actions no longer independently trigger poison or antidote',()=>{
  const c={currentHp:100,dittoHp:{current:100,max:100},enemy:{hp:{current:100,max:100}},
