@@ -18,7 +18,7 @@ test('evolution forms are excluded from base lineup and first-victory unlock cou
  const s=prepare();
  const before=unlockedCountInRegion(s,berry);
  const req=regionUnlockRequirement(s);
- assert.deepEqual(appearedInRegion(s,berry).map(p=>p.id),['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit']);
+ assert.deepEqual(appearedInRegion(s,berry).map(p=>p.id),['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit','tropius']);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
  s.evolutionResults={metapod:true};
  s.killCounts.metapod=1;

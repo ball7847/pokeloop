@@ -16,7 +16,7 @@ test('Tangela occupies an ordinary Berry Forest slot with its specified stats an
   assert.equal(p.speed,1600);
   assert.deepEqual(p.rewards,{hp:11.4,regeneration:1.14});
   assert.equal(statLabel('regeneration'),'회복');
-  assert.equal(appearedInRegion(initialState(),BERRY_REGION.id).at(-3).id,'tangela');
+  assert.equal(appearedInRegion(initialState(),BERRY_REGION.id).at(-4).id,'tangela');
 });
 
 test('regeneration heals both combatants once per second without exceeding max HP',()=>{

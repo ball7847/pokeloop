@@ -20,11 +20,12 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['nidoran-f',220,21,0,0,2750,0,10,100,100],
  ['tangela',195,0,15.5,0,1600,0,0,100,100],
  ['bidoof',390,25,15,0,2900,0,0,100,100],
- ['surskit',40,30,50,32,650,0,0,100,100]
+ ['surskit',40,30,50,32,650,0,0,100,100],
+ ['tropius',990,68,72,0,10000,0,0,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
- {hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:5.7,maxDamagePercent:3.2},{hp:12.9,poison:1},{hp:11.4,regeneration:1.14},{hp:20,attack:4},{speed:-28}
+ {hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:5.7,maxDamagePercent:3.2},{hp:12.9,poison:1},{hp:11.4,regeneration:1.14},{hp:20,attack:4},{speed:-28},{hp:50,attack:10,specialAttack:10,regeneration:10}
  ]);
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{벌레:3});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='weedle')),{벌레:3,독:3});
@@ -40,6 +41,10 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit')),{벌레:28,물:28});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit'),1),{벌레:14,물:14});
  assert.equal(BERRY_POKEMON.find(p=>p.id==='surskit').specialDefense,52);
+ assert.equal(BERRY_POKEMON.find(p=>p.id==='tropius').regeneration,35.7);
+ assert.deepEqual(BERRY_POKEMON.find(p=>p.id==='tropius').types,['풀','비행']);
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius')),{풀:100,비행:100});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius'),1),{풀:50,비행:50});
  for(const id of ['nidoran-m','nidoran-f']){
    const p=BERRY_POKEMON.find(p=>p.id===id);
    assert.deepEqual(battleEnergyRewards(p,0),{독:6.9});
@@ -77,8 +82,8 @@ test('region 2 unlocks after 70% of appeared unique regional species and first t
  assert.equal(isPokemonUnlockedInState(s,'metapod'),false);
  assert.equal(isPokemonUnlockedInState(s,'igglybuff'),true);
  assert.equal(isPokemonUnlockedInState(s,'nidoran-m'),false);
- assert.equal(appearedInRegion(s,BERRY_REGION.id).length,9);
- assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,10);
+ assert.equal(appearedInRegion(s,BERRY_REGION.id).length,10);
+ assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,11);
  let rare={...state(),uncommonStarterId:'bulbasaur'};
  assert.equal(isRegionUnlocked({...rare,killCounts:{...rare.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1}},BERRY_REGION.id),false);
 });
