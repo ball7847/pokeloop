@@ -14,10 +14,10 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['weedle',80,14,0,0,3500,0,0,100,100],
  ['kakuna',160,20,0,10,5000,0,0,100,100],
  ['taillow',80,11,0,0,1100,0,0,100,100],
- ['igglybuff',180,6,8,0,2900,0,0,100,100],
+ ['igglybuff',180,6,20,0,2900,0,0,100,100],
  ['pikachu',250,25,25,0,1025,250,0,100,100],
- ['nidoran-m',230,57,0,0,2730,0,0,80,150],
- ['nidoran-f',220,21,0,0,2750,0,6,100,100]
+ ['nidoran-m',200,57,0,0,2730,0,0,80,150],
+ ['nidoran-f',220,21,0,0,2750,0,8,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
