@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {WILD_POKEMON,UNCOMMON_STARTERS,rollUncommonStarter,getActiveWildPokemon,isPokemonUnlocked,unlockedPokemonCount,INITIAL_UNLOCK_COUNT} from '../src/core/wildData.js';
+import {WILD_POKEMON,UNCOMMON_STARTERS,appearedInRegion,REGION,rollUncommonStarter,getActiveWildPokemon,isPokemonUnlocked,unlockedPokemonCount,INITIAL_UNLOCK_COUNT} from '../src/core/wildData.js';
 import {initialState,transition} from '../src/core/gameState.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 test('region 1 position 3-5 stats and rewards',()=>{
@@ -33,7 +33,7 @@ test('starter slot defaults absent and requires single chosen species',()=>{
  assert.equal(rollUncommonStarter(1,()=>0.999),'squirtle');
  const s=initialState();assert.equal(getActiveWildPokemon(s).length,10);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
- s.uncommonStarterId='charmander';s.killCounts.rattata=1;s.killCounts.pidgey=1;s.killCounts.mankey=1;s.killCounts.spearow=1;s.killCounts.zubat=1;s.killCounts.meowth=1;s.killCounts.geodude=1;s.killCounts.exeggcute=1;
+ s.uncommonStarterId='charmander';s.killCounts.rattata=1;s.killCounts.pidgey=1;s.killCounts.mankey=1;
  assert.equal(getActiveWildPokemon(s).length,11);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'charmander'}).combat.enemy.name,'파이리');
@@ -67,7 +67,7 @@ test('absent uncommon slot is excluded and present starter requires another dist
  assert.equal(unlockedPokemonCount(kills),6);
  assert.equal(isPokemonUnlocked(kills,'charmander'),false,'absent starter cannot be selected');
  assert.equal(unlockedPokemonCount(kills,'charmander'),6);
- assert.equal(isPokemonUnlocked(kills,'charmander','charmander'),false);
+ assert.equal(isPokemonUnlocked(kills,'charmander','charmander'),true);
  assert.equal(isPokemonUnlocked(kills,'bulbasaur','charmander'),false);
 });
 test('first victories survive saves and the unlock count restores automatically',()=>{
@@ -77,4 +77,22 @@ test('first victories survive saves and the unlock count restores automatically'
  assert.equal(unlockedPokemonCount(restored.killCounts,restored.uncommonStarterId),4);
  assert.equal(isPokemonUnlocked(restored.killCounts,'spearow',restored.uncommonStarterId),true);
  assert.equal(isPokemonUnlocked(restored.killCounts,'zubat',restored.uncommonStarterId),false);
+});
+
+test('slot 6 inserts the appeared uncommon starter before Meowth and preserves fixed codes',()=>{
+ const base=initialState();
+ assert.deepEqual(appearedInRegion(base,REGION.id).map(p=>p.id),WILD_POKEMON.map(p=>p.id));
+ assert.deepEqual(WILD_POKEMON.map(p=>p.encounterCode),['R10101','R10201','R10301','R10401','R10501','R10701','R10801','R10901','R11001','R11101']);
+ assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.encounterCode),['R10602-01','R10602-02','R10602-03']);
+ for(const id of ['bulbasaur','charmander','squirtle']){
+  const s={...base,uncommonStarterId:id};
+  const lineup=appearedInRegion(s,REGION.id);
+  assert.equal(lineup[5].id,id);
+  assert.equal(lineup[6].id,'meowth');
+  assert.equal(unlockedPokemonCount({rattata:1,pidgey:1,mankey:1},id),6);
+  assert.equal(isPokemonUnlocked({rattata:1,pidgey:1,mankey:1},id,id),true);
+  assert.equal(isPokemonUnlocked({rattata:1,pidgey:1,mankey:1},'meowth',id),false);
+  assert.equal(isPokemonUnlocked({rattata:1,pidgey:1,mankey:1,spearow:1},'meowth',id),true);
+ }
+ assert.equal(isPokemonUnlocked({rattata:1,pidgey:1,mankey:1},'meowth'),true);
 });
