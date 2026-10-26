@@ -185,8 +185,11 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
       if(compareAmount(c.currentHp,0)<=0)return withEffects(finish(state,c,'defeat',random));
       if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(finish(state,c,'victory',random));
     }
-    // A second-boundary status tick is not the end of this COMBAT_TICK.
-    if(remaining<=0)break;
+    // Continue elapsed time across second-boundary ticks without skipping due attacks.
+    if(my.elapsed<myPeriod&&foe.elapsed<foePeriod){
+      if(remaining<=0)break;
+      continue;
+    }
     if(my.elapsed>=myPeriod){
       my.elapsed-=myPeriod;
       const attack=resolveAttack(c,'player',playerStats,enemyStats,random,visualEvents);
