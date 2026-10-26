@@ -14,7 +14,9 @@ const entries=[
 {id:'sentret',number:161,name:'꼬리선',types:['노말'],energyReward:15,hp:100,attack:4.6,speed:2400,rewards:{hp:16.1}},
 {id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:49,hp:225,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
 ];
-// Encounter codes identify regional slots independently from species IDs.\nconst region1Codes=Object.freeze(['R10101','R10201','R10301','R10401','R10501','R10701','R10801','R10901','R11001','R11101']);\nexport const WILD_POKEMON=Object.freeze(entries.map((p,i)=>Object.freeze({...p,...resolveStats(p),encounterCode:region1Codes[i]})));
+// Encounter codes identify regional slots independently from species IDs.
+const region1Codes=Object.freeze(['R10101','R10201','R10301','R10401','R10501','R10701','R10801','R10901','R11001','R11101']);
+export const WILD_POKEMON=Object.freeze(entries.map((p,i)=>Object.freeze({...p,...resolveStats(p),encounterCode:region1Codes[i]})));
 export const UNCOMMON_BASE_CHANCE=0;
 export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map((p,i)=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),encounterCode:'R10602-0'+(i+1),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
@@ -46,7 +48,8 @@ export function evolutionChance(pokemon,state){
 }
 const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
 export const regionForPokemon=id=>berryIds.has(id)?BERRY_REGION.id:REGION.id;
-const region1Lineup=state=>[...WILD_POKEMON.slice(0,5),...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId),...WILD_POKEMON.slice(5)];\nconst baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
+const region1Lineup=state=>[...WILD_POKEMON.slice(0,5),...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId),...WILD_POKEMON.slice(5)];
+const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
  BERRY_POKEMON.filter(p=>!p.evolvesFrom&&(p.id!=='pikachu'||state?.berryRareAppeared===true)):
  region1Lineup(state);
 // Recursive insertion also supports later second and third evolutionary stages.
