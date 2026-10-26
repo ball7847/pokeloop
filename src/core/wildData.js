@@ -31,8 +31,16 @@ const berryEntries=[
 {id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:92,attack:28.5,speed:2730,accuracy:80,maxDamagePercent:150,rewards:{attack:3.2,maxDamagePercent:3.2}},
 {id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:6.9,hp:110,attack:14.7,speed:2750,poison:4.7,rewards:{hp:12.9,poison:1}}
 ];
+// Region 2 slots remain fixed even when conditional Pokémon have not appeared.
+// Evolutions inherit their parent's slot and use -E1 for the first evolution.
+const berryEncounterCodes=Object.freeze({
+  caterpie:'R20101',metapod:'R20101-E1',
+  weedle:'R20201',kakuna:'R20201-E1',
+  taillow:'R20301',pikachu:'R20402',
+  igglybuff:'R20501','nidoran-m':'R20601','nidoran-f':'R20701'
+});
 // Region 2 awards each configured energyReward to each of the Pokémon's types.
-export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
+export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
 // Evolution children are stored separately from the 24 regular-rarity lineup.
 // Regions have no population cap; evolved, legendary and divine encounters may be added independently.
