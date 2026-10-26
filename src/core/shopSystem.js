@@ -7,8 +7,13 @@ export const UPGRADES=Object.freeze([
   {id:'hp',name:'HP 증가',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
   {id:'attack',name:'공격 증가',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
   {id:'specialAttack',name:'특수공격 증가',type:'물',base:1,growth:1.5,bonus:1,unit:'flat',stat:'특수공격'},
-  {id:'hpMultiplier',name:'HP 증폭',type:'물',base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'HP'},
-  {id:'attackMultiplier',name:'공격 증폭',type:'격투',base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
+  {id:'hpMultiplier',name:'HP 증폭',types:['물','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'HP'},
+  {id:'defense',name:'방어 증가',type:'바위',base:1,growth:1.5,bonus:1,unit:'flat',stat:'방어'},
+  {id:'specialDefense',name:'특수방어 증가',type:'페어리',base:1,growth:1.5,bonus:1,unit:'flat',stat:'특수방어'},
+  {id:'specialAttackMultiplier',name:'특수공격 증폭',types:['에스퍼','페어리'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수공격'},
+  {id:'defenseMultiplier',name:'방어 증폭',types:['강철','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'방어'},
+  {id:'specialDefenseMultiplier',name:'특수방어 증폭',types:['강철','에스퍼'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수방어'},
+  {id:'attackMultiplier',name:'공격 증폭',types:['불꽃','격투'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
   {id:'speed',name:'공격속도 증폭',type:'비행',base:20,growth:1000,bonus:0.01,unit:'percent',stat:'공격속도 배율'},
   {id:'antidote',name:'해독 증가',type:'독',base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
   {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'},
@@ -27,13 +32,21 @@ export function upgradeCost(id,level){
   try{return storedAmount(decimal(item.base).mul(decimal(item.growth).pow(level)));}
   catch(error){if(error instanceof RangeError)return null;throw error;}
 }
+export function upgradeCosts(id,level){
+  const item=UPGRADES.find(x=>x.id===id);
+  const cost=upgradeCost(id,level);
+  if(!item||cost===null)return null;
+  return Object.fromEntries((item.types??[item.type]).map(type=>[type,cost]));
+}
 export function effectiveDittoStats(state){
   const stats=state.dittoStats;
   const levels=state.energyUpgrades??{};
   const hpFlat=decimal(levels.hp??0).mul(4),attackFlat=decimal(levels.attack??0);
   const attackMultiplier=1+(levels.attackMultiplier??0)*0.04,hpMultiplier=1+(levels.hpMultiplier??0)*0.04,speed=1+(levels.speed??0)*0.01;
   return {...stats,hp:storedAmount(decimal(stats.hp).add(hpFlat).mul(hpMultiplier)),
-    specialAttack:storedAmount(decimal(stats.specialAttack??0).add(levels.specialAttack??0)),
+    specialAttack:storedAmount(decimal(stats.specialAttack??0).add(levels.specialAttack??0).mul(1+(levels.specialAttackMultiplier??0)*0.04)),
+    defense:storedAmount(decimal(stats.defense??0).add(levels.defense??0).mul(1+(levels.defenseMultiplier??0)*0.04)),
+    specialDefense:storedAmount(decimal(stats.specialDefense??0).add(levels.specialDefense??0).mul(1+(levels.specialDefenseMultiplier??0)*0.04)),
     regeneration:storedAmount(decimal(stats.regeneration??0).mul(decimal(1).add(decimal(levels.regenerationMultiplier??0).mul(0.03)))),
     attack:storedAmount(decimal(stats.attack).add(attackFlat).mul(attackMultiplier)),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
@@ -43,9 +56,9 @@ export function effectiveDittoStats(state){
 export function buyUpgrade(state,id){
   const item=UPGRADES.find(x=>x.id===id);
   if(!item)return state;
-  const current=state.energyUpgrades?.[id]??0,cost=upgradeCost(id,current);
-  if(cost===null||compareAmount(state.energyBalances[item.type],cost)<0)return state;
-  const spent=purchaseWithEnergy(state,{[item.type]:cost});
+  const current=state.energyUpgrades?.[id]??0,costs=upgradeCosts(id,current);
+  if(costs===null||Object.entries(costs).some(([type,cost])=>compareAmount(state.energyBalances[type]??0,cost)<0))return state;
+  const spent=purchaseWithEnergy(state,costs);
   if(spent===state)return state;
   const updated={...spent,energyUpgrades:{...state.energyUpgrades,[id]:current+1}};
   if(!state.combat.active)return updated;

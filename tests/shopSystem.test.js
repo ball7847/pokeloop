@@ -6,12 +6,15 @@ import {grantBattleEnergy} from '../src/core/energySystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 const buy=(state,type,id)=>transition(state,{type,id});
-const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,비행:1000}});
+const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,불꽃:1000,물:1000,땅:1000,비행:1000}});
 test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
-    ['specialAttack','물',1,1.5,1],['hpMultiplier','물',10,1.5,.04],
-    ['attackMultiplier','격투',10,1.5,.04],['speed','비행',20,1000,.01],
+    ['specialAttack','물',1,1.5,1],['hpMultiplier',undefined,10,1.5,.04],
+    ['defense','바위',1,1.5,1],['specialDefense','페어리',1,1.5,1],
+    ['specialAttackMultiplier',undefined,10,1.5,.04],
+    ['defenseMultiplier',undefined,10,1.5,.04],['specialDefenseMultiplier',undefined,10,1.5,.04],
+    ['attackMultiplier',undefined,10,1.5,.04],['speed','비행',20,1000,.01],
     ['antidote','독',10,1.5,1],['poisonMultiplier','독',10,1.5,.03],
     ['regenerationMultiplier','풀',10,1.5,.03]
   ]);
@@ -27,9 +30,11 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
   assert.ok(Math.abs(stats.speed-(3000/1.01))<1e-8);
   assert.equal(s.energyBalances.노말,996.5);
   assert.equal(s.energyBalances.격투,990);
+  assert.equal(s.energyBalances.불꽃,990);
   assert.equal(s.energyBalances.비행,980);
   assert.equal(s.particleBalances.노말,3.5);
   assert.equal(s.particleBank.격투,10);
+  assert.equal(s.particleBank.불꽃,10);
   assert.equal(s.particleBank.비행,20);
   assert.equal(s.energyUpgrades.hp,2);
   assert.equal(s.energyUpgrades.attack,1);
@@ -294,4 +299,48 @@ test('HP multiplier can be purchased mid-battle without healing current HP',()=>
  assert.equal(s.combat.dittoHp.current,6);
  assert.equal(s.combat.maxHp,10.4);
  assert.equal(s.combat.dittoHp.max,10.4);
+});
+
+test('dual energy upgrade purchases require both currencies and create matching particles',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,불꽃:10,격투:10,물:10,땅:10,강철:10,에스퍼:10,페어리:10}};
+ const {energyBalances:before}=s;
+ s=buy(s,'BUY_UPGRADE','attackMultiplier');
+ assert.equal(s.energyBalances.불꽃,0);
+ assert.equal(s.energyBalances.격투,0);
+ assert.equal(s.particleBank.불꽃,10);
+ assert.equal(s.particleBank.격투,10);
+ assert.equal(s.energyUpgrades.attackMultiplier,1);
+ assert.equal(buy(s,'BUY_UPGRADE','attackMultiplier'),s);
+ s=buy(s,'BUY_UPGRADE','hpMultiplier');
+ assert.equal(s.energyBalances.물,0);
+ assert.equal(s.energyBalances.땅,0);
+ assert.equal(s.particleBank.물,10);
+ assert.equal(s.particleBank.땅,10);
+ assert.equal(buy(s,'BUY_UPGRADE','defenseMultiplier'),s);
+ s=buy(s,'BUY_UPGRADE','specialAttackMultiplier');
+ assert.equal(s.energyBalances.에스퍼,0);
+ assert.equal(s.energyBalances.페어리,0);
+ assert.equal(s.particleBank.에스퍼,10);
+ assert.equal(s.particleBank.페어리,10);
+ assert.equal(buy(s,'BUY_UPGRADE','specialDefenseMultiplier'),s);
+ assert.equal(before.강철,10);
+ assert.equal(s.energyBalances.강철,10);
+ const oneSided={...funded(),energyBalances:{...funded().energyBalances,강철:10,땅:9}};
+ assert.equal(buy(oneSided,'BUY_UPGRADE','defenseMultiplier'),oneSided);
+ assert.equal(oneSided.energyBalances.강철,10);
+ const both={...oneSided,energyBalances:{...oneSided.energyBalances,땅:10}};
+ const purchased=buy(both,'BUY_UPGRADE','defenseMultiplier');
+ assert.equal(purchased.energyBalances.강철,0);
+ assert.equal(purchased.energyBalances.땅,0);
+ assert.equal(purchased.particleBank.강철,10);
+ assert.equal(purchased.particleBank.땅,10);
+ assert.equal(decodeSave(encodeSave(purchased)).game.energyUpgrades.defenseMultiplier,1);
+});
+test('defense and special stats use flat increases before 4 percent amplifiers',()=>{
+ let s={...funded(),dittoStats:{...funded().dittoStats,defense:5,specialDefense:2,specialAttack:10},energyUpgrades:{defense:2,specialDefense:3,specialAttack:4,defenseMultiplier:2,specialDefenseMultiplier:2,specialAttackMultiplier:2}};
+ const stats=effectiveDittoStats(s);
+ assert.ok(Math.abs(stats.defense-7.56)<1e-8);
+ assert.ok(Math.abs(stats.specialDefense-5.4)<1e-8);
+ assert.ok(Math.abs(stats.specialAttack-15.12)<1e-8);
+ assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,defense:0},energyUpgrades:{defenseMultiplier:3}}).defense,0);
 });
