@@ -13,7 +13,7 @@ function run(strategy){
  const allIds=groups.flatMap(([,ids])=>ids);
  const evolutionIds=['metapod','kakuna'];
  const reportIds=[...allIds,...evolutionIds];
- const logs=[],timeline=[],firstChallenge={},battles={},streaks={},failures={},pending=[];
+ const logs=[],timeline=[],firstChallenge={},firstKillSnapshots={},battles={},streaks={},failures={},pending=[];
  const purchasedAutomations=[];
  const labels={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',meowth:'나옹',geodude:'꼬마돌',exeggcute:'아라리',sentret:'꼬리선',tauros:'켄타로스',caterpie:'캐터피',weedle:'뿔충이',taillow:'테일로',igglybuff:'푸푸린','nidoran-m':'니드런♂','nidoran-f':'니드런♀',metapod:'단데기',kakuna:'딱충이'};
  const note=message=>timeline.push(message);
@@ -77,10 +77,10 @@ function run(strategy){
    while(s.combat.active&&elapsed<180000&&activeTicks++<2000){
      // Disable hunger on reaching goal-1 while retaining the currently active battle.
      if((s.killCounts[id]??0)>=goal-1&&s.automation.hunger)toggle(false);
-     const next=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>0.5});
+     const beforeFirstKill=(id==='nidoran-m'||id==='nidoran-f')&&!firstKillSnapshots[id]&&lastKills===0\n       ? {stats:effectiveDittoStats(s),upgrades:{...s.energyUpgrades},baseStats:{...s.dittoStats}}:null;\n     const next=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>0.5});
      s=next;ms+=500;elapsed+=500;steps++;
      const now=s.killCounts[id]??0;
-     if(now>lastKills){wins+=now-lastKills;lastKills=now;}
+     if(now>lastKills){\n       if(beforeFirstKill)firstKillSnapshots[id]={...beforeFirstKill,afterStats:effectiveDittoStats(s),afterBaseStats:{...s.dittoStats},killCount:now};\n       wins+=now-lastKills;lastKills=now;\n     }
    }
    if(s.combat.active)throw Error('combat timed out '+id);
    let result=s.combat.lastEvent?.type;
@@ -155,7 +155,7 @@ function run(strategy){
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
-   firstTaillow:firstChallenge.taillow??null,unresolved:pending,events:logs,purchasedAutomations,
+   firstTaillow:firstChallenge.taillow??null,firstChallengeNidoran:{male:firstChallenge['nidoran-m'],female:firstChallenge['nidoran-f']},firstKillSnapshots,unresolved:pending,events:logs,purchasedAutomations,
    stats:effectiveDittoStats(s),upgrades:s.energyUpgrades,steps,timeline};
  console.log('HUNGER_FIVE_'+strategy.toUpperCase()+' '+JSON.stringify(result));
  return result;
@@ -166,7 +166,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
-   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,firstChallengeNidoran:result.firstChallengeNidoran,firstKillSnapshots:result.firstKillSnapshots,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
