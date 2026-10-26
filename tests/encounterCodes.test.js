@@ -25,7 +25,7 @@ test('region 2 conditional and evolved species inherit fixed region slots',()=>{
  });
  const base=initialState();
  assert.deepEqual(appearedInRegion(base,BERRY_REGION.id).map(p=>p.encounterCode),[
-  'R20101','R20201','R20301','R20501','R20601','R20701'
+  'R20101','R20201','R20301','R20401','R20601','R20701'
  ]);
  const appeared={...base,berryRareAppeared:true,evolutionResults:{metapod:true,kakuna:true}};
  assert.deepEqual(appearedInRegion(appeared,BERRY_REGION.id).map(p=>p.encounterCode),[
