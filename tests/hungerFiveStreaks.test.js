@@ -34,7 +34,10 @@ function run(strategy){
    for(const item of AUTOMATIONS){
      if(s.qolUnlocks.includes(item.id))continue;
      const bought=transition(s,{type:'BUY_AUTOMATION',id:item.id});
-     if(bought!==s){s=bought;purchasedAutomations.push(item.id);note('자동화 '+item.name+' 구매');}
+     if(bought!==s){s=bought;purchasedAutomations.push(item.id);note('자동화 '+item.name+' 구매');
+       // The simulation handles defeats with farming/revisit rules rather than automatic retry.
+       if(item.id==='resolve'){s=transition(s,{type:'TOGGLE_AUTOMATION',id:'resolve'});note('불굴의 의지 자동 재도전 일시 중지(파밍 규칙 우선)');}
+     }
    }
    if(strategy==='none')return;
    for(let n=0;n<120;n++){
