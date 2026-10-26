@@ -5,7 +5,7 @@ import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForP
 import {effectiveDittoStats} from '../src/core/shopSystem.js';
 
 const groups=[
- [REGION.id,['rattata','pidgey','mankey','spearow','zubat']],
+ [REGION.id,['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']],
  [BERRY_REGION.id,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f']]
 ];
 const names={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',
