@@ -150,13 +150,43 @@ function run(strategy){
    }
    if(pending.length)retry('end '+region);
  }
+ // Second pass runs after every appeared species has reached five kills.
+ const appearedIds=groups.flatMap(([region])=>appearedInRegion(s,region).filter(p=>isPokemonUnlockedInState(s,p.id)).map(p=>p.id));
+ const fiveCleared=appearedIds.every(id=>(s.killCounts[id]??0)>=5)&&pending.length===0;
+ const secondPassPending=[];
+ if(fiveCleared){
+   note('전 포켓몬 5회 달성 → 최대 10회 채우기 시작');
+   for(const id of appearedIds){
+     if((s.killCounts[id]??0)>=10)continue;
+     note(labels[id]+' 최대 10회 도전');
+     let outcome=target(id,10);
+     if(outcome!=='cleared'){
+       logs.push({event:'second-pass-blocked',pokemon:id,result:outcome,kills:s.killCounts[id]??0});
+       farm(appearedIds.slice(0,appearedIds.indexOf(id)),id);
+       outcome=target(id,10);
+     }
+     if(outcome!=='cleared')secondPassPending.push(id);
+     else note(labels[id]+' 최대 10회 달성');
+   }
+   for(let pass=0;secondPassPending.length&&pass<appearedIds.length;pass++){
+     let progressed=false;
+     for(const id of [...secondPassPending]){
+       const before=s.killCounts[id]??0;
+       const outcome=target(id,10);
+       if((s.killCounts[id]??0)>before)progressed=true;
+       note(labels[id]+' 최대 횟수 보류 후 재도전: '+outcome);
+       if(outcome==='cleared')secondPassPending.splice(secondPassPending.indexOf(id),1);
+     }
+     if(!progressed)break;
+   }
+ }
  const totalEnergy=Object.fromEntries(Object.keys(s.energyBalances).map(type=>[type,0]));
  for(const pokemon of ALL_POKEMON){
    for(let i=0;i<(s.killCounts[pokemon.id]??0);i++){
      for(const [type,value] of Object.entries(battleEnergyRewards(pokemon,i)))totalEnergy[type]+=value;
    }
  }
- const result={totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
+ const result={fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
@@ -171,7 +201,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
-   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,firstChallengeNidoran:result.firstChallengeNidoran,firstKillSnapshots:result.firstKillSnapshots,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({fiveCleared:result.fiveCleared,secondPassPending:result.secondPassPending,appearedIds:result.appearedIds,totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,firstChallengeNidoran:result.firstChallengeNidoran,firstKillSnapshots:result.firstKillSnapshots,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
