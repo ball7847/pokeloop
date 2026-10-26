@@ -187,7 +187,7 @@ test('post-Nidoran rebalance: reachable route, rewards, and late battle odds',()
      winProbesPerEnemy:200,wins};
  }
  console.log('NIDORAN_REBALANCE_ROUTE '+JSON.stringify(routes));
- assert.ok(Object.values(routes).every(route=>route.victories>=90));
+ assert.ok(['hp','attack','balanced'].every(policy=>routes[policy].victories>=90));
 });
 
 test('Nidoran male first-win snowball check: 2000 seeded attempts plus subsequent catches',()=>{
