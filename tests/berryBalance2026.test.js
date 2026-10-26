@@ -31,7 +31,7 @@ test('male Nidoran can deal a 150% damage roll and reward permanent max damage',
    playerStatus:{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0}};
  const rolls=[0.1,0.999999];
  resolveAttack(c,'enemy',n,{defense:0,dodge:0},()=>rolls.shift()??0.999999);
- assert.equal(c.currentHp,957.25);
+ assert.equal(c.currentHp,914.5);
  let s=initialState();
  s.phase='running';s.activeRegionId=BERRY_REGION.id;
  s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1,caterpie:1,weedle:1,taillow:1};

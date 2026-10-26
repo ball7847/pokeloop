@@ -20,16 +20,16 @@ test('region 2 conditional and evolved species inherit fixed region slots',()=>{
  const codes=Object.fromEntries(BERRY_POKEMON.map(p=>[p.id,p.encounterCode]));
  assert.deepEqual(codes,{
   caterpie:'R20101',weedle:'R20201',kakuna:'R20201-E1',
-  metapod:'R20101-E1',taillow:'R20301',pikachu:'R20402',
-  igglybuff:'R20501','nidoran-m':'R20601','nidoran-f':'R20701'
+  metapod:'R20101-E1',taillow:'R20301',pikachu:'R20502',
+  igglybuff:'R20401','nidoran-m':'R20601','nidoran-f':'R20701'
  });
  const base=initialState();
  assert.deepEqual(appearedInRegion(base,BERRY_REGION.id).map(p=>p.encounterCode),[
-  'R20101','R20201','R20301','R20501','R20601','R20701'
+  'R20101','R20201','R20301','R20401','R20601','R20701'
  ]);
  const appeared={...base,berryRareAppeared:true,evolutionResults:{metapod:true,kakuna:true}};
  assert.deepEqual(appearedInRegion(appeared,BERRY_REGION.id).map(p=>p.encounterCode),[
  'R20101','R20101-E1','R20201','R20201-E1','R20301',
- 'R20402','R20501','R20601','R20701']);
+ 'R20401','R20502','R20601','R20701']);
  assert.equal(appearedInRegion(base,REGION.id).length,10);
 });
