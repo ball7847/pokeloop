@@ -20,13 +20,22 @@ test('Tangela occupies an ordinary Berry Forest slot with its specified stats an
 
 test('regeneration heals both combatants once per second without exceeding max HP',()=>{
   const s={...initialState(),phase:'running',activeRegionId:BERRY_REGION.id,killCounts:{...initialState().killCounts,caterpie:1,weedle:1,taillow:1,igglybuff:1,'nidoran-m':1,'nidoran-f':1,rattata:1,pidgey:1,mankey:1,spearow:1,zubat:1,meowth:1,geodude:1}};
-  // No permanent stat or engine manipulation: combat starts through the normal state transition.
-  let c=startBattle(s,'tangela');
+  const prepared={...s,dittoStats:{...s.dittoStats,hp:20,regeneration:2}};
+  let c=startBattle(prepared,'tangela');
   assert.equal(c.combat.active,true);
-  // Use normal COMBAT_TICK. The opponent's HP is not damaged before Ditto's first attack.
-  c=advanceBattle(c,1000,()=>0.5);
-  assert.equal(c.combat.enemy.hp.current,130);
+  // Create a damaged combat fixture, then advance via the real engine (no mocked heals).
+  c={...c,combat:{...c.combat,currentHp:10,dittoHp:{current:10,max:20},
+    enemy:{...c.combat.enemy,hp:{current:120,max:130}}}};
+  c=advanceBattle(c,500,()=>0.5);
+  assert.equal(c.combat.currentHp,10);
+  assert.equal(c.combat.enemy.hp.current,120);
+  c=advanceBattle(c,500,()=>0.5);
+  assert.equal(c.combat.currentHp,12);
+  assert.equal(c.combat.enemy.hp.current,125);
   assert.equal(c.combat.regenerationElapsedMs,0);
+  c=advanceBattle(c,500,()=>0.5);
+  assert.equal(c.combat.currentHp,12);
+  assert.equal(c.combat.enemy.hp.current,125);
 });
 
 test('regeneration is a persistent base stat defaulting to zero',()=>{
