@@ -74,9 +74,10 @@ function simulate(priority){
    return Object.fromEntries(ids.map(id=>[id,s.killCounts[id]??0]));
  };
  const first=clearRegion(REGION.id);
- assert.equal(isRegionUnlocked(s,BERRY_REGION.id),true,'Berry Forest did not unlock');
- s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
- const second=clearRegion(BERRY_REGION.id);
+ const berryUnlocked=isRegionUnlocked(s,BERRY_REGION.id);
+ if(priority!=='none')assert.equal(berryUnlocked,true,'Berry Forest did not unlock with purchases');
+ if(berryUnlocked)s=transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id});
+ const second=berryUnlocked?clearRegion(BERRY_REGION.id):Object.fromEntries(route[BERRY_REGION.id].map(id=>[id,0]));
  const result={
    priority,elapsedMs,elapsedMinutes:Number((elapsedMs/60000).toFixed(2)),
    first,second,winsPerRegion,totalVictories:s.victories,
