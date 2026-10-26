@@ -109,18 +109,18 @@ test('paralysis triggers a next-turn delay, not attack cancellation, and has no 
  assert.equal(notTriggered.delayMs,0);
  assert.equal(d.enemyStatus.paralysis,301);
 });
-test('poison is flat end-of-action damage even on miss or paralysis trigger',()=>{
+test('poison is applied on hit but cannot damage the actor during an attack action',()=>{
  const c=combat();c.playerStatus.poison=40;
  resolveAttack(c,'player',unit({attack:100,accuracy:0}),unit(),()=>.7);
- assert.equal(c.currentHp,460);
+ assert.equal(c.currentHp,500);
  c.playerStatus.paralysis=250;
  resolveAttack(c,'player',unit({attack:100}),unit(),()=>0);
- assert.equal(c.currentHp,420);
+ assert.equal(c.currentHp,500);
  const d=combat();
  resolveAttack(d,'enemy',unit({poison:40}),unit(),()=>.8);
  assert.equal(d.playerStatus.poison,40);
  resolveAttack(d,'player',unit({attack:0}),unit(),()=>.5);
- assert.equal(d.currentHp,460);
+ assert.equal(d.currentHp,500);
 });
 test('v6 region, new stat rewards, and berry first victories survive save',()=>{
  let s=state();
@@ -201,30 +201,26 @@ test('Nidoran males and females grant poison energy with normal diminishing retu
 });
 
 
-test('antidote reduces poison before end-of-action damage, never below zero',()=>{
- const c=combat();
- c.playerStatus.poison=14;
+test('antidote has no attack-end effect; status ticks are independently tested',()=>{
+ const c=combat();c.playerStatus.poison=14;
  resolveAttack(c,'player',unit({attack:0,antidote:3}),unit(),()=>.5);
- assert.equal(c.playerStatus.poison,11);
- assert.equal(c.currentHp,489);
+ assert.equal(c.playerStatus.poison,14);
+ assert.equal(c.currentHp,500);
  resolveAttack(c,'player',unit({attack:0,antidote:20}),unit(),()=>.5);
- assert.equal(c.playerStatus.poison,0);
- assert.equal(c.currentHp,489);
+ assert.equal(c.playerStatus.poison,14);
+ assert.equal(c.currentHp,500);
 });
-test('antidote works even on misses and paralysis-triggered attacks, for both sides',()=>{
- const c=combat();
- c.playerStatus.poison=10;
+test('misses and paralysis do not trigger antidote for either side',()=>{
+ const c=combat();c.playerStatus.poison=10;
  resolveAttack(c,'player',unit({accuracy:0,antidote:2}),unit(),()=>.9);
- assert.equal(c.playerStatus.poison,8);
- assert.equal(c.currentHp,492);
+ assert.equal(c.playerStatus.poison,10);
  c.playerStatus.paralysis=250;
  resolveAttack(c,'player',unit({attack:20,antidote:3}),unit(),()=>0);
- assert.equal(c.playerStatus.poison,5);
- assert.equal(c.currentHp,487);
+ assert.equal(c.playerStatus.poison,10);
  c.enemyStatus.poison=14;
  resolveAttack(c,'enemy',unit({attack:0,antidote:4}),unit(),()=>.5);
- assert.equal(c.enemyStatus.poison,10);
- assert.equal(c.enemy.hp.current,470);
+ assert.equal(c.enemyStatus.poison,14);
+ assert.equal(c.enemy.hp.current,480);
 });
 test('antidote is saved and older v7 saves default to 0',()=>{
  let s=state();
