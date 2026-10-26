@@ -17,7 +17,7 @@ test('Taillow occupies the slot between Weedle and Igglybuff (evolutions exclude
 test('Berry Forest now unlocks Taillow initially and Igglybuff after one distinct kill',()=>{
  let s=initialState();
  s.activeRegionId=BERRY_REGION.id;
- s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1};
+ s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1};
  assert.equal(isPokemonUnlockedInState(s,'taillow'),true);
  assert.equal(isPokemonUnlockedInState(s,'igglybuff'),false);
  s.killCounts={...s.killCounts,caterpie:1};
@@ -34,7 +34,7 @@ test('male Nidoran can deal a 150% damage roll and reward permanent max damage',
  assert.equal(c.currentHp,957.25);
  let s=initialState();
  s.phase='running';s.activeRegionId=BERRY_REGION.id;
- s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:1,weedle:1,taillow:1};
+ s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1,caterpie:1,weedle:1,taillow:1};
  s.dittoStats={...s.dittoStats,hp:10000,attack:10000,speed:1};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'nidoran-m'});
  assert.equal(s.combat.active,true);
