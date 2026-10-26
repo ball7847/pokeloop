@@ -76,15 +76,15 @@ test('wild card layout follows portrait, basic stats, extras, rewards and footer
  try{
    const {WildPage,visibleWildBasicStats,visibleWildExtraStats}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
    const html=renderToStaticMarkup(React.createElement(WildPage));
-   assert.equal((html.match(/class="wild-card-upper"/g)||[]).length,5);
-   assert.equal((html.match(/class="wild-extra-stats"/g)||[]).length,5);
-   assert.equal((html.match(/class="wild-rewards"/g)||[]).length,5);
-   assert.equal((html.match(/class="wild-card-footer"/g)||[]).length,5);
+   assert.equal((html.match(/class="wild-card-upper"/g)||[]).length,10);
+   assert.equal((html.match(/class="wild-extra-stats"/g)||[]).length,10);
+   assert.equal((html.match(/class="wild-rewards"/g)||[]).length,10);
+   assert.equal((html.match(/class="wild-card-footer"/g)||[]).length,10);
    assert.ok(html.indexOf('wild-card-portrait')<html.indexOf('wild-basic-stats'));
    assert.ok(html.indexOf('wild-basic-stats')<html.indexOf('wild-extra-stats'));
    assert.ok(html.indexOf('wild-extra-stats')<html.indexOf('wild-rewards'));
    assert.match(html,/2,100ms/);
-   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,15);
+   assert.equal((html.match(/class="wild-stat-box"/g)||[]).length,35);
    assert.deepEqual(visibleWildBasicStats({hp:3,attack:0,speed:2000}).map(x=>x.key),['hp','speed']);
    assert.deepEqual(visibleWildExtraStats({extraStats:{dodge:0,critChance:12}}),[['critChance',12]]);
    assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
@@ -118,7 +118,7 @@ test('six local user-supplied stat silhouettes appear without duplicate text',as
    assert.match(header,/speed\.svg/);
    assert.match(detail,/attack\.svg/);
    assert.match(wild,/speed\.svg/);
-   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,15);
+   assert.equal((wild.match(/class="wild-stat-box"/g)||[]).length,35);
    assert.equal((wild.match(/class="wild-empty-cell"/g)||[]).length,0);
  } finally { await vite.close(); }
 });
@@ -146,7 +146,7 @@ test('wild omitted properties resolve to shared defaults without altering encoun
    assert.equal(WILD_POKEMON[0].attack,2);
    assert.equal(WILD_POKEMON[1].attack,2.5);
    assert.equal(WILD_POKEMON[2].speed,1800);
-   assert.equal(WILD_POKEMON.every(x=>x.defense===0&&x.specialAttack===0&&x.specialDefense===0&&x.minDamagePercent===85),true);
+   assert.equal(WILD_POKEMON.slice(0,5).every(x=>x.defense===0&&x.specialAttack===0&&x.specialDefense===0&&x.minDamagePercent===85),true);
    assert.deepEqual(visibleWildBasicStats(WILD_POKEMON[2]).map(x=>x.key),['hp','speed','attack']);
  }finally{await vite.close();}
 });
@@ -172,8 +172,8 @@ test('wild layout keeps 4 columns, square portrait, no sequence number and fixed
   const {WildPage,WILD_BASIC_FIELDS}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
   assert.deepEqual(WILD_BASIC_FIELDS.map(x=>x.key),['hp','speed','attack','defense','specialAttack','specialDefense','minDamagePercent','maxDamagePercent']);
   const html=renderToStaticMarkup(React.createElement(WildPage));
-  assert.equal((html.match(/class="wild-basic-stats"/g)||[]).length,5);
-  assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,25);
+  assert.equal((html.match(/class="wild-basic-stats"/g)||[]).length,10);
+  assert.equal((html.match(/class="wild-stat-slot-empty"/g)||[]).length,46);
   assert.equal((html.match(/class="wild-empty-cell"/g)||[]).length,0);
   assert.doesNotMatch(html,/class="wild-order"/);
   const css=readStyles();
@@ -217,7 +217,7 @@ test('region filter combines only appeared Pokemon and keeps not-yet-unlocked ca
    const {initialState}=await vite.ssrLoadModule('/src/core/gameState.js');
    const state=initialState();
    const ids=filter=>visiblePokemonForRegion(state,filter).map(p=>p.id);
-   assert.deepEqual(ids('starting-plains'),['rattata','pidgey','mankey','spearow','zubat']);
+   assert.deepEqual(ids('starting-plains'),['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']);
    assert.deepEqual(ids('berry-forest'),['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f']);
    assert.deepEqual(ids('all'),[...ids('starting-plains'),...ids('berry-forest')]);
    for(const id of ['pikachu','bulbasaur','metapod','kakuna'])assert.equal(ids('all').includes(id),false);

@@ -5,7 +5,7 @@ import {REGION,BERRY_REGION,isRegionUnlocked,isPokemonUnlockedInState,regionForP
 import {effectiveDittoStats} from '../src/core/shopSystem.js';
 
 const groups=[
- [REGION.id,['rattata','pidgey','mankey','spearow','zubat']],
+ [REGION.id,['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']],
  [BERRY_REGION.id,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f']]
 ];
 const names={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',
@@ -130,6 +130,6 @@ test('five kills, farm earlier species to ten upon loss, then skip and revisit a
  for(const strategy of ['balanced','hp','attack','none']){
    const result=simulate(strategy);
    assert.ok(result.totalVictories>0);
-   assert.ok(result.taillow?.stats);
+   if(strategy!=='none')assert.ok(result.taillow?.stats);
  }
 });

@@ -10,7 +10,7 @@ const prepare=()=>{
  const state=initialState();
  state.phase='running';
  state.activeRegionId=berry;
- state.killCounts={...state.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,caterpie:0};
+ state.killCounts={...state.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1,caterpie:0};
  state.dittoStats={...state.dittoStats,hp:1000,attack:200};
  return state;
 };

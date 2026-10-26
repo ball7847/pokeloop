@@ -7,7 +7,12 @@ const entries=[
 {id:'pidgey',number:16,name:'구구',types:['노말','비행'],energyReward:2,hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
 {id:'mankey',number:56,name:'망키',types:['격투'],energyReward:2,hp:24,attack:7,speed:1800,rewards:{hp:5.6,attack:2}},
 {id:'spearow',number:21,name:'깨비참',types:['노말','비행'],energyReward:3,hp:13.3,attack:2,speed:1300,rewards:{hp:2.1,attack:1}},
-{id:'zubat',number:41,name:'주뱃',types:['독','비행'],energyReward:3,hp:10,attack:1.2,speed:800,rewards:{attack:1,speed:-20}}
+{id:'zubat',number:41,name:'주뱃',types:['독','비행'],energyReward:3,hp:10,attack:1.2,speed:800,rewards:{attack:1,speed:-20}},
+{id:'meowth',number:52,name:'나옹',types:['노말'],energyReward:10,hp:20,attack:1.8,speed:1100,multiStrike:1000,rewards:{attack:1.5,multiStrike:4}},
+{id:'geodude',number:74,name:'꼬마돌',types:['바위','땅'],energyReward:1,hp:40,attack:20,defense:10,speed:6000,rewards:{attack:2,defense:1}},
+{id:'exeggcute',number:102,name:'아라리',types:['풀','에스퍼'],energyReward:1,hp:60,attack:4,specialAttack:30,speed:4700,rewards:{specialAttack:3}},
+{id:'sentret',number:161,name:'꼬리선',types:['노말'],energyReward:15,hp:100,attack:4.6,speed:2400,rewards:{hp:16.1}},
+{id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:49,hp:225,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
 ];
 export const WILD_POKEMON=Object.freeze(entries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const UNCOMMON_BASE_CHANCE=0;

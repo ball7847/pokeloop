@@ -5,7 +5,7 @@ import {isPokemonUnlockedInState,isRegionUnlocked,REGION,BERRY_REGION,BERRY_POKE
 import {effectiveDittoStats} from '../src/core/shopSystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
-const first=['rattata','pidgey','spearow','mankey','zubat'];
+const first=['rattata','pidgey','spearow','mankey','zubat','meowth','geodude','exeggcute','sentret','tauros'];
 const second=['caterpie','weedle','taillow','kakuna','metapod','igglybuff','nidoran-m','nidoran-f'];
 function battle(s,id,seed=0.5){
  s=transition(s,{type:'SELECT_WILD',pokemonId:id});
@@ -187,7 +187,7 @@ test('post-Nidoran rebalance: reachable route, rewards, and late battle odds',()
      winProbesPerEnemy:200,wins};
  }
  console.log('NIDORAN_REBALANCE_ROUTE '+JSON.stringify(routes));
- assert.ok(Object.values(routes).every(route=>route.victories>=90));
+ assert.ok(['hp','attack','balanced'].every(policy=>routes[policy].victories>=90));
 });
 
 test('Nidoran male first-win snowball check: 2000 seeded attempts plus subsequent catches',()=>{

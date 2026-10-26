@@ -101,8 +101,9 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   const triggered=compareAmount(paralysis,0)>0&&random()<0.25;
   const delayMs=triggered?Math.min(Number.MAX_VALUE,decimal(paralysis).toNumber()):0;
   if(triggered)actingStatus.paralysis=0;
-  const hit=random()<hitChance(attackerStats,defenderStats);
   const target=player?'enemy':'player';
+  const strike=()=>{
+  const hit=random()<hitChance(attackerStats,defenderStats);
   if(hit){
     // Physical and special damage are separate channels within the same action.
     let damage=0;
@@ -125,6 +126,17 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
     targetStatus.paralysis=addAmount(targetStatus.paralysis??0,attackerStats.paralysis??0);
     targetStatus.poison=addAmount(targetStatus.poison,attackerStats.poison??0);
   }else visualEvents.push({target,kind:'miss',value:'MISS'});
+  return hit;
+  };
+  const hit=strike();
+  // An additional hit is immediate; do not recurse or pay poison per hit.
+  // A value of 1000 guarantees one bonus hit; fractional remainder is rolled once.
+  const multi=decimal(attackerStats.multiStrike??0);
+  if(multi.gt(0)&&compareAmount(defenderHp(),0)>0){
+    const guaranteed=Math.min(1000,Math.floor(multi.div(1000).toNumber()));
+    for(let i=0;i<guaranteed&&compareAmount(defenderHp(),0)>0;i++)strike();
+    if(compareAmount(defenderHp(),0)>0&&random()<multi.mod(1000).div(1000).toNumber())strike();
+  }
   // Detoxify before paying poison damage at the end of EVERY attack action,
   // including misses or attacks that trigger paralysis delay.
   if(compareAmount(actingStatus.poison,0)>0){

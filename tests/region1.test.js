@@ -4,7 +4,7 @@ import {WILD_POKEMON,UNCOMMON_STARTERS,rollUncommonStarter,getActiveWildPokemon,
 import {initialState,transition} from '../src/core/gameState.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 test('region 1 position 3-5 stats and rewards',()=>{
- assert.deepEqual(WILD_POKEMON.map(p=>p.id),['rattata','pidgey','mankey','spearow','zubat']);
+ assert.deepEqual(WILD_POKEMON.map(p=>p.id),['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']);
  assert.deepEqual([WILD_POKEMON[2].hp,WILD_POKEMON[2].attack,WILD_POKEMON[2].speed],[24,7,1800]);
  assert.deepEqual(WILD_POKEMON[2].rewards,{hp:5.6,attack:2});
  assert.deepEqual([WILD_POKEMON[3].hp,WILD_POKEMON[3].attack,WILD_POKEMON[3].speed],[13.3,2,1300]);
@@ -13,7 +13,7 @@ test('region 1 position 3-5 stats and rewards',()=>{
  assert.deepEqual(WILD_POKEMON[4].rewards,{attack:1,speed:-20});
 });
 test('Zubat victory reduces attack interval and records dex',()=>{
- let s=initialState();s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1};
+ let s=initialState();s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1};
  s.dittoStats={...s.dittoStats,attack:100,speed:3000};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'zubat'});
  assert.equal(s.combat.active,true);
@@ -31,10 +31,10 @@ test('starter slot defaults absent and requires single chosen species',()=>{
  assert.equal(rollUncommonStarter(1,()=>0),'bulbasaur');
  assert.equal(rollUncommonStarter(1,()=>0.5),'charmander');
  assert.equal(rollUncommonStarter(1,()=>0.999),'squirtle');
- const s=initialState();assert.equal(getActiveWildPokemon(s).length,5);
+ const s=initialState();assert.equal(getActiveWildPokemon(s).length,10);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
- s.uncommonStarterId='charmander';s.killCounts.rattata=1;s.killCounts.pidgey=1;s.killCounts.mankey=1;
- assert.equal(getActiveWildPokemon(s).length,6);
+ s.uncommonStarterId='charmander';s.killCounts.rattata=1;s.killCounts.pidgey=1;s.killCounts.mankey=1;s.killCounts.spearow=1;s.killCounts.zubat=1;s.killCounts.meowth=1;s.killCounts.geodude=1;s.killCounts.exeggcute=1;
+ assert.equal(getActiveWildPokemon(s).length,11);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'bulbasaur'}),s);
  assert.equal(transition(s,{type:'SELECT_WILD',pokemonId:'charmander'}).combat.enemy.name,'파이리');
 });
@@ -60,14 +60,14 @@ test('unique first defeats unlock next in encounter order, including non-sequent
  assert.equal(unlockedPokemonCount(kills),5);
  assert.equal(isPokemonUnlocked(kills,'zubat'),true);
  kills.pidgey=3;
- assert.equal(unlockedPokemonCount(kills),5,'unlock never exceeds active lineup length');
+ assert.equal(unlockedPokemonCount(kills),6,'third distinct victory opens the sixth encounter');
 });
 test('absent uncommon slot is excluded and present starter requires another distinct first victory',()=>{
  const kills={rattata:1,pidgey:1,mankey:1};
- assert.equal(unlockedPokemonCount(kills),5);
+ assert.equal(unlockedPokemonCount(kills),6);
  assert.equal(isPokemonUnlocked(kills,'charmander'),false,'absent starter cannot be selected');
  assert.equal(unlockedPokemonCount(kills,'charmander'),6);
- assert.equal(isPokemonUnlocked(kills,'charmander','charmander'),true);
+ assert.equal(isPokemonUnlocked(kills,'charmander','charmander'),false);
  assert.equal(isPokemonUnlocked(kills,'bulbasaur','charmander'),false);
 });
 test('first victories survive saves and the unlock count restores automatically',()=>{

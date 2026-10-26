@@ -28,7 +28,7 @@ test('enemy attacks gain a one-use 500ms delay while base speed stays unchanged'
  let s=initialState();
  s.phase='running';
  s.activeRegionId=BERRY_REGION.id;
- s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1};
+ s.killCounts={...s.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1};
  s.dittoStats={...s.dittoStats,hp:10000,attack:0,defense:10000,speed:10000};
  s=transition(s,{type:'SELECT_WILD',pokemonId:'caterpie'});
  assert.equal(s.combat.active,true);

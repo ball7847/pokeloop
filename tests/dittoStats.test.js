@@ -4,7 +4,7 @@ import { DEFAULT_STATS, DEFAULT_DITTO_STATS, resolveStats, isDefaultStat, visibl
 import { initialState, transition } from '../src/core/gameState.js';
 
 test('initial Ditto stats use approved seven defaults', () => {
-  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
+  assert.deepEqual(initialState().dittoStats, {hp:10,attack:1,defense:0,specialAttack:0,specialDefense:0,speed:3000,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,multiStrike:0,accuracy:100,dodge:0});
   assert.deepEqual(DEFAULT_DITTO_STATS, initialState().dittoStats);
 });
 test('zero-valued ability is retained in state but hidden from UI', () => {
@@ -43,7 +43,7 @@ test('default minimum damage is shared and hidden; modified values remain visibl
 });
 
 test('common stats default independently of Ditto starting overrides',()=>{
- assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,accuracy:100,dodge:0});
+ assert.deepEqual(DEFAULT_STATS,{hp:0,attack:0,defense:0,specialAttack:0,specialDefense:0,speed:0,minDamagePercent:85,maxDamagePercent:100,paralysis:0,poison:0,antidote:0,multiStrike:0,accuracy:100,dodge:0});
  assert.deepEqual(resolveStats({hp:6,attack:2.5}),{...DEFAULT_STATS,hp:6,attack:2.5});
  assert.equal(isDefaultStat('speed',0),true);
  assert.equal(isDefaultStat('speed',3000),false);
@@ -64,7 +64,7 @@ test('shared speed defaults to zero while initial combat speeds remain unchanged
  const {visibleNonDefaultStats}=await import('../src/core/dittoStats.js');
  assert.equal(resolveStats({hp:1}).speed,0);
  assert.equal(DEFAULT_DITTO_STATS.speed,3000);
- assert.deepEqual(WILD_POKEMON.map(x=>x.speed),[2100,2400,1800,1300,800]);
+ assert.deepEqual(WILD_POKEMON.map(x=>x.speed),[2100,2400,1800,1300,800,1100,6000,4700,2400,1500]);
  assert.deepEqual(visibleNonDefaultStats({hp:3,speed:0}).map(x=>x.key),['hp']);
  assert.deepEqual(visibleNonDefaultStats({hp:3,speed:3000}).map(x=>x.key),['hp','speed']);
  const state=transition(initialState(),{type:'SELECT_WILD',pokemonId:'rattata'});

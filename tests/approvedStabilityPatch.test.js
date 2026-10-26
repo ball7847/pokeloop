@@ -30,7 +30,7 @@ test('legacy saves with speed below 100ms load and are normalized safely',()=>{
 test('auto retry restores its opponent region before starting combat',()=>{
   const s={...initialState(),phase:'running',recoveryMs:10000,
     activeRegionId:'starting-plains',automation:{hunger:false,resolve:true},
-    killCounts:{...initialState().killCounts,rattata:1,pidgey:1,mankey:1,spearow:1},
+    killCounts:{...initialState().killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1},
     retryPokemonId:'caterpie'};
   const halfway=transition(s,{type:'RECOVERY_TICK',deltaMs:5000});
   assert.equal(halfway.activeRegionId,'starting-plains');
