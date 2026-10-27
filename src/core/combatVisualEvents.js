@@ -14,3 +14,9 @@ export function appendDamageEvents(events,target,channels,before,total){
 export function appendStatusDamageEvent(events,target,kind,value){
   if(compareAmount(value,0)>0)events.push({target,kind,value});
 }
+
+// Visual-only healing, based on the actual HP gained after the max-HP cap.
+export function appendHealingEvent(events,target,before,after){
+  const recovered=subtractAmount(after,before);
+  if(compareAmount(recovered,0)>0)events.push({target,kind:'heal',value:recovered});
+}
