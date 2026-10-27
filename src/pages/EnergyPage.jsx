@@ -19,7 +19,7 @@ export function EnergyPage(){
         onClick={()=>setSystemTab(id)}>{label}</button>)}
     </div>
     {systemTab==='micro'&&<div className="ditto-info-tabs energy-section-tabs" role="tablist" aria-label="미시체계 분류">
-      {[['stats','강화'],['circulation','순환'],['automation','자동화']].map(([id,label])=><button key={id} type="button" role="tab"
+      {[['stats','강화'],['circulation','생산'],['automation','자동화']].map(([id,label])=><button key={id} type="button" role="tab"
         aria-selected={energyTab===id} className={'ditto-info-tab '+(energyTab===id?'is-active':'')}
         onClick={()=>setEnergyTab(id)}>{label}</button>)}
     </div>}
