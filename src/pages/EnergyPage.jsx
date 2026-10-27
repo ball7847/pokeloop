@@ -1,4 +1,5 @@
 import React from 'react';
+import {createPortal} from 'react-dom';
 import {useGameStore} from '../store/useGameStore.js';
 import {LAYERS,particleRates,particleMilestoneThreshold,POINT_CIRCULATION} from '../core/energySystem.js';
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
@@ -42,8 +43,29 @@ const HEX_POINTS=Array.from({length:6},(_,i)=>{
   const angle=(60*i-90)*Math.PI/180;
   return [Math.cos(angle)*HEX_R,Math.sin(angle)*HEX_R].join(',');
 }).join(' ');
+function stellarNodeLabelLines(name){
+  // Keep longer names legible inside a 42px-wide hexagon.
+  return name.replace('노말에너지','노말 에너지').replace('증폭 I','증폭I').split(' ');
+}
 function OuterStellarWorld(){
-  const [selected,setSelected]=React.useState('SU011');
+  const [selected,setSelected]=React.useState(null);
+  const closeButtonRef=React.useRef(null);
+  const previouslyFocusedRef=React.useRef(null);
+  const openUpgrade=(id,event)=>{
+    previouslyFocusedRef.current=event.currentTarget;
+    setSelected(id);
+  };
+  const closeUpgrade=()=>{
+    setSelected(null);
+    previouslyFocusedRef.current?.focus();
+  };
+  React.useEffect(()=>{
+    if(!selected)return;
+    closeButtonRef.current?.focus();
+    const onEscape=event=>{if(event.key==='Escape'){event.preventDefault();setSelected(null);previouslyFocusedRef.current?.focus();}};
+    document.addEventListener('keydown',onEscape);
+    return ()=>document.removeEventListener('keydown',onEscape);
+  },[selected]);
   const game=useGameStore(state=>state.game);
   const dispatch=useGameStore(state=>state.dispatch);
   const layers=stellarUpgradeRows();
@@ -59,10 +81,13 @@ function OuterStellarWorld(){
             {slots.map(({slot,node,id})=><g key={slot} transform={`translate(${164+(slot+(row%2===0?.5:0))*HEX_W},${34+(row-1)*HEX_STEP})`}>
               <polygon points={HEX_POINTS} className={node?'energy-outer-hex is-node'+(ownsStellarUpgrade(game,id)?' is-purchased':'')+(selected===id?' is-selected':''):'energy-outer-hex is-empty'}/>
               {node&&<>
-                <text y="3" textAnchor="middle" className={"energy-outer-node-id"+(ownsStellarUpgrade(game,id)?" is-purchased":"")}>{id}</text>
+                <text textAnchor="middle" className={"energy-outer-node-name"+(ownsStellarUpgrade(game,id)?" is-purchased":"")}>
+                  {stellarNodeLabelLines(node.name).map((line,lineIndex,lines)=>
+                    <tspan key={lineIndex} x="0" y={(lineIndex-(lines.length-1)/2)*9+2}>{line}</tspan>)}
+                </text>
                 <rect x={-HEX_W/2} y={-HEX_R} width={HEX_W} height={HEX_R*2} fill="transparent"
                   role="button" tabIndex="0" aria-label={id+' '+node.name}
-                  onClick={()=>setSelected(id)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setSelected(id);}}}
+                  onClick={event=>openUpgrade(id,event)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openUpgrade(id,event);}}}
                   className="energy-outer-node-hitbox"/>
               </>}
             </g>)}
@@ -70,19 +95,21 @@ function OuterStellarWorld(){
         </g>)}
       </svg>
     </div>
-    <div className="energy-outer-upgrade-details" aria-label="SU 업그레이드 상세">
-      <strong>보유 SE: {formatAmount(game.stellar??0)}</strong>
-      {detail&&<div className="energy-outer-selected-upgrade">
-        <div><strong>{selected} · {detail.name}</strong><p>{detail.description}</p><small>1회 한정 · SE {detail.cost}</small></div>
-        <button type="button" disabled={ownsStellarUpgrade(game,selected)||compareAmount(game.stellar??0,detail.cost)<0||game.phase!=='running'}
+    {detail&&createPortal(<div className="energy-su-modal-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)closeUpgrade();}}>
+      <section className="energy-su-modal" role="dialog" aria-modal="true" aria-labelledby="energy-su-modal-title" aria-describedby="energy-su-modal-effect">
+        <button ref={closeButtonRef} type="button" className="energy-su-modal-close" aria-label="닫기" onClick={closeUpgrade}>×</button>
+        <small className="energy-su-modal-id">{selected}</small>
+        <h3 id="energy-su-modal-title">{detail.name}</h3>
+        <div className="energy-su-modal-field"><span>업그레이드 비용</span><strong>SE {formatAmount(detail.cost)}</strong></div>
+        <div className="energy-su-modal-field"><span>업그레이드 효과</span><strong id="energy-su-modal-effect">{detail.description}</strong></div>
+        <small>보유 SE {formatAmount(game.stellar??0)} · 1회 한정</small>
+        <button type="button" className="energy-su-modal-buy"
+          disabled={ownsStellarUpgrade(game,selected)||compareAmount(game.stellar??0,detail.cost)<0||game.phase!=='running'}
           onClick={()=>dispatch({type:'BUY_STELLAR_UPGRADE',id:selected})}>
-          {ownsStellarUpgrade(game,selected)?'구매 완료':'SE '+detail.cost+' 구매'}
+          {ownsStellarUpgrade(game,selected)?'구매 완료':'SE '+formatAmount(detail.cost)+' 구매'}
         </button>
-      </div>}
-      <div className="energy-outer-upgrade-shortcuts">{nodes.map(({id,node})=><button type="button" key={id} aria-pressed={selected===id}
-        onClick={()=>setSelected(id)}>{id} {node.name}{ownsStellarUpgrade(game,id)?' ✓':''}</button>)}</div>
-    </div>
-    <p className="energy-outer-footnote">노말 타입 1·2·4번째 슬롯에 SU011·SU012·SU013이 있습니다. 빈 슬롯은 SU 번호에 포함되지 않습니다.</p>
+      </section>
+    </div>,document.body)}
   </section>;
 }
 
