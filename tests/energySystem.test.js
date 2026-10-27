@@ -166,17 +166,17 @@ test('point circulation purchase is atomic, one-time, and banks locked type part
  assert.equal(transition(purchased,{type:'BUY_CIRCULATION',id:'point'}),purchased);
  assert.equal(transition({...s,phase:'paused'},{type:'BUY_CIRCULATION',id:'point'}).pointCirculationUnlocked,false);
 });
-test('point circulation produces 0.3 normal energy per second without battle or first milestone',()=>{
+test('point circulation produces 0.5 normal energy per second without battle or first milestone',()=>{
  let s={...initialState(),phase:'running',pointCirculationUnlocked:true};
  s=transition(s,{type:'ECONOMY_TICK',deltaMs:1000});
- assert.equal(s.energyBalances.노말,0.3);
+ assert.equal(s.energyBalances.노말,0.5);
  assert.equal(s.unlockedLayer,1);
  assert.equal(s.particleBalances.노말,0);
  s=tickEconomy(s,5);
- assert.equal(s.energyBalances.노말,1.8);
+ assert.equal(s.energyBalances.노말,3);
  assert.equal(s.particleBalances.노말,0);
  const paused=transition({...s,phase:'paused'},{type:'ECONOMY_TICK',deltaMs:1000});
- assert.equal(paused.energyBalances.노말,1.8);
+ assert.equal(paused.energyBalances.노말,3);
  assert.equal(tickEconomy(initialState(),1).energyBalances.노말,0);
 });
 test('point circulation survives save, old saves default off, planet move clears it',()=>{
