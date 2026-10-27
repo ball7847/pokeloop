@@ -6,10 +6,11 @@ import {isAmount,storedAmount} from './bigNumber.js';
 import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
 import {DEFAULT_AUTOMATION,UPGRADES} from './shopSystem.js';
 import {STELLAR_UPGRADE_BY_ID} from './stellarUpgrades.js';
+import {ITEM_BY_ID} from './itemSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=11;
+export const SAVE_VERSION=12;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -29,6 +30,9 @@ export function gameSnapshot(game){
     uncommonChance:game.uncommonChance??0,
     uncommonStarterId:game.uncommonStarterId??null,
     dexDiscovered:game.dexDiscovered??[],
+    dexLifetimeKills:game.dexLifetimeKills??{},
+    itemRunProgress:game.itemRunProgress??{},itemLifetimeProgress:game.itemLifetimeProgress??{},
+    itemPending:game.itemPending??[],itemOwned:game.itemOwned??[],
     evolutionResults:game.evolutionResults??{},
     automation:game.automation??DEFAULT_AUTOMATION,
     recoveryMs:game.recoveryMs??0,retryPokemonId:game.retryPokemonId??null,
@@ -54,7 +58,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,8,9,10,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,9,10,11,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -104,6 +108,32 @@ export function decodeSave(encoded){
   if(typeof chance!=='number'||!Number.isFinite(chance)||chance<0||chance>1)throw new Error('안흔함 확률이 올바르지 않습니다.');
   const found=original.dexDiscovered??[];
   if(!Array.isArray(found)||found.length>ALL_POKEMON.length||found.some(id=>typeof id!=='string'||!(getWildPokemon(id)||(data.version<=9&&id==='jigglypuff')))||new Set(found).size!==found.length)throw new Error('도감 정보가 올바르지 않습니다.');
+  cleanGame.dexDiscovered=[...new Set(found.map(id=>id==='jigglypuff'?'igglybuff':id))];
+  if(data.version>=12){
+    const history=original.dexLifetimeKills??{};
+    if(!history||typeof history!=='object'||Array.isArray(history)||
+      Object.entries(history).some(([id,count])=>!getWildPokemon(id)||!validInteger(count,MAX_COUNTER)||
+        count<(cleanGame.killCounts[id]??0)))throw new Error('도감 누적 처치 기록이 올바르지 않습니다.');
+    cleanGame.dexLifetimeKills={...history};
+    for(const key of ['itemRunProgress','itemLifetimeProgress']){
+      const record=original[key]??{};
+      if(!record||typeof record!=='object'||Array.isArray(record)||
+        Object.entries(record).some(([metric,value])=>typeof metric!=='string'||metric.length>100||
+          !/^(victories|pokemon:[a-z0-9-]+)$/.test(metric)||!validInteger(value,MAX_COUNTER))||
+        Object.keys(record).length>ALL_POKEMON.length+1)throw new Error('도구 진행 기록이 올바르지 않습니다.');
+      cleanGame[key]={...record};
+    }
+    for(const key of ['itemPending','itemOwned']){
+      const ids=original[key]??[];
+      if(!Array.isArray(ids)||new Set(ids).size!==ids.length||
+        ids.some(id=>typeof id!=='string'||!ITEM_BY_ID[id]))throw new Error('도구 보유 기록이 올바르지 않습니다.');
+      cleanGame[key]=[...ids];
+    }
+    if(cleanGame.itemPending.some(id=>cleanGame.itemOwned.includes(id)))throw new Error('도구 상태가 중복됩니다.');
+  }else{
+    // Old saves only retained current-run kills; earlier runs cannot be reconstructed.
+    cleanGame.dexLifetimeKills=Object.fromEntries(Object.entries(cleanGame.killCounts).filter(([,count])=>count>0));
+  }
   // v3 stored battle essence and freely minted layer energy separately.
   // Preserve both quantities but map them to the new energy and particle roles.
   if(data.version>=3){

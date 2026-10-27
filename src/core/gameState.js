@@ -4,6 +4,7 @@ import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
 import {buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION,effectiveDittoStats} from './shopSystem.js';
 import {buyStellarUpgrade} from './stellarUpgrades.js';
+import {collectPendingItems} from './itemSystem.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
@@ -11,6 +12,7 @@ export const initialState = () => ({
   killCounts:Object.fromEntries(ALL_POKEMON.map(p=>[p.id,0])),
   activeRegionId:REGION.id,berryRareAppeared:false,evolutionResults:{},
   uncommonChance:UNCOMMON_BASE_CHANCE,uncommonStarterId:null,dexDiscovered:[],
+  dexLifetimeKills:{},itemRunProgress:{},itemLifetimeProgress:{},itemPending:[],itemOwned:[],
   ...initialEconomy(),
   automation:{...DEFAULT_AUTOMATION},recoveryMs:0,retryPokemonId:null,
   combat:emptyCombat(DEFAULT_DITTO_STATS.hp)
@@ -48,7 +50,9 @@ export function transition(state, action) {
     case 'MOVE_PLANET': {
       if(state.combat.active||state.recoveryMs>0||state.phase===PHASE.PAUSED||state.phase===PHASE.FINISHED)return state;
       const preserved=movePlanet(state);
-      return {...initialState(),...preserved,phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};
+      const items=collectPendingItems(state);
+      return {...initialState(),...preserved,...items,
+        dexDiscovered:[...state.dexDiscovered],dexLifetimeKills:{...state.dexLifetimeKills},phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};
     }
     case 'SELECT_REGION': return !state.combat.active&&isRegionUnlocked(state,action.regionId)?{...state,activeRegionId:action.regionId}:state;
     case 'SELECT_WILD': return startBattle(state,action.pokemonId);
