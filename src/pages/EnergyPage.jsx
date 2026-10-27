@@ -6,6 +6,23 @@ import {UPGRADES,AUTOMATIONS,upgradeCosts} from '../core/shopSystem.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 import {STELLAR_UPGRADES,ownsStellarUpgrade} from '../core/stellarUpgrades.js';
 
+
+const SU_TYPE_PALETTE=Object.freeze({
+  '노말':['#efefec','#b6b6a8','#66665b'],'풀':['#e6f6dd','#78c850','#386b21'],
+  '불꽃':['#ffecdc','#f08030','#9d3e09'],'물':['#e2edff','#6890f0','#234cba'],
+  '전기':['#fff7d5','#f8d030','#927507'],'벌레':['#f1f5d5','#a8b820','#58640b'],
+  '비행':['#f0edff','#a890f0','#5640ac'],'땅':['#faf0cc','#e0c068','#8e7130'],
+  '바위':['#efead1','#b8a038','#61501a'],'격투':['#ffe1dd','#c03028','#741912'],
+  '에스퍼':['#ffe3ef','#f85888','#a61a4a'],'악':['#eee9e7','#705848','#382820'],
+  '강철':['#eeeff8','#b8b8d0','#545775'],'독':['#f4e4f9','#a040a0','#5e196d'],
+  '얼음':['#e3f8f8','#98d8d8','#377e82'],'고스트':['#eae4f3','#705898','#372354'],
+  '드래곤':['#e8e0ff','#7038f8','#3712a3'],'페어리':['#ffeaf0','#ee99ac','#9b4269']
+});
+export function stellarTypeColors(type){
+  const [empty,node,purchased]=SU_TYPE_PALETTE[type]??SU_TYPE_PALETTE['노말'];
+  return {'--su-empty':empty,'--su-node':node,'--su-purchased':purchased};
+}
+
 const OUTER_LAYERS=LAYERS.map(layer=>({...layer,types:layer.level===2?['풀','불꽃','물']:layer.types}));
 const STELLAR_NODES=STELLAR_UPGRADES;
 export function stellarUpgradeRows(nodes=STELLAR_NODES){
@@ -33,18 +50,16 @@ function OuterStellarWorld(){
   const nodes=layers.flatMap(layer=>layer.rows.flatMap(row=>row.slots.filter(slot=>slot.node)));
   const detail=nodes.find(slot=>slot.id===selected)?.node??null;
   return <section className="panel energy-outer-panel" role="tabpanel" aria-label="외체계">
-    <h3>외체계 · SU 영구 강화</h3>
-    <p>스텔라에너지 업그레이드(SU) · 10계층 · 18타입 · 육각형 벌집 배치(14칸/13칸 교대).</p>
     <div className="energy-outer-scroll" role="region" aria-label="외체계 육각형 강화 격자" tabIndex={0}>
       <svg className="energy-outer-honeycomb" viewBox="0 0 800 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="10계층 18타입 243개 육각형 슬롯">
         {layers.map(layer=><g key={layer.level}>
           <text x="6" y={34+((layer.rows[0].row+layer.rows[layer.rows.length-1].row)/2-1)*HEX_STEP+4} className="energy-outer-layer-label">{layer.level}계층</text>
-          {layer.rows.map(({type,row,slots})=><g key={type}>
+          {layer.rows.map(({type,row,slots})=><g key={type} style={stellarTypeColors(type)}>
             <text x="76" y={34+(row-1)*HEX_STEP+4} className="energy-outer-type-text">{type}</text>
             {slots.map(({slot,node,id})=><g key={slot} transform={`translate(${164+(slot+(row%2===0?.5:0))*HEX_W},${34+(row-1)*HEX_STEP})`}>
               <polygon points={HEX_POINTS} className={node?'energy-outer-hex is-node'+(ownsStellarUpgrade(game,id)?' is-purchased':'')+(selected===id?' is-selected':''):'energy-outer-hex is-empty'}/>
               {node&&<>
-                <text y="3" textAnchor="middle" className="energy-outer-node-id">{id}</text>
+                <text y="3" textAnchor="middle" className={"energy-outer-node-id"+(ownsStellarUpgrade(game,id)?" is-purchased":"")}>{id}</text>
                 <rect x={-HEX_W/2} y={-HEX_R} width={HEX_W} height={HEX_R*2} fill="transparent"
                   role="button" tabIndex="0" aria-label={id+' '+node.name}
                   onClick={()=>setSelected(id)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setSelected(id);}}}
