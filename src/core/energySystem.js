@@ -120,8 +120,8 @@ export function particleRates(state){
   return rates;
 }
 function originalSoftcapMultiplier(pending,total,planetMoves){
-  // Source game: 1st Redraw threshold ~1000; later threshold is lifetime QE.
-  const threshold=planetMoves===0?decimal(1000):decimal(total);
+  // PokeLoop: first planet-move softcap begins at 100 pending stellar; later threshold is lifetime stellar.
+  const threshold=planetMoves===0?decimal(100):decimal(total);
   if(threshold.lte(0)||decimal(pending).lt(threshold))return 1;
   const ratio=decimal(pending).div(threshold).toNumber();
   const tier=Math.max(0,Math.floor(Math.log2(ratio))+1);
@@ -145,7 +145,7 @@ export function tickEconomy(state,seconds){
     const currentRates=particleRates(current);
     const normal=decimal(particles['노말']).mul(productionMultiplier(state.particleMilestones['노말']));
     if(state.particleMilestones['노말']>0){
-      pending=addAmount(pending,storedAmount(normal.mul(dt).mul(originalSoftcapMultiplier(pending,state.totalStellarEarned,state.planetMoves))));
+      pending=addAmount(pending,storedAmount(normal.mul(dt).div(1000).mul(originalSoftcapMultiplier(pending,state.totalStellarEarned,state.planetMoves))));
     }
     for(const type of TYPES){
       if(compareAmount(currentRates[type],0)>0){
