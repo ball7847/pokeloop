@@ -166,6 +166,7 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
       const before=state.killCounts[id]??0;
       let failures=0;
       let signature=identity(state);
+      let farmAttemptedAt=null;
       while((state.killCounts[id]??0)<target&&!safetyStop){
         shop();
         const current=identity(state);
@@ -174,8 +175,33 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
         const result=battle(id,target);
         if(result.result==='limit'){break;}
         if(result.wins>0){failures=0;progressed=true;signature=identity(state);}
-        else if(result.result==='defeat')failures++;
-        else break;
+        else if(result.result==='defeat'){
+          failures++;
+          // Follow the established policy: on the first defeat, farm earlier
+          // accessible species to their real 10-kill cap before retrying.
+          if(failures===1&&farmAttemptedAt!==signature){
+            farmAttemptedAt=signature;
+            const earlier=ids.slice(0,ids.indexOf(id));
+            let gainedKills=0;
+            for(const previousId of earlier){
+              let failed=0;
+              while((state.killCounts[previousId]??0)<10&&failed<5&&!safetyStop){
+                const prior=state.killCounts[previousId]??0;
+                const farm= battle(previousId,10);
+                if(farm.result==='limit')break;
+                if((state.killCounts[previousId]??0)>prior){
+                  gainedKills+=state.killCounts[previousId]-prior;
+                  failed=0;
+                }else if(farm.result==='defeat')failed++;
+                else break;
+              }
+            }
+            if(gainedKills>0){
+              note('farm-before-retry',{id,gainedKills});
+              progressed=true;shop();signature=identity(state);failures=0;
+            }
+          }
+        }else break;
       }
       if((state.killCounts[id]??0)>before)progressed=true;
       if((state.killCounts[id]??0)<target)note('deferred',{id,goal:target,kills:state.killCounts[id]??0});
