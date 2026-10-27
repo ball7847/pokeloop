@@ -99,7 +99,7 @@
 .energy-outer-panel>h3{margin-top:0}
 .energy-outer-panel>p{font-size:12px;line-height:1.5}
 .energy-outer-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:5px}
-.energy-outer-honeycomb{display:block;width:570px;height:730px;max-width:none;overflow:visible}
+.energy-outer-honeycomb{display:block;width:800px;height:730px;max-width:none;overflow:visible}
 .energy-outer-hex{stroke:#8b8276;stroke-width:1;stroke-linejoin:round}
 .energy-outer-hex.is-empty{fill:#eee9df}
 .energy-outer-hex.is-node{fill:#d5e3f0;stroke:#668bab}
@@ -107,3 +107,20 @@
 .energy-outer-type-text{font-size:12px;font-weight:600;fill:#423c35}
 .energy-outer-node-id{font-size:9px;font-weight:700;fill:#263e56}
 .energy-outer-footnote{color:#817568}
+
+/* SU upgrades: occupied cells are selectable; blank cells remain non-interactive. */
+.energy-outer-hex.is-node{fill:#cfdfef;stroke:#537da3;stroke-width:1.5}
+.energy-outer-hex.is-purchased{fill:#b1d9b9;stroke:#42744e}
+.energy-outer-hex.is-selected{stroke:#ba7b1f;stroke-width:2.8}
+.energy-outer-node-hitbox{cursor:pointer;outline:none}
+.energy-outer-node-hitbox:focus-visible{stroke:#ba7b1f;stroke-width:2;stroke-dasharray:4 2}
+.energy-outer-upgrade-details{display:flex;flex-direction:column;gap:9px;margin-top:12px;padding:12px;border:1px solid #ddd5c9;border-radius:6px;background:#faf8f3;font-size:12px}
+.energy-outer-selected-upgrade{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.energy-outer-selected-upgrade p{margin:4px 0}
+.energy-outer-selected-upgrade small{color:#6b6259}
+.energy-outer-selected-upgrade button{flex-shrink:0;padding:8px 12px;border:1px solid #99876d;border-radius:5px;background:#e8e4d9;cursor:pointer}
+.energy-outer-selected-upgrade button:disabled{cursor:not-allowed;opacity:.5}
+.energy-outer-upgrade-shortcuts{display:flex;flex-wrap:wrap;gap:6px}
+.energy-outer-upgrade-shortcuts button{font-size:11px;padding:5px 8px;border:1px solid #d1c7ba;background:#fff;border-radius:4px;cursor:pointer}
+.energy-outer-upgrade-shortcuts button[aria-pressed="true"]{border-color:#ba7b1f;background:#fff0d5}
+@media(max-width:600px){.energy-outer-selected-upgrade{align-items:start;flex-direction:column}}
