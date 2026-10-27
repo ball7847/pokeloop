@@ -14,7 +14,7 @@
 .dex-pokemon-card img{width:75px;height:75px;object-fit:contain;image-rendering:pixelated}
 .dex-pokemon-card small,.dex-pokemon-card>span{color:#746c62;font-size:10px}
 .dex-pokemon-card strong{font-size:12px}
-.dex-pokemon-card.is-unknown{background:#efede7;cursor:default;opacity:.7}
+.dex-pokemon-card.is-unknown{background:#efede7;opacity:.8}
 .dex-unknown-sprite{display:flex;align-items:center;justify-content:center;width:75px;height:75px;font-size:34px;font-weight:700;color:#9e968e}
 .dex-info-note,.dex-empty{font-size:13px;color:#756b61}
 .dex-empty{padding:22px 10px;text-align:center;border:1px dashed #d7cec1;border-radius:8px}
@@ -48,3 +48,5 @@
 .dex-rewards>span{display:inline-flex;align-items:center;gap:3px;font-size:11px;border:1px solid #dcd2c4;border-radius:5px;padding:5px}
 @media(max-width:750px){.dex-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:400px){.dex-tabs>.ditto-info-tab{font-size:11px;padding:7px 2px}.dex-pokemon-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.dex-pokemon-card{padding:5px}}
+
+.dex-modal-unknown-sprite{display:flex;align-items:center;justify-content:center;width:110px;height:110px;align-self:center;background:#ece9e1;border-radius:12px;color:#948d85;font-size:28px;font-weight:800}

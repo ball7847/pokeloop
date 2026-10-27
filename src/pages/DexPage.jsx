@@ -39,17 +39,18 @@ function DexDialog({pokemon,game,onClose}){
     return ()=>{document.removeEventListener('keydown',escape);previous?.focus?.();};
   },[onClose]);
   const defeated=dexKills(game,pokemon.id)>0;
+  const discovered=isKnown(game,pokemon.id);
   const region=REGIONS.find(r=>r.id===regionForPokemon(pokemon.id));
   return createPortal(<div className="dex-modal-backdrop" onClick={event=>{if(event.target===event.currentTarget)onClose();}}>
     <section className="dex-modal" role="dialog" aria-modal="true" aria-labelledby="dex-dialog-title">
       <button ref={closeRef} className="dex-modal-close" onClick={onClose} aria-label="닫기" type="button">×</button>
       <small>전국도감 #{String(pokemon.number).padStart(4,'0')}</small>
-      <img className="dex-modal-sprite" src={spriteUrl(pokemon.number)} alt="" />
-      <h3 id="dex-dialog-title">{pokemon.name}</h3>
+      {discovered?<img className="dex-modal-sprite" src={spriteUrl(pokemon.number)} alt="" />:<div className="dex-modal-unknown-sprite" aria-label="미발견 포켓몬">???</div>}
+      <h3 id="dex-dialog-title">{discovered?pokemon.name:"???"}</h3>
       <div className="dex-type-list">{pokemon.types.map(t=><span key={t} className="dex-type"><EnergyTypeIcon type={t}/>{t}</span>)}</div>
       <div className="dex-dialog-metrics"><span>등장 지역</span><strong>{region?.name??'—'}</strong>
-        <span>누적 처치</span><strong>{formatAmount(dexKills(game,pokemon.id))}회</strong>
-        <span>현재 행성 처치</span><strong>{formatAmount(game.killCounts?.[pokemon.id]??0)} / 10</strong></div>
+        <span>누적 처치</span><strong>{discovered?formatAmount(dexKills(game,pokemon.id))+"회":"???"}</strong>
+        <span>현재 행성 처치</span><strong>{discovered?formatAmount(game.killCounts?.[pokemon.id]??0)+" / 10":"???"}</strong></div>
       {defeated?<><h4>전투 능력치</h4>
         <div className="dex-stat-grid">{BASIC_STAT_FIELDS.filter(field=>field.key==='hp'||field.key==='attack'||field.key==='speed'||pokemon[field.key]!==0).map(field=>
           <div key={field.key}><span>{field.label}</span><strong>{formatStatValue(field.key,pokemon[field.key])}</strong></div>)}</div>
@@ -58,7 +59,7 @@ function DexDialog({pokemon,game,onClose}){
           {Object.entries(battleEnergyRewards(pokemon,0)).map(([type,value])=><span key={type}><EnergyTypeIcon type={type}/>{type} 에너지 +{formatAmount(value)}</span>)}
         </div>
         <small>현재 회차의 반복 처치 보상은 별도 감소 규칙을 따릅니다.</small>
-      </>:<p>첫 처치 후 전투 능력치와 기본 보상이 공개됩니다.</p>}
+      </>:<><h4>전투 능력치</h4><p>???</p><h4>기본 처치 보상</h4><p>???</p></>}
     </section>
   </div>,document.body);
 }
@@ -74,10 +75,10 @@ function PokemonDex({game}){
   const mastered=POKEMON.filter(p=>dexKills(game,p.id)>=10).length;
   const matches=POKEMON.filter(p=>{
     const status=stage(game,p.id);
-    return (type==='all'||(status!=='unknown'&&p.types.includes(type)))&&
-      (region==='all'||(status!=='unknown'&&regionForPokemon(p.id)===region))&&
+    return (type==='all'||p.types.includes(type))&&
+      (region==='all'||regionForPokemon(p.id)===region)&&
       (filter==='all'||filter===status)&&
-      (!query.trim()||(status!=='unknown'&&(p.name.includes(query.trim())||String(p.number).includes(query.trim()))));
+      (!query.trim()||String(p.number).includes(query.trim())||(status!=='unknown'&&p.name.includes(query.trim())));
   });
   return <div className="dex-section">
     <div className="dex-progress"><span>발견 <strong>{known}/{POKEMON.length}</strong></span><span>첫 처치 <strong>{defeated}/{POKEMON.length}</strong></span><span>누적 10회 <strong>{mastered}/{POKEMON.length}</strong></span></div>
@@ -96,7 +97,7 @@ function PokemonDex({game}){
     <div className="dex-pokemon-grid">{matches.map(p=>{
       const status=stage(game,p.id);
       return <button key={p.id} type="button" className={'dex-pokemon-card '+(status==='unknown'?'is-unknown':'')}
-        disabled={status==='unknown'} onClick={()=>setSelected(p)} aria-label={status==='unknown'?'미발견 포켓몬':p.name+' 상세 보기'}>
+        onClick={()=>setSelected(p)} aria-label={status==='unknown'?'도감번호 '+p.number+' 미발견 포켓몬 상세 보기':p.name+' 상세 보기'}>
         <small>#{String(p.number).padStart(4,'0')}</small>
         {status==='unknown'?<div className="dex-unknown-sprite">?</div>:<img src={spriteUrl(p.number)} alt="" loading="lazy"/>}
         <strong>{status==='unknown'?'???':p.name}</strong><span>{stageName[status]}</span>
