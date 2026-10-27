@@ -95,7 +95,7 @@ function OuterStellarWorld(){
         </g>)}
       </svg>
     </div>
-    {detail&&createPortal(<div className="energy-su-modal-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)closeUpgrade();}}>
+    {detail&&createPortal(<div className="energy-su-modal-backdrop" onClick={event=>{if(event.target===event.currentTarget)closeUpgrade();}}>
       <section className="energy-su-modal" role="dialog" aria-modal="true" aria-labelledby="energy-su-modal-title" aria-describedby="energy-su-modal-effect">
         <button ref={closeButtonRef} type="button" className="energy-su-modal-close" aria-label="닫기" onClick={closeUpgrade}>×</button>
         <small className="energy-su-modal-id">{selected}</small>
