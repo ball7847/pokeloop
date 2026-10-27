@@ -5,18 +5,25 @@ import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import {UPGRADES,AUTOMATIONS,upgradeCosts} from '../core/shopSystem.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 export function EnergyPage(){
+  const systemTab=useGameStore(s=>s.energySystemTab);
+  const setSystemTab=useGameStore(s=>s.setEnergySystemTab);
   const energyTab=useGameStore(s=>s.energySectionTab);
   const setEnergyTab=useGameStore(s=>s.setEnergySectionTab);
   const game=useGameStore(s=>s.game);
   const dispatch=useGameStore(s=>s.dispatch);
   const rates=particleRates(game);
   return <div className="energy-overview">
-    <div className="ditto-info-tabs energy-section-tabs" role="tablist" aria-label="에너지 분류">
-      {[['stats','강화'],['circulation','순환'],['automation','자동화'],['world','내부세계']].map(([id,label])=><button key={id} type="button" role="tab"
+    <div className="ditto-info-tabs energy-system-tabs" role="tablist" aria-label="에너지 체계">
+      {[['micro','미시체계'],['middle','중간체계'],['outer','외체계']].map(([id,label])=><button key={id} type="button" role="tab"
+        aria-selected={systemTab===id} className={'ditto-info-tab '+(systemTab===id?'is-active':'')}
+        onClick={()=>setSystemTab(id)}>{label}</button>)}
+    </div>
+    {systemTab==='micro'&&<div className="ditto-info-tabs energy-section-tabs" role="tablist" aria-label="미시체계 분류">
+      {[['stats','강화'],['circulation','순환'],['automation','자동화']].map(([id,label])=><button key={id} type="button" role="tab"
         aria-selected={energyTab===id} className={'ditto-info-tab '+(energyTab===id?'is-active':'')}
         onClick={()=>setEnergyTab(id)}>{label}</button>)}
     </div>
-    {energyTab==='world'?<div className="energy-world-content" role="tabpanel">
+    {systemTab==='middle'?<div className="energy-world-content" role="tabpanel" aria-label="중간체계">
     <div className="energy-world-layers">
     <section className="panel energy-page-balances"><h3>10계층 입자 생산 현황 <small>{game.unlockedLayer}/10계층 해금</small></h3>
       <div className="world-layer-table" role="table" aria-label="10계층 입자 생산 현황">
@@ -51,7 +58,23 @@ export function EnergyPage(){
         onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 타입 에너지·입자·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
     </section>
     </aside>
-    </div>:<section className="panel energy-purchase-panel" role="tabpanel">
+    </div>:systemTab==='outer'?<section className="panel energy-outer-panel" role="tabpanel" aria-label="외체계">
+      <h3>외체계 · SE 영구 강화</h3>
+      <p>10계층 · 18타입 · 타입마다 가로 10개의 노드 슬롯을 배치합니다. 영구 강화 효과와 SE 비용은 추후 설계됩니다.</p>
+      <div className="energy-outer-scroll" role="region" aria-label="외체계 10계층 강화 격자" tabIndex={0}>
+        <div className="energy-outer-grid">
+          <div className="energy-outer-grid-heading"><span>계층</span><span>타입</span>{Array.from({length:10},(_,index)=><span key={index}>{index+1}</span>)}</div>
+          {LAYERS.map(layer=><div className="energy-outer-layer" key={layer.level}>
+            <div className="energy-outer-layer-title">{layer.level}계층 · {layer.name}</div>
+            {layer.types.map(type=><div className="energy-outer-type-row" key={type}>
+              <span className="energy-outer-type-label"><EnergyTypeIcon type={type}/>{type}</span>
+              {Array.from({length:10},(_,index)=><span key={index} className="energy-outer-empty-slot" aria-label={type+' '+(index+1)+'번 빈 슬롯'} />)}
+            </div>)}
+          </div>)}
+        </div>
+      </div>
+      <p className="energy-outer-footnote">현재 배치된 강화 노드는 없습니다. 거시체계·시간체계는 향후 추가됩니다.</p>
+    </section>:<section className="panel energy-purchase-panel" role="tabpanel">
       <div className="energy-shop-list">
         {energyTab==='circulation'?<div className="energy-shop-item">
           <div><strong>{POINT_CIRCULATION.name}</strong><small>노말 에너지 +0.5/초</small></div>
