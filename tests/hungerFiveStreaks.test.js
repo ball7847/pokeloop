@@ -31,7 +31,7 @@ function run(strategy){
    // Purchase only the actually implemented fixed circulation when all three costs are affordable.
    if(circulationBoughtAt===null){
      const next=transition(s,{type:'BUY_CIRCULATION',id:'point'});
-     if(next!==s){s=next;circulationBoughtAt=ms;note('점의 순환 구매 · 노말+벌레+비행 에너지 각 10 지불 · 노말 +0.3/s');}
+     if(next!==s){s=next;circulationBoughtAt=ms;note('점의 순환 구매 · 노말+벌레+비행 에너지 각 10 지불 · 노말 +0.5/s');}
    }
    if(automationBoughtAt===null){
      const bought=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
@@ -200,7 +200,7 @@ function run(strategy){
      for(const [type,value] of Object.entries(battleEnergyRewards(pokemon,i)))totalEnergy[type]+=value;
    }
  }
- const result={pointCirculation:{purchased:circulationBoughtAt!==null,boughtAtMs:circulationBoughtAt,seconds:circulationSeconds,produced:circulationSeconds*0.3,unlocked:s.pointCirculationUnlocked},fiveClearTimelineEnd,fiveClearStats,fiveClearUpgrades,fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
+ const result={pointCirculation:{purchased:circulationBoughtAt!==null,boughtAtMs:circulationBoughtAt,seconds:circulationSeconds,produced:circulationSeconds*0.5,unlocked:s.pointCirculationUnlocked},fiveClearTimelineEnd,fiveClearStats,fiveClearUpgrades,fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
