@@ -58,12 +58,18 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     // Actions are attempted with real balances; failed attempts do not mutate state.
     for(const item of AUTOMATIONS){
       if(state.qolUnlocks.includes(item.id))continue;
+      const before={...state.energyBalances};
       if(act({type:'BUY_AUTOMATION',id:item.id})){
+        captureSpending(before,state.energyBalances);
         changed=true;note('automation', {id:item.id});
         if(item.id==='resolve'&&state.automation.resolve)act({type:'TOGGLE_AUTOMATION',id:'resolve'});
       }
     }
-    if(act({type:'BUY_CIRCULATION',id:'point'})){changed=true;note('production-purchase',{id:'point'});}
+    const beforeCirculation={...state.energyBalances};
+    if(act({type:'BUY_CIRCULATION',id:'point'})){
+      captureSpending(beforeCirculation,state.energyBalances);
+      changed=true;note('production-purchase',{id:'point'});
+    }
     for(let i=0;i<180;i++){
       const order=[...UPGRADES].sort((a,b)=>(state.energyUpgrades[a.id]??0)-(state.energyUpgrades[b.id]??0));
       let bought=false;
@@ -122,7 +128,9 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
       // The combat event reports the actual grant, including SU bonuses.
       const after=state.killCounts[id]??0;
       if(after>previous){
-        const rewards=state.combat.lastEvent?.energyRewards??{};
+        if(after-previous!==1)throw Error('multiple kills in one tick: reduce tick duration');
+        const rewards=state.combat.lastEvent?.energyRewards;
+        if(!rewards)throw Error('missing victory reward event');
         for(const [type,amount] of Object.entries(rewards))gained[type]=addAmount(gained[type],amount);
         wins+=after-previous;previous=after;
         note('victory',{id,kills:after,streak:wins});
@@ -189,10 +197,12 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
   recover();
   shop();
   const exit=decidePlanetExit(state,true);
+  const finalFiveCleared=availableTargets(state).length>0&&availableTargets(state).every(id=>(state.killCounts[id]??0)>=5);
+  if(finalFiveCleared&&!firstPassDone){firstPassDone=true;note('five-phase-completed-after-farming');}
   const capped=availableTargets(state).filter(id=>(state.killCounts[id]??0)>=10);
   const incomplete=availableTargets(state).filter(id=>(state.killCounts[id]??0)<10);
   const report={planet:startMoves+1,reason:safetyStop??exit.status,exitReason:exit.reason,
-    fiveCleared:firstPassDone,appeared:availableTargets(state),capped,incomplete,
+    fiveCleared:finalFiveCleared,appeared:availableTargets(state),capped,incomplete,
     battles,attempts,defeats,maxStreak,seconds,stats:statsSnapshot(state),
     kills:{...state.killCounts},gained,spent,production,remaining:{...state.energyBalances},
     particles:{...state.particleBalances},pendingStellar:state.pendingStellar,
