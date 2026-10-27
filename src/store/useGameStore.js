@@ -44,6 +44,8 @@ export const useGameStore=create((set,get)=>({
   }),
   // UI-only filter persists across page tab unmounts, not in saved game data.
   wildRegionFilter:null,
+  energySystemTab:'micro',
+  setEnergySystemTab:(tab)=>set({energySystemTab:tab}),
   energySectionTab:'stats',
   setEnergySectionTab:(tab)=>set({energySectionTab:tab}),
   queueOfflineProduction:(seconds)=>set(previous=>
@@ -80,7 +82,7 @@ export const useGameStore=create((set,get)=>({
   resetSavedGame:()=>{
     clearLocalSave();
     set({game:initialState(),logs:[],damagePopups:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null,
-      offlineRemainingSeconds:0,wildRegionFilter:REGION.id,energySectionTab:'stats'});
+      offlineRemainingSeconds:0,wildRegionFilter:REGION.id,energySystemTab:'micro',energySectionTab:'stats'});
   },
   dispatch:(action)=>set(previous=>{
     const game=transition(previous.game,action);
@@ -103,6 +105,6 @@ export const useGameStore=create((set,get)=>({
     }))].slice(-24);
     return {game,damagePopups,nextDamagePopupId:previous.nextDamagePopupId+incoming.length,
       logs:message?[message,...previous.logs].slice(0,100):previous.logs,
-      ...(action.type==='MOVE_PLANET'||action.type==='RESET'?{wildRegionFilter:REGION.id,energySectionTab:'stats',offlineRemainingSeconds:0}:{})};
+      ...(action.type==='MOVE_PLANET'||action.type==='RESET'?{wildRegionFilter:REGION.id,energySystemTab:'micro',energySectionTab:'stats',offlineRemainingSeconds:0}:{})};
   })
 }));
