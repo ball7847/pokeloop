@@ -91,3 +91,21 @@
 @media(max-width:600px){.battle-damage-number{font-size:20px}.battle-damage-number.is-miss,.battle-damage-number.is-blocked{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.battle-damage-number{animation:pokeloop-damage-fade 1.2s linear forwards}
   @keyframes pokeloop-damage-fade{0%,70%{opacity:1}100%{opacity:0}}}
+
+
+/* Energy systems: micro shop, middle particle world, outer SE progression grid. */
+.energy-system-tabs{margin-bottom:7px}
+.energy-outer-panel{min-width:0}
+.energy-outer-panel>h3{margin-top:0}
+.energy-outer-panel>p{font-size:12px;line-height:1.5}
+.energy-outer-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:5px}
+.energy-outer-grid{min-width:880px;font-size:11px}
+.energy-outer-grid-heading{display:grid;grid-template-columns:112px 85px repeat(10,minmax(54px,1fr));gap:5px;align-items:center;text-align:center;padding:8px 6px;font-weight:700;background:#f0ede6;border:1px solid #ddd5c9;border-radius:5px 5px 0 0}
+.energy-outer-layer{display:grid;grid-template-columns:112px minmax(0,1fr);border:1px solid #ddd5c9;border-top:0;background:#fffcf6}
+.energy-outer-layer:nth-child(2n+1){background:#f8f5ee}
+.energy-outer-layer-title{display:flex;align-items:center;justify-content:center;padding:9px 5px;border-right:1px solid #ddd5c9;font-weight:700;text-align:center}
+.energy-outer-type-row{grid-column:2;display:grid;grid-template-columns:85px repeat(10,minmax(54px,1fr));gap:5px;align-items:center;padding:5px 6px;border-top:1px solid #eee8dd}
+.energy-outer-type-row:first-of-type{border-top:0}
+.energy-outer-type-label{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:600}
+.energy-outer-empty-slot{display:block;height:29px;border:1px dashed #d5cfc5;border-radius:5px;background:rgba(120,110,90,.045)}
+.energy-outer-footnote{color:#817568}
