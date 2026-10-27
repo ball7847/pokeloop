@@ -22,7 +22,7 @@ export function EnergyPage(){
       {[['stats','강화'],['circulation','순환'],['automation','자동화']].map(([id,label])=><button key={id} type="button" role="tab"
         aria-selected={energyTab===id} className={'ditto-info-tab '+(energyTab===id?'is-active':'')}
         onClick={()=>setEnergyTab(id)}>{label}</button>)}
-    </div>
+    </div>}
     {systemTab==='middle'?<div className="energy-world-content" role="tabpanel" aria-label="중간체계">
     <div className="energy-world-layers">
     <section className="panel energy-page-balances"><h3>10계층 입자 생산 현황 <small>{game.unlockedLayer}/10계층 해금</small></h3>
