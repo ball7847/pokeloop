@@ -5,7 +5,7 @@ import {recordItemProgress} from './itemSystem.js';
 import {stellarBattleEnergyReward} from './stellarUpgrades.js';
 import {effectiveDittoStats} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
-import {appendDamageEvents,appendStatusDamageEvent} from './combatVisualEvents.js';
+import {appendDamageEvents,appendStatusDamageEvent,appendHealingEvent} from './combatVisualEvents.js';
 export const emptyCombat = hp=>({
   active:false, enemy:null, currentHp:hp, maxHp:hp,
   dittoHp:{current:hp,max:hp}, dittoAttackCooldown:null, regenerationElapsedMs:0,
@@ -169,8 +169,11 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
       // Poison death is final; healing cannot revive the combatant.
       if(compareAmount(getHp(),0)<=0)continue;
       if(compareAmount(stats.regeneration??0,0)>0&&compareAmount(getHp(),maxHp)<0){
-        const restored=addAmount(getHp(),stats.regeneration);
-        setHp(compareAmount(restored,maxHp)>0?maxHp:restored);
+        const before=getHp();
+        const restored=addAmount(before,stats.regeneration);
+        const after=compareAmount(restored,maxHp)>0?maxHp:restored;
+        setHp(after);
+        appendHealingEvent(visualEvents,target,before,after);
       }
     }
   };

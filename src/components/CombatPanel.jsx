@@ -62,7 +62,7 @@ export function DamagePopupLayer({active=false}){
       return <span key={effect.id} className={'battle-damage-number is-'+effect.kind+(effect.target==='player'?' on-player':' on-enemy')}
         style={{left:pos?pos.x+offsetX+'px':effect.target==='enemy'?'50%':'50%',
           top:pos?pos.y+offsetY+'px':effect.target==='enemy'?'31%':'83%'}}>
-        {effect.kind==='miss'?'MISS':effect.kind==='blocked'?'0':'−'+fmt(effect.value)}
+        {effect.kind==='miss'?'MISS':effect.kind==='blocked'?'0':effect.kind==='heal'?'+'+fmt(effect.value):'−'+fmt(effect.value)}
       </span>;
     })}
   </div>;
