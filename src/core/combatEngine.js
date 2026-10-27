@@ -1,6 +1,7 @@
 import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,evolutionFor,evolutionChance} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
+import {recordItemProgress} from './itemSystem.js';
 import {stellarBattleEnergyReward} from './stellarUpgrades.js';
 import {effectiveDittoStats} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
@@ -53,7 +54,8 @@ function finish(state,c,type,random=Math.random) {
       rewarded=grantBattleEnergy(rewarded,[type],amount);
     const evolution=count===0?evolutionFor(p.id):null;
     const evolutionResults=evolution?{...state.evolutionResults,[evolution.id]:random()<evolutionChance(evolution,state)}:state.evolutionResults;
-    const updated={...rewarded,evolutionResults,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,
+    const itemProgress=recordItemProgress(recordItemProgress(rewarded,'victories'),'pokemon:'+p.id);
+    const updated={...itemProgress,dexLifetimeKills:{...state.dexLifetimeKills,[p.id]:(state.dexLifetimeKills?.[p.id]??0)+1},evolutionResults,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,
       encounterIndex:state.encounterIndex+1,
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
