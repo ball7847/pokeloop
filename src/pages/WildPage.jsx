@@ -1,4 +1,4 @@
-import {StatLabel} from '../components/StatIcon.jsx';
+import {StatIcon} from '../components/StatIcon.jsx';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React,{useMemo} from 'react';
@@ -47,18 +47,18 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
         <strong className="wild-name">{pokemon.name}</strong>
         <div className="wild-basic-stats">
           {WILD_BASIC_FIELDS.map(({key,label})=>basic.has(key)
-            ? <div key={key} className="wild-stat-box"><StatLabel stat={key} label={label} compact/><strong>{formatBasicStat(key,pokemon[key])}</strong></div>
+            ? <div key={key} className="wild-stat-box" title={label+' '+formatBasicStat(key,pokemon[key])} aria-label={label+' '+formatBasicStat(key,pokemon[key])}><StatIcon stat={key} fallback/><strong>{formatBasicStat(key,pokemon[key])}</strong></div>
             : <div key={key} className="wild-stat-slot-empty" aria-hidden="true"/>)}
         </div>
       </div>
     </div>
     <div className="wild-extra-stats" aria-label="특별 능력치">
-      {extras.map(([key,value])=><div key={key} className="wild-stat-box">
-        <StatLabel stat={key} label={EXTRA_LABELS[key]??key}/><strong>{formatStatValue(key,value)}</strong>
+      {extras.map(([key,value])=><div key={key} className="wild-stat-box" title={(EXTRA_LABELS[key]??statLabel(key))+" "+formatStatValue(key,value)} aria-label={(EXTRA_LABELS[key]??statLabel(key))+" "+formatStatValue(key,value)}>
+        <StatIcon stat={key} fallback/><strong>{formatStatValue(key,value)}</strong>
       </div>)}
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
-      {gain.map(({stat,label,value})=><span className="wild-reward" key={stat}><StatLabel stat={stat} label={label} compact/> {rewardText(stat,value)}</span>)}
+      {gain.map(({stat,label,value})=><span className="wild-reward" key={stat} title={label+" "+rewardText(stat,value)} aria-label={label+" "+rewardText(stat,value)}><StatIcon stat={stat} fallback/> {rewardText(stat,value)}</span>)}
       {Object.keys(battleEnergyRewards(pokemon,count)).length===0?<span className="wild-reward">타입 에너지 보상 미설정</span>:
        Object.entries(battleEnergyRewards(pokemon,count)).map(([type,amount])=>
          <span className="wild-reward" key={'energy-'+type} title={type+' 에너지 +'+formatAmount(amount)} aria-label={type+' 에너지 +'+formatAmount(amount)}><EnergyTypeIcon type={type}/>+{formatAmount(amount)}</span>)}
