@@ -5,6 +5,7 @@ import {ALL_POKEMON,REGIONS,regionForPokemon,spriteUrl,battleEnergyRewards} from
 import {BASIC_STAT_FIELDS,BASIC_STAT_KEYS,formatStatValue} from '../core/dittoStats.js';
 import {formatAmount} from '../core/bigNumber.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
+import {StatIcon} from '../components/StatIcon.jsx';
 import {ITEMS} from '../core/itemSystem.js';
 
 const POKEMON=Object.freeze([...ALL_POKEMON].sort((a,b)=>a.number-b.number||a.id.localeCompare(b.id)));
@@ -113,7 +114,7 @@ function StatsDex(){
     {['기본 능력치','특수 능력치'].map((category,i)=><section key={category} className="dex-stat-section">
       <h3>{category}</h3><div className="dex-stat-entries">
       {BASIC_STAT_FIELDS.filter(f=>i===0?BASIC_STAT_KEYS.includes(f.key):!BASIC_STAT_KEYS.includes(f.key)).map(f=>
-        <details key={f.key} className="dex-stat-entry"><summary>{f.label}</summary><p>{STAT_DETAILS[f.key]??f.description}</p></details>)}
+        <details key={f.key} className="dex-stat-entry"><summary><StatIcon stat={f.key}/>{f.label}</summary><p>{STAT_DETAILS[f.key]??f.description}</p></details>)}
       </div></section>)}
   </div>;
 }
