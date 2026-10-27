@@ -251,7 +251,9 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,logLimit=5000,
     }
     const fp=JSON.stringify({kills:report.kills,stellar:state.totalStellarEarned,
       permanent:state.permanentUpgrades,pending:state.pendingStellar});
-    if(lastFingerprint===fp&&Object.keys(STELLAR_UPGRADE_BY_ID).every(id=>state.permanentUpgrades[id]===1)){
+    const noAffordableSu=Object.values(STELLAR_UPGRADE_BY_ID).every(node=>
+      state.permanentUpgrades[node.id]===1||compareAmount(state.stellar,node.cost)<0);
+    if(lastFingerprint===fp&&noAffordableSu){
       stop='no-progress';break;
     }
     lastFingerprint=fp;
