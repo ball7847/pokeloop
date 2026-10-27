@@ -54,7 +54,7 @@ export function EnergyPage(){
     </div>:<section className="panel energy-purchase-panel" role="tabpanel">
       <div className="energy-shop-list">
         {energyTab==='circulation'?<div className="energy-shop-item">
-          <div><strong>{POINT_CIRCULATION.name}</strong><small>노말 에너지 +0.3/초</small></div>
+          <div><strong>{POINT_CIRCULATION.name}</strong><small>노말 에너지 +0.5/초</small></div>
           {game.pointCirculationUnlocked?<button type="button" disabled>구매 완료</button>:
             <button type="button" disabled={game.phase!=='running'||Object.entries(POINT_CIRCULATION.costs).some(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)<0)}
               onClick={()=>dispatch({type:'BUY_CIRCULATION',id:POINT_CIRCULATION.id})}>{Object.entries(POINT_CIRCULATION.costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</button>}
