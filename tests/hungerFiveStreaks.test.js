@@ -15,6 +15,7 @@ function run(strategy){
  const reportIds=[...allIds,...evolutionIds];
  const logs=[],timeline=[],firstChallenge={},firstKillSnapshots={},battles={},streaks={},failures={},pending=[];
  const purchasedAutomations=[];
+ let circulationBoughtAt=null, circulationSeconds=0;
  const labels={rattata:'꼬렛',pidgey:'구구',mankey:'망키',spearow:'깨비참',zubat:'주뱃',meowth:'나옹',geodude:'꼬마돌',exeggcute:'아라리',sentret:'꼬리선',tauros:'켄타로스',caterpie:'캐터피',weedle:'뿔충이',taillow:'테일로',igglybuff:'푸푸린','nidoran-m':'니드런♂','nidoran-f':'니드런♀',tangela:'덩쿠리',bidoof:'비버니',surskit:'비구술',tropius:'트로피우스',metapod:'단데기',kakuna:'딱충이'};
  const note=message=>timeline.push(message);
  let automationBoughtAt=null;
@@ -27,6 +28,11 @@ function run(strategy){
    }
  }
  function shop(){
+   // Purchase only the actually implemented fixed circulation when all three costs are affordable.
+   if(circulationBoughtAt===null){
+     const next=transition(s,{type:'BUY_CIRCULATION',id:'point'});
+     if(next!==s){s=next;circulationBoughtAt=ms;note('점의 순환 구매 · 노말+벌레+비행 에너지 각 10 지불 · 노말 +0.3/s');}
+   }
    if(automationBoughtAt===null){
      const bought=transition(s,{type:'BUY_AUTOMATION',id:'hunger'});
      if(bought!==s){s=bought;automationBoughtAt=ms;note('끝없는 허기 구매');}
@@ -55,7 +61,10 @@ function run(strategy){
  function recover(){
    while(s.recoveryMs>0){
      const delta=Math.min(5000,s.recoveryMs);
-     s=transition(s,{type:'RECOVERY_TICK',deltaMs:delta});ms+=delta;
+     s=transition(s,{type:'RECOVERY_TICK',deltaMs:delta});
+     s=transition(s,{type:'ECONOMY_TICK',deltaMs:delta});
+     if(s.pointCirculationUnlocked)circulationSeconds+=delta/1000;
+     ms+=delta;
    }
  }
  function ensureRegion(id){
@@ -80,7 +89,9 @@ function run(strategy){
      const beforeFirstKill=(id==='nidoran-m'||id==='nidoran-f')&&!firstKillSnapshots[id]&&lastKills===0
        ? {stats:effectiveDittoStats(s),upgrades:{...s.energyUpgrades},baseStats:{...s.dittoStats}}:null;
      const next=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>0.5});
-     s=next;ms+=500;elapsed+=500;steps++;
+     s=transition(next,{type:'ECONOMY_TICK',deltaMs:500});
+     if(s.pointCirculationUnlocked)circulationSeconds+=0.5;
+     ms+=500;elapsed+=500;steps++;
      const now=s.killCounts[id]??0;
      if(now>lastKills){
        if(beforeFirstKill)firstKillSnapshots[id]={...beforeFirstKill,afterStats:effectiveDittoStats(s),afterBaseStats:{...s.dittoStats},killCount:now};
@@ -189,7 +200,7 @@ function run(strategy){
      for(const [type,value] of Object.entries(battleEnergyRewards(pokemon,i)))totalEnergy[type]+=value;
    }
  }
- const result={fiveClearTimelineEnd,fiveClearStats,fiveClearUpgrades,fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
+ const result={pointCirculation:{purchased:circulationBoughtAt!==null,boughtAtMs:circulationBoughtAt,seconds:circulationSeconds,produced:circulationSeconds*0.3,unlocked:s.pointCirculationUnlocked},fiveClearTimelineEnd,fiveClearStats,fiveClearUpgrades,fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
@@ -204,7 +215,7 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    assert.notEqual(result.automationBoughtAt,null,'hunger must be purchased with earned energy');
    assert.ok(result.victories>0);
    if(strategy!=='none')assert.ok(result.firstTaillow?.stats);
-   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({finalStats:result.stats,finalUpgrades:result.upgrades,fiveClearTimelineEnd:result.fiveClearTimelineEnd,fiveClearStats:result.fiveClearStats,fiveClearUpgrades:result.fiveClearUpgrades,fiveCleared:result.fiveCleared,secondPassPending:result.secondPassPending,appearedIds:result.appearedIds,totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,firstChallengeNidoran:result.firstChallengeNidoran,firstKillSnapshots:result.firstKillSnapshots,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
+   if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({pointCirculation:result.pointCirculation,finalStats:result.stats,finalUpgrades:result.upgrades,fiveClearTimelineEnd:result.fiveClearTimelineEnd,fiveClearStats:result.fiveClearStats,fiveClearUpgrades:result.fiveClearUpgrades,fiveCleared:result.fiveCleared,secondPassPending:result.secondPassPending,appearedIds:result.appearedIds,totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,firstChallengeNidoran:result.firstChallengeNidoran,firstKillSnapshots:result.firstKillSnapshots,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
 });
