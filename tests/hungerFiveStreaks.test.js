@@ -8,8 +8,8 @@ const groups=[
  [REGION.id,['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']],
  [BERRY_REGION.id,['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit','tropius']]
 ];
-function run(strategy){
- let s=transition(initialState(),{type:'START'}),ms=0,steps=0;
+function run(strategy,startingState=null,verbose=true){
+ let s=startingState??transition(initialState(),{type:'START'}),ms=0,steps=0;
  const allIds=groups.flatMap(([,ids])=>ids);
  const evolutionIds=['metapod','kakuna'];
  const reportIds=[...allIds,...evolutionIds];
@@ -206,8 +206,8 @@ function run(strategy){
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
    firstTaillow:firstChallenge.taillow??null,firstChallengeNidoran:{male:firstChallenge['nidoran-m'],female:firstChallenge['nidoran-f']},firstKillSnapshots,unresolved:pending,events:logs,purchasedAutomations,
    stats:effectiveDittoStats(s),upgrades:s.energyUpgrades,steps,timeline};
- console.log('HUNGER_FIVE_'+strategy.toUpperCase()+' '+JSON.stringify(result));
- return result;
+ if(verbose)console.log('HUNGER_FIVE_'+strategy.toUpperCase()+' '+JSON.stringify(result));
+ return {...result,state:s};
 }
 test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery and skip/retry',()=>{
  for(const strategy of ['balanced','attack','hp','none']){
@@ -218,4 +218,66 @@ test('buy real endless hunger and evaluate five-kill streaks, adaptive recovery 
    if(strategy==='balanced')console.log('OFFICIAL_FIVE_STREAK_REPORT '+JSON.stringify({pointCirculation:result.pointCirculation,finalStats:result.stats,finalUpgrades:result.upgrades,fiveClearTimelineEnd:result.fiveClearTimelineEnd,fiveClearStats:result.fiveClearStats,fiveClearUpgrades:result.fiveClearUpgrades,fiveCleared:result.fiveCleared,secondPassPending:result.secondPassPending,appearedIds:result.appearedIds,totalEnergy:result.totalEnergy,remainingEnergy:result.remainingEnergy,strategy,firstChallengeNidoran:result.firstChallengeNidoran,firstKillSnapshots:result.firstKillSnapshots,victories:result.victories,kills:result.kills,maxStreak:result.maxStreak,streaks:result.streaks,failures:result.failures,events:result.events,unresolved:result.unresolved,upgrades:result.upgrades,purchasedAutomations:result.purchasedAutomations,timeline:result.timeline}));
    assert.ok(Object.values(result.maxStreak).every(n=>n>=0&&n<=10));
  }
+});
+
+test('two real playthroughs separated by planet move; all victories and currency must be earned',()=>{
+ const first=run('balanced',null,false);
+ let s=first.state,interludeSeconds=0,interludePurchases=[],maximumWaitSeconds=14400;
+ const firstEnd={victories:s.victories,kills:first.kills,upgrades:{...s.energyUpgrades},
+  energyBalances:{...s.energyBalances},particleBalances:{...s.particleBalances},
+  particleEarned:{...s.particleEarned},milestones:{...s.particleMilestones},stellar:s.stellar,
+  pendingStellar:s.pendingStellar,normalFirstMilestonePermanent:s.normalFirstMilestonePermanent,
+  unlockedLayer:s.unlockedLayer,pointCirculationUnlocked:s.pointCirculationUnlocked,
+  elapsedSeconds:first.minutes*60,unresolved:first.unresolved};
+ // Once all accessible earlier species have reached their real caps, wait for the
+ // installed circulation to generate *real* normal energy and buy available upgrades.
+ // No currency/particles/stats are injected directly.
+ while(!(Number(s.pendingStellar)>0)&&interludeSeconds<maximumWaitSeconds){
+  if(s.recoveryMs>0)s=transition(s,{type:'RECOVERY_TICK',deltaMs:Math.min(5000,s.recoveryMs)});
+  s=transition(s,{type:'ECONOMY_TICK',deltaMs:5000});interludeSeconds+=5;
+  if(interludeSeconds%30===0){
+    for(let count=0;count<120;count++){
+      const order=[...UPGRADES].sort((a,b)=>(s.energyUpgrades[a.id]??0)-(s.energyUpgrades[b.id]??0));
+      let changed=false;
+      for(const up of order){const next=transition(s,{type:'BUY_UPGRADE',id:up.id});
+        if(next!==s){s=next;changed=true;interludePurchases.push(up.id+' Lv'+s.energyUpgrades[up.id]);break;}}
+      if(!changed)break;
+    }
+  }
+ }
+ const beforeMove={victories:s.victories,pendingStellar:s.pendingStellar,stellar:s.stellar,
+    unlockedLayer:s.unlockedLayer,normalFirstMilestonePermanent:s.normalFirstMilestonePermanent,
+    particleMilestones:{...s.particleMilestones},normalParticles:s.particleBalances.노말,
+    upgrades:{...s.energyUpgrades},remainingEnergy:{...s.energyBalances}};
+ assert.ok(Number(s.pendingStellar)>0,'planet move was not unlocked; do not fake eligibility');
+ assert.equal(s.combat.active,false);
+ assert.equal(s.recoveryMs,0);
+ const moved=transition(s,{type:'MOVE_PLANET'});
+ assert.equal(moved.planetMoves,1);
+ assert.equal(moved.stellar,s.pendingStellar);
+ assert.equal(moved.unlockedLayer,2);
+ assert.equal(moved.pointCirculationUnlocked,false);
+ assert.equal(moved.victories,0);
+ assert.ok(Object.values(moved.killCounts).every(n=>n===0));
+ const afterMove={planetMoves:moved.planetMoves,stellar:moved.stellar,
+   pendingStellar:moved.pendingStellar,normalFirstMilestonePermanent:moved.normalFirstMilestonePermanent,
+   unlockedLayer:moved.unlockedLayer,pointCirculationUnlocked:moved.pointCirculationUnlocked,
+   energyBalances:{...moved.energyBalances},particleBalances:{...moved.particleBalances},
+   upgrades:{...moved.energyUpgrades},victories:moved.victories};
+ const second=run('balanced',moved,false);
+ const secondEnd={fiveCleared:second.fiveCleared,victories:second.victories,
+   kills:second.kills,failures:second.failures,maxStreak:second.maxStreak,
+   unresolved:second.unresolved,events:second.events,timeline:second.timeline,
+   fiveClearTimelineEnd:second.fiveClearTimelineEnd,
+   upgrades:second.upgrades,stats:second.stats,remainingEnergy:second.remainingEnergy,
+   battleEnergy:second.totalEnergy,pointCirculation:second.pointCirculation,
+   purchasedAutomations:second.purchasedAutomations,stellar:second.state.stellar,
+   pendingStellar:second.state.pendingStellar,unlockedLayer:second.state.unlockedLayer,
+   milestones:second.state.particleMilestones,normalParticles:second.state.particleBalances.노말,
+   layer2Particles:Object.fromEntries(['불꽃','물','풀'].map(t=>[t,second.state.particleBalances[t]]))};
+ console.log('TWO_PLANET_VIRTUAL_REPORT '+JSON.stringify({firstEnd,interludeSeconds,
+   interludePurchases,beforeMove,afterMove,secondEnd}));
+ assert.equal(second.state.planetMoves,1);
+ assert.equal(second.state.stellar,afterMove.stellar);
+ assert.ok(second.victories>0);
 });
