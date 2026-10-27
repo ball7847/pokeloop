@@ -7,14 +7,15 @@ export const HOME_STAT_FILES = Object.freeze({
 });
 export const DAMAGE_STAT_FILES=Object.freeze({minDamagePercent:'minDamagePercent.svg',maxDamagePercent:'maxDamagePercent.svg'});
 // Icons traced from the player's transparent paralysis / poison artwork.
-export const STATUS_STAT_FILES=Object.freeze({paralysis:'paralysis.svg',poison:'poison.svg',antidote:'antidote.svg',multiStrike:'multiStrike.svg'});
+export const STATUS_STAT_FILES=Object.freeze({paralysis:'paralysis.svg',poison:'poison.svg',antidote:'antidote.svg'});
+export const MULTISTRIKE_STAT_FILES=Object.freeze({multiStrike:'multiStrike.svg'});
 const EXTRA_ICONS=Object.freeze({accuracy:'◎',dodge:'↝'});
 const SHORT_LABELS=Object.freeze({
   hp:'HP',attack:'공격',defense:'방어',
   specialAttack:'특공',specialDefense:'특방',speed:'스피드'
 });
 export function homeStatIconUrl(stat) {
-  const file=HOME_STAT_FILES[stat]??DAMAGE_STAT_FILES[stat]??STATUS_STAT_FILES[stat];
+  const file=HOME_STAT_FILES[stat]??DAMAGE_STAT_FILES[stat]??STATUS_STAT_FILES[stat]??MULTISTRIKE_STAT_FILES[stat];
   return file ? import.meta.env.BASE_URL+'assets/stats/'+file : null;
 }
 export function StatIcon({stat,className=''}) {
