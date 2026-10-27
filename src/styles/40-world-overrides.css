@@ -105,9 +105,6 @@
 .energy-outer-hex.is-node{fill:var(--su-node);stroke:var(--su-purchased)}
 .energy-outer-layer-label{font-size:12px;font-weight:700;fill:#6b6259}
 .energy-outer-type-text{font-size:12px;font-weight:600;fill:#423c35}
-.energy-outer-node-id{font-size:9px;font-weight:700;fill:#171717;pointer-events:none}
-.energy-outer-node-id.is-purchased{fill:#fff}
-.energy-outer-footnote{color:#817568}
 
 /* SU upgrades: occupied cells are selectable; blank cells remain non-interactive. */
 .energy-outer-hex.is-node{fill:var(--su-node);stroke:var(--su-purchased);stroke-width:1.5}
@@ -115,13 +112,19 @@
 .energy-outer-hex.is-selected{stroke:#ba7b1f;stroke-width:2.8}
 .energy-outer-node-hitbox{cursor:pointer;outline:none}
 .energy-outer-node-hitbox:focus-visible{stroke:#ba7b1f;stroke-width:2;stroke-dasharray:4 2}
-.energy-outer-upgrade-details{display:flex;flex-direction:column;gap:9px;margin-top:12px;padding:12px;border:1px solid #ddd5c9;border-radius:6px;background:#faf8f3;font-size:12px}
-.energy-outer-selected-upgrade{display:flex;align-items:center;justify-content:space-between;gap:14px}
-.energy-outer-selected-upgrade p{margin:4px 0}
-.energy-outer-selected-upgrade small{color:#6b6259}
-.energy-outer-selected-upgrade button{flex-shrink:0;padding:8px 12px;border:1px solid #99876d;border-radius:5px;background:#e8e4d9;cursor:pointer}
-.energy-outer-selected-upgrade button:disabled{cursor:not-allowed;opacity:.5}
-.energy-outer-upgrade-shortcuts{display:flex;flex-wrap:wrap;gap:6px}
-.energy-outer-upgrade-shortcuts button{font-size:11px;padding:5px 8px;border:1px solid #d1c7ba;background:#fff;border-radius:4px;cursor:pointer}
-.energy-outer-upgrade-shortcuts button[aria-pressed="true"]{border-color:#ba7b1f;background:#fff0d5}
-@media(max-width:600px){.energy-outer-selected-upgrade{align-items:start;flex-direction:column}}
+
+/* Each occupied hex shows its name; details and purchase controls live in a modal. */
+.energy-outer-node-name{font-size:8px;font-weight:700;fill:#171717;pointer-events:none}
+.energy-outer-node-name.is-purchased{fill:#fff}
+.energy-su-modal-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,17,24,.58)}
+.energy-su-modal{position:relative;width:min(100%,360px);max-height:calc(100vh - 40px);overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:25px 20px 20px;border:1px solid #bcb1a2;border-radius:12px;background:#fffdfa;box-shadow:0 16px 46px rgba(0,0,0,.3);color:#312a24}
+.energy-su-modal-close{position:absolute;top:8px;right:9px;display:flex;align-items:center;justify-content:center;width:35px;height:35px;border:0;border-radius:6px;background:transparent;font-size:25px;cursor:pointer;color:#5c5145}
+.energy-su-modal-close:hover,.energy-su-modal-close:focus-visible{background:#f0e9de}
+.energy-su-modal-id{font-size:12px;font-weight:800;color:#726252}
+.energy-su-modal h3{margin:0;font-size:20px;line-height:1.3}
+.energy-su-modal-field{display:flex;flex-direction:column;gap:4px;padding:11px;border:1px solid #e6ded2;border-radius:7px;background:#f9f5ee}
+.energy-su-modal-field span{font-size:12px;color:#74685b}
+.energy-su-modal-field strong{font-size:15px}
+.energy-su-modal>small{color:#6d6256}
+.energy-su-modal-buy{padding:12px;border:1px solid #99876d;border-radius:6px;background:#e8e4d9;font-weight:700;cursor:pointer}
+.energy-su-modal-buy:disabled{opacity:.55;cursor:not-allowed}
