@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useGameStore} from '../store/useGameStore.js';
 import {ALL_POKEMON,REGIONS,regionForPokemon,spriteUrl,battleEnergyRewards} from '../core/wildData.js';
@@ -68,6 +68,7 @@ function PokemonDex({game}){
   const [region,setRegion]=useState('all');
   const [filter,setFilter]=useState('all');
   const [selected,setSelected]=useState(null);
+  const closeDialog=useCallback(()=>setSelected(null),[]);
   const known=POKEMON.filter(p=>isKnown(game,p.id)).length;
   const defeated=POKEMON.filter(p=>dexKills(game,p.id)>0).length;
   const mastered=POKEMON.filter(p=>dexKills(game,p.id)>=10).length;
@@ -102,7 +103,7 @@ function PokemonDex({game}){
       </button>;
     })}</div>
     {matches.length===0&&<p className="dex-empty">검색 조건에 해당하는 포켓몬이 없습니다.</p>}
-    {selected&&<DexDialog pokemon={selected} game={game} onClose={()=>setSelected(null)}/>}
+    {selected&&<DexDialog pokemon={selected} game={game} onClose={closeDialog}/>}
   </div>;
 }
 function StatsDex(){
