@@ -4,15 +4,16 @@ import {LAYERS,particleRates,particleMilestoneThreshold,POINT_CIRCULATION} from 
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import {UPGRADES,AUTOMATIONS,upgradeCosts} from '../core/shopSystem.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
+import {STELLAR_UPGRADES,ownsStellarUpgrade} from '../core/stellarUpgrades.js';
 
 const OUTER_LAYERS=LAYERS.map(layer=>({...layer,types:layer.level===2?['풀','불꽃','물']:layer.types}));
-const STELLAR_NODES={}; // Type -> indexed physical slots. No upgrades have been defined yet.
+const STELLAR_NODES=STELLAR_UPGRADES;
 export function stellarUpgradeRows(nodes=STELLAR_NODES){
   let row=0;
   return OUTER_LAYERS.map(layer=>({...layer,rows:layer.types.map(type=>{
     row++;
     let number=0;
-    const slots=Array.from({length:row%2?9:8},(_,slot)=>{
+    const slots=Array.from({length:row%2?14:13},(_,slot)=>{
       const node=nodes[type]?.[slot]??null;
       return {slot,node,id:node?'SU'+String(row).padStart(2,'0')+(++number):null};
     });
@@ -25,25 +26,48 @@ const HEX_POINTS=Array.from({length:6},(_,i)=>{
   return [Math.cos(angle)*HEX_R,Math.sin(angle)*HEX_R].join(',');
 }).join(' ');
 function OuterStellarWorld(){
+  const [selected,setSelected]=React.useState('SU011');
+  const game=useGameStore(state=>state.game);
+  const dispatch=useGameStore(state=>state.dispatch);
   const layers=stellarUpgradeRows();
+  const nodes=layers.flatMap(layer=>layer.rows.flatMap(row=>row.slots.filter(slot=>slot.node)));
+  const detail=nodes.find(slot=>slot.id===selected)?.node??null;
   return <section className="panel energy-outer-panel" role="tabpanel" aria-label="외체계">
     <h3>외체계 · SU 영구 강화</h3>
-    <p>스텔라에너지 업그레이드(SU) · 10계층 · 18타입 · 육각형 벌집 배치(9칸/8칸 교대).</p>
+    <p>스텔라에너지 업그레이드(SU) · 10계층 · 18타입 · 육각형 벌집 배치(14칸/13칸 교대).</p>
     <div className="energy-outer-scroll" role="region" aria-label="외체계 육각형 강화 격자" tabIndex={0}>
-      <svg className="energy-outer-honeycomb" viewBox="0 0 570 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="10계층 18타입 153개 육각형 슬롯">
+      <svg className="energy-outer-honeycomb" viewBox="0 0 800 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="10계층 18타입 243개 육각형 슬롯">
         {layers.map(layer=><g key={layer.level}>
           <text x="6" y={34+((layer.rows[0].row+layer.rows[layer.rows.length-1].row)/2-1)*HEX_STEP+4} className="energy-outer-layer-label">{layer.level}계층</text>
           {layer.rows.map(({type,row,slots})=><g key={type}>
             <text x="76" y={34+(row-1)*HEX_STEP+4} className="energy-outer-type-text">{type}</text>
             {slots.map(({slot,node,id})=><g key={slot} transform={`translate(${164+(slot+(row%2===0?.5:0))*HEX_W},${34+(row-1)*HEX_STEP})`}>
-              <polygon points={HEX_POINTS} className={node?'energy-outer-hex is-node':'energy-outer-hex is-empty'}/>
-              {node&&<text y="3" textAnchor="middle" className="energy-outer-node-id">{id}</text>}
+              <polygon points={HEX_POINTS} className={node?'energy-outer-hex is-node'+(ownsStellarUpgrade(game,id)?' is-purchased':'')+(selected===id?' is-selected':''):'energy-outer-hex is-empty'}/>
+              {node&&<>
+                <text y="3" textAnchor="middle" className="energy-outer-node-id">{id}</text>
+                <rect x={-HEX_W/2} y={-HEX_R} width={HEX_W} height={HEX_R*2} fill="transparent"
+                  role="button" tabIndex="0" aria-label={id+' '+node.name}
+                  onClick={()=>setSelected(id)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setSelected(id);}}}
+                  className="energy-outer-node-hitbox"/>
+              </>}
             </g>)}
           </g>)}
         </g>)}
       </svg>
     </div>
-    <p className="energy-outer-footnote">현재 등록된 SU 노드는 없습니다. SU 번호는 각 타입 줄의 실제 노드만 왼쪽부터 세며 빈칸은 건너뜁니다. 효과·비용은 추후 설계됩니다.</p>
+    <div className="energy-outer-upgrade-details" aria-label="SU 업그레이드 상세">
+      <strong>보유 SE: {formatAmount(game.stellar??0)}</strong>
+      {detail&&<div className="energy-outer-selected-upgrade">
+        <div><strong>{selected} · {detail.name}</strong><p>{detail.description}</p><small>1회 한정 · SE {detail.cost}</small></div>
+        <button type="button" disabled={ownsStellarUpgrade(game,selected)||compareAmount(game.stellar??0,detail.cost)<0||game.phase!=='running'}
+          onClick={()=>dispatch({type:'BUY_STELLAR_UPGRADE',id:selected})}>
+          {ownsStellarUpgrade(game,selected)?'구매 완료':'SE '+detail.cost+' 구매'}
+        </button>
+      </div>}
+      <div className="energy-outer-upgrade-shortcuts">{nodes.map(({id,node})=><button type="button" key={id} aria-pressed={selected===id}
+        onClick={()=>setSelected(id)}>{id} {node.name}{ownsStellarUpgrade(game,id)?' ✓':''}</button>)}</div>
+    </div>
+    <p className="energy-outer-footnote">노말 타입 1·2·4번째 슬롯에 SU011·SU012·SU013이 있습니다. 빈 슬롯은 SU 번호에 포함되지 않습니다.</p>
   </section>;
 }
 

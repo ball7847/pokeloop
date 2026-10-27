@@ -5,6 +5,7 @@ import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
 import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
 import {DEFAULT_AUTOMATION,UPGRADES} from './shopSystem.js';
+import {STELLAR_UPGRADE_BY_ID} from './stellarUpgrades.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
@@ -146,6 +147,7 @@ export function decodeSave(encoded){
     for(const [target,source] of [['energyUpgrades',previous?'essenceUpgrades':'energyUpgrades'],['permanentUpgrades','permanentUpgrades']]){
       const value=original[source]??{};
       if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>100)throw new Error('강화 기록이 올바르지 않습니다.');
+      if(target==='permanentUpgrades'&&Object.entries(value).some(([id,level])=>!STELLAR_UPGRADE_BY_ID[id]||level!==1))throw new Error('SE 영구 강화 기록이 올바르지 않습니다.');
       eco[target]={...value};
     }
     const qol=original.qolUnlocks??[];

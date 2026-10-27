@@ -1,6 +1,7 @@
 import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,evolutionFor,evolutionChance} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
+import {stellarBattleEnergyReward} from './stellarUpgrades.js';
 import {effectiveDittoStats} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
 import {appendDamageEvents,appendStatusDamageEvent} from './combatVisualEvents.js';
@@ -28,7 +29,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
       stats:Object.fromEntries(visibleNonDefaultStats(p).map(({key,label})=>[label,p[key]])),
       minDamagePercent:p.minDamagePercent,maxDamagePercent:p.maxDamagePercent,
       rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,scaledReward(key,value,state.killCounts[id]||0)])),
-      energyRewards:battleEnergyRewards(p,state.killCounts[id]||0),
+      energyRewards:Object.fromEntries(Object.entries(battleEnergyRewards(p,state.killCounts[id]||0)).map(([type,amount])=>[type,stellarBattleEnergyReward(state,type,amount)])),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack,statistics:p
     },
@@ -46,7 +47,7 @@ function finish(state,c,type,random=Math.random) {
       const value=scaledReward(key,base,count);
       stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
-    const energyRewards=battleEnergyRewards(p,count);
+    const energyRewards=Object.fromEntries(Object.entries(battleEnergyRewards(p,count)).map(([type,amount])=>[type,stellarBattleEnergyReward(state,type,amount)]));
     let rewarded=state;
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);

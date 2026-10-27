@@ -2,7 +2,8 @@ import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemo
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
-import {buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION} from './shopSystem.js';
+import {buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION,effectiveDittoStats} from './shopSystem.js';
+import {buyStellarUpgrade} from './stellarUpgrades.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
@@ -20,6 +21,13 @@ export function transition(state, action) {
     case 'PAUSE': return state.phase===PHASE.RUNNING ? {...state,phase:PHASE.PAUSED}:state;
     case 'RESUME': return state.phase===PHASE.PAUSED ? {...state,phase:PHASE.RUNNING}:state;
     case 'RESET': return {...initialState(),runId:state.runId+1};
+    case 'BUY_STELLAR_UPGRADE': {
+      if(state.phase!==PHASE.RUNNING)return state;
+      const purchased=buyStellarUpgrade(state,action.id);
+      if(purchased===state||!state.combat.active)return purchased;
+      const hp=effectiveDittoStats(purchased).hp;
+      return {...purchased,combat:{...purchased.combat,maxHp:hp,dittoHp:{...purchased.combat.dittoHp,max:hp}}};
+    }
     case 'BUY_CIRCULATION': return state.phase===PHASE.RUNNING?buyPointCirculation(state):state;
     case 'BUY_UPGRADE': return state.phase===PHASE.RUNNING?buyUpgrade(state,action.id):state;
     case 'BUY_AUTOMATION': return state.phase===PHASE.RUNNING?buyAutomation(state,action.id):state;
