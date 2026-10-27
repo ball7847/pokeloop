@@ -193,3 +193,34 @@ test('point circulation survives save, old saves default off, planet move clears
  assert.throws(()=>decodeSave(missing),/순환/);
  assert.equal(transition(restored,{type:'MOVE_PLANET'}).pointCirculationUnlocked,false);
 });
+
+
+test('stellar conversion yields 1 per second per 1000 normal particles before softcap',()=>{
+ const s=initialEconomy();
+ s.unlockedLayer=2;
+ s.particleMilestones.노말=1;
+ s.particleBalances.노말=1000;
+ const next=tickEconomy(s,1);
+ assert.ok(Math.abs(next.pendingStellar-1)<1e-9);
+ assert.equal(next.stellar,0);
+});
+test('first stellar softcap starts at 100 pending, then quarters at 200',()=>{
+ const s=initialEconomy();
+ s.unlockedLayer=2;
+ s.particleMilestones.노말=1;
+ s.particleBalances.노말=1000;
+ for(const [pending,expected] of [[0,1],[99,1],[100,0.5],[200,0.25]]){
+   const next=tickEconomy({...s,pendingStellar:pending},1);
+   assert.ok(Math.abs(next.pendingStellar-pending-expected)<1e-8,`pending ${pending}: ${next.pendingStellar}`);
+ }
+});
+test('later planet moves retain lifetime stellar softcap baseline',()=>{
+ const s=initialEconomy();
+ s.unlockedLayer=2;
+ s.particleMilestones.노말=1;
+ s.particleBalances.노말=1000;
+ s.planetMoves=1;
+ s.totalStellarEarned=200;
+ assert.ok(Math.abs(tickEconomy({...s,pendingStellar:100},1).pendingStellar-101)<1e-8);
+ assert.ok(Math.abs(tickEconomy({...s,pendingStellar:200},1).pendingStellar-200.5)<1e-8);
+});
