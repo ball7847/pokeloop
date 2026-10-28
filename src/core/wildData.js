@@ -77,7 +77,7 @@ const selectedInSlot=(state,p)=>state?.raritySlotResults==null?
  state.raritySlotResults[baseSlotId(p)]===p.id;
 const region1Lineup=state=>[...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON]
  .filter(p=>selectedInSlot(state,p))
- .sort((a,b)=>Number(a.encounterCode.slice(3,5))-Number(b.encounterCode.slice(2,4)));
+ .sort((a,b)=>Number(a.encounterCode.slice(3,5))-Number(b.encounterCode.slice(3,5)));
 
 const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
  BERRY_POKEMON.filter(p=>!p.evolvesFrom&&selectedInSlot(state,p)):
