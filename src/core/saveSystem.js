@@ -5,7 +5,7 @@ import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
 import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
-import {DEFAULT_AUTOMATION,UPGRADES} from './shopSystem.js';
+import {DEFAULT_AUTOMATION,DEFAULT_AUTO_BUY_SELECTION,AUTOMATIONS,UPGRADES} from './shopSystem.js';
 import {STELLAR_UPGRADE_BY_ID,stellarUncommonBonus} from './stellarUpgrades.js';
 import {ITEM_BY_ID} from './itemSystem.js';
 
@@ -39,6 +39,7 @@ export function gameSnapshot(game){
     itemPending:game.itemPending??[],itemOwned:game.itemOwned??[],
     evolutionResults:game.evolutionResults??{},
     automation:game.automation??DEFAULT_AUTOMATION,
+    autoBuySelection:game.autoBuySelection??DEFAULT_AUTO_BUY_SELECTION,
     recoveryMs:game.recoveryMs??0,retryPokemonId:game.retryPokemonId??null,
     ...Object.fromEntries(['energyBalances','particleBalances','particleEarned','particleBank','particleMilestones','unlockedLayer',
       'normalFirstMilestonePermanent','pendingStellar','stellar','totalStellarEarned','planetMoves','energyUpgrades',
@@ -214,13 +215,16 @@ export function decodeSave(encoded){
     if(!levels||typeof levels!=='object'||Array.isArray(levels)||Object.keys(levels).some(k=>!UPGRADES.some(upgrade=>upgrade.id===k))||
       Object.values(levels).some(v=>!validInteger(v,1000000)))throw new Error('강화 레벨이 올바르지 않습니다.');
     const owned=original.qolUnlocks??[];
-    if(owned.some(k=>!['hunger','resolve'].includes(k)))throw new Error('자동화 해금 데이터가 올바르지 않습니다.');
+    if(owned.some(k=>!AUTOMATIONS.some(item=>item.id===k)))throw new Error('자동화 해금 데이터가 올바르지 않습니다.');
     const flags=original.automation??{};
     if(!flags||typeof flags!=='object'||Array.isArray(flags)||
-      Object.keys(flags).some(k=>!['hunger','resolve'].includes(k))||
+      Object.keys(flags).some(k=>!AUTOMATIONS.some(item=>item.id===k))||
       Object.values(flags).some(v=>typeof v!=='boolean'))throw new Error('자동화 활성화 값이 올바르지 않습니다.');
     if(Object.entries(flags).some(([k,v])=>v&&!owned.includes(k)))throw new Error('미해금 자동화 활성화');
     cleanGame.automation={...DEFAULT_AUTOMATION,...flags};
+    const selection=original.autoBuySelection??{};
+    if(!selection||typeof selection!=='object'||Array.isArray(selection)||Object.entries(selection).some(([id,enabled])=>!UPGRADES.some(item=>item.id===id)||typeof enabled!=='boolean'))throw new Error('자동 구매 선택값이 올바르지 않습니다.');
+    cleanGame.autoBuySelection={...DEFAULT_AUTO_BUY_SELECTION,...selection};
     const remaining=original.recoveryMs??0;
     if(typeof remaining!=='number'||!Number.isFinite(remaining)||remaining<0||remaining>10000)
       throw new Error('회복시간이 올바르지 않습니다.');

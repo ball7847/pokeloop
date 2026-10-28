@@ -83,6 +83,7 @@ export function WildPage(){
   const raritySlotResults=useGameStore(s=>s.game.raritySlotResults);
   const uncommonStarterId=useGameStore(s=>s.game.uncommonStarterId);
   const evolutionResults=useGameStore(s=>s.game.evolutionResults);
+  const hideCompleted=useGameStore(s=>s.game.automation?.intimidate&&s.game.qolUnlocks?.includes('intimidate'));
   const game=useMemo(()=>({killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,raritySlotResults,evolutionResults}),
     [killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,raritySlotResults,evolutionResults]);
   const combatActive=useGameStore(s=>s.game.combat.active);
@@ -95,7 +96,8 @@ export function WildPage(){
   const setRegionFilter=useGameStore(s=>s.setWildRegionFilter);
   const regionFilter=storedFilter??activeRegionId;
   const allRegions=regionFilter==='all';
-  const pokemon=visiblePokemonForRegion(game,regionFilter);
+  const allPokemon=visiblePokemonForRegion(game,regionFilter);
+  const pokemon=hideCompleted?allPokemon.filter(p=>(killCounts[p.id]??0)<REGION.defaultKillLimit):allPokemon;
   const selectPokemon=p=>{
     if(allRegions){
       const home=REGIONS.find(r=>appearedInRegion(game,r.id).some(x=>x.id===p.id));
@@ -104,7 +106,7 @@ export function WildPage(){
     }
     dispatch({type:'SELECT_WILD',pokemonId:p.id});
   };
-  const total=pokemon.reduce((sum,p)=>sum+(killCounts[p.id]||0),0);
+  const total=allPokemon.reduce((sum,p)=>sum+(killCounts[p.id]||0),0);
   return <section className="wild-page">
     <div className="wild-region-tabs" role="tablist" aria-label="지역 선택">
       <button key="all" role="tab" type="button" aria-selected={allRegions}
@@ -113,7 +115,7 @@ export function WildPage(){
         disabled={!isRegionUnlocked(game,r.id)||combatActive} onClick={()=>{setRegionFilter(r.id);dispatch({type:'SELECT_REGION',regionId:r.id});}}>
         {r.name}</button>)}
     </div>
-    <div className="wild-region-summary"><span className="wild-progress">{total} / {pokemon.length*REGION.defaultKillLimit}회 처치</span></div>
+    <div className="wild-region-summary"><span className="wild-progress">{total} / {allPokemon.length*REGION.defaultKillLimit}회 처치</span></div>
     {recoveryMs>0&&<p className="wild-recovery" role="status">메타몽 회복 중 · {(recoveryMs/1000).toFixed(1)}초</p>}
     <div className="wild-grid">
       {pokemon.map(p=>{

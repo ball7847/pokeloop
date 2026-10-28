@@ -205,6 +205,9 @@ export function EnergyPage(){
                 {active?'활성화 · 끄기':'비활성화 · 켜기'}</button>:
                 <button type="button" disabled={compareAmount(game.energyBalances[item.type]??0,item.cost)<0||game.phase==='paused'}
                   onClick={()=>dispatch({type:'BUY_AUTOMATION',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {item.cost} 해금</button>}
+              {item.id==='download'&&owned&&<div className="energy-auto-buy-options" aria-label="다운로드 자동 구매 항목 설정">
+                {UPGRADES.map(upgrade=><label key={upgrade.id} className="energy-auto-buy-option"><input type="checkbox" checked={game.autoBuySelection?.[upgrade.id]??true} onChange={()=>dispatch({type:'TOGGLE_AUTO_BUY_ITEM',id:upgrade.id})}/> {upgrade.name}</label>)}
+              </div>}
             </div>;
           })}
         </>}
