@@ -16,15 +16,17 @@ const entries=[
 {id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:49,hp:225,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
 ];
 // Encounter codes identify regional slots independently from species IDs.
-const region1Codes=Object.freeze(['R10101','R10201','R10401','R10501','R10701','R10901','R11001','R11101','R11201','R11401']);
+const region1Codes=Object.freeze(['R10101','R10201','R10401','R10501','R10701','R10901','R11001','R11201','R11401','R11601']);
 export const WILD_POKEMON=Object.freeze(entries.map((p,i)=>Object.freeze({...p,...resolveStats(p),encounterCode:region1Codes[i]})));
 export const UNCOMMON_BASE_CHANCE=0;
 export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map((p,i)=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),encounterCode:'R10802-0'+(i+1),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
 export const PLAINS_UNCOMMON=Object.freeze([
  {id:'psyduck',number:54,name:'고라파덕',types:['물'],rarity:'uncommon',encounterCode:'R10302',hp:50,attack:5.2,speed:1400,energyReward:5.5,rewards:{hp:8,attack:2.6}},
  {id:'ponyta',number:77,name:'포니타',types:['불꽃'],rarity:'uncommon',encounterCode:'R10602',hp:77,attack:8.5,speed:800,energyReward:7.7,rewards:{attack:4.1,speed:-20}},
- {id:'zigzagoon',number:263,name:'지그제구리',types:['노말'],rarity:'uncommon',encounterCode:'R11302-01',hp:138,attack:13,speed:1100,dodge:260,energyReward:13.4,rewards:{dodge:13}},
- {id:'zigzagoon-galar',number:263,spriteNumber:10174,name:'지그제구리(가라르의 모습)',types:['악','노말'],rarity:'uncommon',encounterCode:'R11302-02',hp:138,attack:26,speed:1100,dodge:130,energyReward:3.4,rewards:{attack:2.6,dodge:13}}
+ {id:'ekans',number:23,name:'아보',types:['독'],rarity:'uncommon',encounterCode:'R11102',hp:88,attack:20,speed:2000,dodge:880,poison:20,antidote:100,energyReward:8,rewards:{dodge:20,poison:8}},
+ {id:'rookidee',number:821,name:'파라꼬',types:['비행'],rarity:'uncommon',encounterCode:'R11302',hp:176,attack:27,defense:15,specialDefense:15,speed:2300,accuracy:200,energyReward:8,rewards:{hp:8,defense:8,specialDefense:8,accuracy:4}},
+ {id:'zigzagoon',number:263,name:'지그제구리',types:['노말'],rarity:'uncommon',encounterCode:'R11502-01',hp:138,attack:13,speed:1100,dodge:260,energyReward:13.4,rewards:{dodge:13}},
+ {id:'zigzagoon-galar',number:263,spriteNumber:10174,name:'지그제구리(가라르의 모습)',types:['악','노말'],rarity:'uncommon',encounterCode:'R11502-02',hp:138,attack:26,speed:1100,dodge:130,energyReward:3.4,rewards:{attack:2.6,dodge:13}}
 ].map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 const berryEntries=[
