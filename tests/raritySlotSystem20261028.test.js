@@ -129,7 +129,7 @@ test('new catalog slots do not invalidate previously generated v14 saves',()=>{
  const encoded=encodeSave(old);
  const payload=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded),v=>v.charCodeAt(0))));
  payload.version=14;
- payload.game.raritySlotResults={W010602:'bulbasaur'};
+ payload.game.raritySlotResults={R10602:'bulbasaur'};
  const modified=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(payload))));
  const loaded=decodeSave(modified).game;
  assert.equal(loaded.raritySlotResults.W010802,'bulbasaur');
