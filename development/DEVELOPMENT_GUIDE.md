@@ -20,7 +20,7 @@
 - 포켓몬/지역: `src/core/wildData.js`; 성장·표시: `src/core/dittoStats.js`.
 - 타입 에너지·입자·행성 이동: `src/core/energySystem.js`, 영구 강화 `src/core/stellarUpgrades.js`; 강화·자동화: `src/core/shopSystem.js`.
 - 도감/영구 도구 기반: `src/pages/DexPage.jsx`, `src/core/itemSystem.js`; 공용 능력치 아이콘: `src/components/StatIcon.jsx`, `public/assets/stats/`.
-- 저장: `src/core/saveSystem.js` (**현재 v12**); 시계: `src/components/GameClocks.jsx`.
+- 저장: `src/core/saveSystem.js` (**현재 v13**); 시계: `src/components/GameClocks.jsx`.
 - 화면: `src/pages/`, `src/components/`; CSS: `src/styles/`, `src/style.css`; 테스트: `tests/`.
 - CI: `.github/workflows/verify.yml`; GitHub Pages: `.github/workflows/deploy.yml`.
 
@@ -70,5 +70,5 @@
 - **최신 기능 병합:** PR #116 도감 4탭·영구 처치 기록·도구 기반; #117 미발견 도감 상세; #118 회색 교차 칼 **연타** SVG; #119 야생 적 카드 기본·특별 능력치 및 스탯 보상 **아이콘+수치만** 표시(명중·회피·회복 아이콘 포함); #120 전투 HP 회복 시 실제 회복량만 초록색 `+숫자`로 표시. 최신 게임 코드 기준 커밋 **`9db9bb552192b9a6921effe0e91cd4b9767847f5`**.
 - **검증:** #120 PR의 `npm test`와 `npm run build` 모두 성공 후 squash merge. 다만 **실제 브라우저·모바일 육안 확인은 수행했다고 주장하지 않는다**.
 - **최근 사용자 요청:** 회복 팝업 병합 후 사용자가 ‘테스트 규칙에 따라 가상테스트 진행’이라고 요청했으나, **본 문서 갱신 시점까지 별도 가상 플레이 결과는 이 대화에서 보고되지 않았다.** 다음 대화에서 테스트를 요청하면 `tests/hungerFiveStreaks.test.js`를 현재 `main`에서 실행해 VIRTUAL_PLAY_RULES.md §1 형식의 실제 결과를 보고할 것. 기존 과거 결과를 새로운 테스트로 둔갑시키지 말 것.
-- **후속 작업 현황:** 사용자 요청이 없는 기능을 자동 구현하지 말 것. 기술 시스템, 개별 도구 목록·효과, 타입 상성/동화도/자속의 실제 전투 연결, 3~20지역 배치, 그 외 SU 노드와 후반 시스템은 미구현 또는 기획 단계다. 저장 **v12**와 과거 저장 호환성을 유지한다.
+- **후속 작업 현황:** 사용자 요청이 없는 기능을 자동 구현하지 말 것. 기술 시스템, 개별 도구 목록·효과, 타입 상성/동화도/자속의 실제 전투 연결, 3~20지역 배치, 그 외 SU 노드와 후반 시스템은 미구현 또는 기획 단계다. 저장 **v13**과 과거 저장 호환성을 유지한다.
 - **다음 대화 시작용 문장:** `ball7847/pokeloop GitHub main의 development/DEVELOPMENT_GUIDE.md, IMPLEMENTED_SYSTEMS.md, PLANNED_SYSTEMS.md, VIRTUAL_PLAY_RULES.md를 모두 읽고 최신 코드와 대조해서 개발 이어가자. pokeloop2는 읽기 전용. 가상 플레이는 명시 요청 시 VIRTUAL_PLAY_RULES.md에 따라 5회 상세·10회 간략, 성장 정체/완주 시 행성 이동 및 다회차 비교를 보고하고, 구현은 별도 승인 후 브랜치/PR/테스트/빌드/병합으로 진행해.`

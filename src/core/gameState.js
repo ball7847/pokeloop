@@ -1,9 +1,9 @@
-import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
+import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,rollUncommonStarter,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
 import {buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION,effectiveDittoStats} from './shopSystem.js';
-import {buyStellarUpgrade} from './stellarUpgrades.js';
+import {buyStellarUpgrade,stellarUncommonBonus} from './stellarUpgrades.js';
 import {collectPendingItems} from './itemSystem.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
@@ -51,7 +51,11 @@ export function transition(state, action) {
       if(state.combat.active||state.recoveryMs>0||state.phase===PHASE.PAUSED||state.phase===PHASE.FINISHED)return state;
       const preserved=movePlanet(state);
       const items=collectPendingItems(state);
-      return {...initialState(),...preserved,...items,
+      const chance=Math.min(1,UNCOMMON_BASE_CHANCE+stellarUncommonBonus(preserved));
+      const random=typeof action.random==='function'?action.random:Math.random;
+      const starter=rollUncommonStarter(chance,random);
+      const berryRareAppeared=chance>0&&random()<chance;
+      return {...initialState(),...preserved,...items,uncommonChance:chance,uncommonStarterId:starter,berryRareAppeared,
         dexDiscovered:[...state.dexDiscovered],dexLifetimeKills:{...state.dexLifetimeKills},phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};
     }
     case 'SELECT_REGION': return !state.combat.active&&isRegionUnlocked(state,action.regionId)?{...state,activeRegionId:action.regionId}:state;

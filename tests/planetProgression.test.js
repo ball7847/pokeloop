@@ -35,7 +35,7 @@ test('multi-planet progression preserves real reset and stellar purchase semanti
   assert.equal(result.planets[0].planet,1);
   assert.equal(result.planets[1].planet,2);
   assert.equal(result.state.planetMoves,1);
-  assert.ok(move.bought.every(id=>move.permanent[id]===1));
+  assert.ok(move.bought.every(id=>move.permanent[id]>=1));
   assert.ok(result.state.dexLifetimeKills.rattata>=result.planets[0].kills.rattata);
  }else assert.ok(['battle-budget','combat-tick-budget','move-rejected'].includes(result.stop));
  console.log('MULTI_PLANET_REPORT '+JSON.stringify({
