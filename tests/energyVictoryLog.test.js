@@ -22,7 +22,7 @@ test('Mankey pays 3.5 Fighting energy first and 1.75 second, both in log',()=>{
   s=defeatEnemy(s,'mankey');
   assert.deepEqual(s.combat.lastEvent.energyRewards,{'격투':3.5});
   assert.match(eventMessage(s.combat.lastEvent),/^망키 1회 처치 · HP \+5\.6, 공격 \+2, 격투 에너지 \+2$/);
-  assert.equal(s.energyBalances['격투'],5.25.5);
+  assert.equal(s.energyBalances['격투'],3.5);
   s=defeatEnemy(s,'mankey');
   assert.deepEqual(s.combat.lastEvent.energyRewards,{'격투':1.75});
   assert.match(eventMessage(s.combat.lastEvent),/망키 2회 처치 .*격투 에너지 \+1/);
