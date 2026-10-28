@@ -21,7 +21,7 @@ export function migrateEncounterSave(original,version,slots=ENCOUNTER_SLOTS,poke
   if(original.berryRareAppeared===true)results.R20502='pikachu';
  }
  if(results!==null){
-  if(version<=15){
+  if(version>=14&&version<=15){
    results=Object.fromEntries(Object.entries(results).map(([id,value])=>[version===14?remapV15Slot(remapLegacySlot(id)):remapV15Slot(id),value]));
   }
   if(typeof results!=='object'||Array.isArray(results)||
