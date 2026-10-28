@@ -3,8 +3,8 @@ import {compareAmount,subtractAmount,multiplyAmount,storedAmount} from './bigNum
 // Slot indices are zero based; SU identifiers count occupied positions.
 export const STELLAR_UPGRADES=Object.freeze({
   노말:Object.freeze({
-    0:Object.freeze({id:'SU011',name:'노말에너지 증폭 I',baseCost:10,costGrowth:10,maxLevel:100,description:'전투 노말에너지 획득량 +10%p/레벨'}),
-    2:Object.freeze({id:'SU012',name:'우량아',baseCost:1,costGrowth:10,maxLevel:3,description:'HP +10, 공격 +1 (레벨마다 전체 효과 2배)'}),
+    0:Object.freeze({id:'SU011',name:'노말에너지 증폭 I',baseCost:10,costGrowth:100,maxLevel:100,description:'전투 노말에너지 획득량 +10%p/레벨'}),
+    2:Object.freeze({id:'SU012',name:'우량아',levelCosts:Object.freeze([1,300,1000]),maxLevel:3,description:'HP +10, 공격 +1 (레벨마다 전체 효과 2배)'}),
     4:Object.freeze({id:'SU013',name:'안흔한 증가',baseCost:1,costGrowth:22,maxLevel:40,description:'안흔한 등급 등장 확률 +1%p/레벨'})
   })
 });
@@ -23,6 +23,7 @@ export const stellarUpgradeMaxed=(state,id)=>{
 export function stellarUpgradeCost(state,id){
   const node=STELLAR_UPGRADE_BY_ID[id];
   if(!node||stellarUpgradeMaxed(state,id))return null;
+  if(node.levelCosts)return node.levelCosts[stellarUpgradeLevel(state,id)]??null;
   try{return storedAmount((BigInt(node.baseCost)*BigInt(node.costGrowth)**BigInt(stellarUpgradeLevel(state,id))).toString());}
   catch(error){if(error instanceof RangeError)return null;throw error;}
 }
