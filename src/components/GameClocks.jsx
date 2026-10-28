@@ -55,6 +55,7 @@ export function CombatClock(){
           combatDebtMs-=ms;
         }
       }
+      if(!hidden&&!wasHidden)useGameStore.getState().dispatch({type:'ABILITY_TICK'});
       wasHidden=hidden;
       // Catch up economy in small chunks, bounded by elapsed processing time.
       // Remaining seconds are retained in store and in autosave's logical timestamp.
