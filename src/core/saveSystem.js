@@ -1,3 +1,4 @@
+import {migrateEncounterSave} from './encounterSave.js';
 import {initialState,PHASE} from './gameState.js';
 import {ALL_POKEMON,ENCOUNTER_SLOTS,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
@@ -105,24 +106,7 @@ export function decodeSave(encoded){
       throw new Error('진화 판정 기록이 올바르지 않습니다.');
     cleanGame.evolutionResults={...results};
   }
-  if(data.version>=14){
-    const slotMap=new Map(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot]));
-    const results=original.raritySlotResults??null;
-    if(results!==null&&(!results||typeof results!=='object'||Array.isArray(results)||
-      Object.keys(results).length!==ENCOUNTER_SLOTS.length||
-      Object.entries(results).some(([id,value])=>!slotMap.has(id)||
-        (value!==null&&!slotMap.get(id).candidates.includes(value)))))
-      throw new Error('희귀도 슬롯 판정 기록이 올바르지 않습니다.');
-    cleanGame.raritySlotResults=results===null?null:{...results};
-    const validIds=new Set([...slotMap.keys(),...ALL_POKEMON.map(p=>p.id)]);
-    for(const key of ['rarityGuarantees','rarityBanishments','raritySpecialUnlocks']){
-      const ids=original[key]??[];
-      if(!Array.isArray(ids)||ids.length>validIds.size||
-        ids.some(id=>!validIds.has(id))||new Set(ids).size!==ids.length)
-        throw new Error('희귀도 출현 옵션이 올바르지 않습니다: '+key);
-      cleanGame[key]=[...ids];
-    }
-  }
+  Object.assign(cleanGame,migrateEncounterSave(original,data.version));
   const starter=original.uncommonStarterId??null;
   if(starter!==null&&!STARTER_IDS.includes(starter))throw new Error('6번 슬롯 정보가 올바르지 않습니다.');
   const chance=original.uncommonChance??0;
