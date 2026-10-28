@@ -5,7 +5,7 @@ import {LAYERS,particleRates,particleMilestoneThreshold,POINT_CIRCULATION} from 
 import {formatAmount,compareAmount} from '../core/bigNumber.js';
 import {UPGRADES,AUTOMATIONS,upgradeCosts} from '../core/shopSystem.js';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
-import {STELLAR_UPGRADES,ownsStellarUpgrade} from '../core/stellarUpgrades.js';
+import {STELLAR_UPGRADES,stellarUpgradeLevel,stellarUpgradeCost,stellarUpgradeMaxed} from '../core/stellarUpgrades.js';
 
 
 const SU_TYPE_PALETTE=Object.freeze({
@@ -30,10 +30,9 @@ export function stellarUpgradeRows(nodes=STELLAR_NODES){
   let row=0;
   return OUTER_LAYERS.map(layer=>({...layer,rows:layer.types.map(type=>{
     row++;
-    let number=0;
     const slots=Array.from({length:row%2?14:13},(_,slot)=>{
       const node=nodes[type]?.[slot]??null;
-      return {slot,node,id:node?'SU'+String(row).padStart(2,'0')+(++number):null};
+      return {slot,node,id:node?.id??null};
     });
     return {type,row,slots};
   })}));
@@ -71,6 +70,12 @@ function OuterStellarWorld(){
   const layers=stellarUpgradeRows();
   const nodes=layers.flatMap(layer=>layer.rows.flatMap(row=>row.slots.filter(slot=>slot.node)));
   const detail=nodes.find(slot=>slot.id===selected)?.node??null;
+  const currentLevel=detail?stellarUpgradeLevel(game,selected):0;
+  const nextCost=detail?stellarUpgradeCost(game,selected):null;
+  const maxed=detail?stellarUpgradeMaxed(game,selected):false;
+  const effectText=detail?.id==='SU012'?(currentLevel?`HP +${10*2**(currentLevel-1)}, 공격 +${2**(currentLevel-1)}`:'HP +10, 공격 +1'):
+    detail?.id==='SU011'?`전투 노말에너지 +${currentLevel*10}%`:
+    detail?.id==='SU013'?`안흔한 등장 확률 +${currentLevel}%p`:'';
   return <section className="panel energy-outer-panel" role="tabpanel" aria-label="외체계">
     <div className="energy-outer-scroll" role="region" aria-label="외체계 육각형 강화 격자" tabIndex={0}>
       <svg className="energy-outer-honeycomb" viewBox="0 0 800 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="10계층 18타입 243개 육각형 슬롯">
@@ -79,9 +84,9 @@ function OuterStellarWorld(){
           {layer.rows.map(({type,row,slots})=><g key={type} style={stellarTypeColors(type)}>
             <text x="76" y={34+(row-1)*HEX_STEP+4} className="energy-outer-type-text">{type}</text>
             {slots.map(({slot,node,id})=><g key={slot} transform={`translate(${164+(slot+(row%2===0?.5:0))*HEX_W},${34+(row-1)*HEX_STEP})`}>
-              <polygon points={HEX_POINTS} className={node?'energy-outer-hex is-node'+(ownsStellarUpgrade(game,id)?' is-purchased':'')+(selected===id?' is-selected':''):'energy-outer-hex is-empty'}/>
+              <polygon points={HEX_POINTS} className={node?'energy-outer-hex is-node'+(stellarUpgradeLevel(game,id)>0?' is-purchased':'')+(selected===id?' is-selected':''):'energy-outer-hex is-empty'}/>
               {node&&<>
-                <text textAnchor="middle" className={"energy-outer-node-name"+(ownsStellarUpgrade(game,id)?" is-purchased":"")}>
+                <text textAnchor="middle" className={"energy-outer-node-name"+(stellarUpgradeLevel(game,id)>0?" is-purchased":"")}>
                   {stellarNodeLabelLines(node.name).map((line,lineIndex,lines)=>
                     <tspan key={lineIndex} x="0" y={(lineIndex-(lines.length-1)/2)*9+2}>{line}</tspan>)}
                 </text>
@@ -100,13 +105,13 @@ function OuterStellarWorld(){
         <button ref={closeButtonRef} type="button" className="energy-su-modal-close" aria-label="닫기" onClick={closeUpgrade}>×</button>
         <small className="energy-su-modal-id">{selected}</small>
         <h3 id="energy-su-modal-title">{detail.name}</h3>
-        <div className="energy-su-modal-field"><span>업그레이드 비용</span><strong>SE {formatAmount(detail.cost)}</strong></div>
-        <div className="energy-su-modal-field"><span>업그레이드 효과</span><strong id="energy-su-modal-effect">{detail.description}</strong></div>
-        <small>보유 SE {formatAmount(game.stellar??0)} · 1회 한정</small>
+        <div className="energy-su-modal-field"><span>업그레이드 비용</span><strong>{maxed?'최대 레벨':`SE ${formatAmount(nextCost)}`}</strong></div>
+        <div className="energy-su-modal-field"><span>업그레이드 효과</span><strong id="energy-su-modal-effect">{detail.description} · 현재 {effectText}</strong></div>
+        <small>보유 SE {formatAmount(game.stellar??0)} · 레벨 {currentLevel}/{detail.maxLevel} · 비용 레벨당 ×{detail.costGrowth}</small>
         <button type="button" className="energy-su-modal-buy"
-          disabled={ownsStellarUpgrade(game,selected)||compareAmount(game.stellar??0,detail.cost)<0||game.phase!=='running'}
+          disabled={maxed||nextCost===null||compareAmount(game.stellar??0,nextCost)<0||game.phase!=='running'}
           onClick={()=>dispatch({type:'BUY_STELLAR_UPGRADE',id:selected})}>
-          {ownsStellarUpgrade(game,selected)?'구매 완료':'SE '+formatAmount(detail.cost)+' 구매'}
+          {maxed?'최대 레벨':'SE '+formatAmount(nextCost)+' 구매'}
         </button>
       </section>
     </div>,document.body)}
