@@ -20,7 +20,7 @@ test('slot rolls choose one zigzagoon and one starter even at 100% uncommon',()=
  assert.ok(slot('W011502').candidates.includes(results.W011502));
  const state={...initialState(),raritySlotResults:results};
  const lineup=appearedInRegion(state,REGION.id);
- assert.deepEqual(lineup.map(x=>x.encounterCode.slice(0,4)),['R101','R102','R103','R104','R105','R106','R107','R108','R109','R110','R111','R112','R113','R114','R115','R116']);
+ assert.deepEqual(lineup.map(x=>x.encounterCode.slice(0,5)),['W0101','W0102','W0103','W0104','W0105','W0106','W0107','W0108','W0109','W0110','W0111','W0112','W0113','W0114','W0115','W0116']);
  assert.equal(lineup.filter(x=>x.id.startsWith('zigzagoon')).length,1);
  assert.equal(lineup.filter(x=>['bulbasaur','charmander','squirtle'].includes(x.id)).length,1);
  assert.equal(isPokemonUnlockedInState(state,'psyduck'),true);
@@ -34,7 +34,7 @@ test('old v14 save slots migrate to new positions without changing existing line
  const binary=atob(encoded);
  const obj=JSON.parse(new TextDecoder().decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));
  obj.version=14;
- obj.game.raritySlotResults={'R010101':'rattata','R10201':'pidgey','R10301':'mankey','R10401':'spearow','R10501':'zubat','R10602':'bulbasaur','R10701':'meowth','R10801':'geodude','R10901':'exeggcute','R11001':'sentret','R11101':'tauros'};
+ obj.game.raritySlotResults={'R10101':'rattata','R10201':'pidgey','R10301':'mankey','R10401':'spearow','R10501':'zubat','R10602':'bulbasaur','R10701':'meowth','R10801':'geodude','R10901':'exeggcute','R11001':'sentret','R11101':'tauros'};
  const raw=new TextEncoder().encode(JSON.stringify(obj));
  const legacy=btoa(Array.from(raw,b=>String.fromCharCode(b)).join(''));
  const imported=decodeSave(legacy).game;
