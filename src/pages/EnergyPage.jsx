@@ -138,7 +138,7 @@ export function EnergyPage(){
         onClick={()=>setSystemTab(id)}>{label}</button>)}
     </div>
     {systemTab==='micro'&&<div className="ditto-info-tabs energy-section-tabs" role="tablist" aria-label="미시체계 분류">
-      {[['stats','강화'],['circulation','생산'],['automation','자동화']].map(([id,label])=><button key={id} type="button" role="tab"
+      {[['stats','강화'],['abilities','특성']].map(([id,label])=><button key={id} type="button" role="tab"
         aria-selected={energyTab===id} className={'ditto-info-tab '+(energyTab===id?'is-active':'')}
         onClick={()=>setEnergyTab(id)}>{label}</button>)}
     </div>}
@@ -179,12 +179,7 @@ export function EnergyPage(){
     </aside>
     </div>:systemTab==='outer'?<OuterStellarWorld/>:<section className="panel energy-purchase-panel" role="tabpanel">
       <div className="energy-shop-list">
-        {energyTab==='circulation'?<div className="energy-shop-item">
-          <div><strong>{POINT_CIRCULATION.name}</strong><small>노말 에너지 +0.5/초</small></div>
-          {game.pointCirculationUnlocked?<button type="button" disabled>구매 완료</button>:
-            <button type="button" disabled={game.phase!=='running'||Object.entries(POINT_CIRCULATION.costs).some(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)<0)}
-              onClick={()=>dispatch({type:'BUY_CIRCULATION',id:POINT_CIRCULATION.id})}>{Object.entries(POINT_CIRCULATION.costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</button>}
-        </div>:energyTab==='stats'?UPGRADES.map(item=>{
+        {energyTab==='stats'&&UPGRADES.map(item=>{
           const level=game.energyUpgrades?.[item.id]??0;
           const costs=upgradeCosts(item.id,level);
           const affordable=costs!==null&&Object.entries(costs).every(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)>=0);
@@ -193,17 +188,26 @@ export function EnergyPage(){
             <button type="button" disabled={!affordable||game.phase!=='running'}
               onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{costs===null?'최대 레벨':<>{Object.entries(costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</>}</button>
           </div>;
-        }):AUTOMATIONS.map(item=>{
-          const owned=game.qolUnlocks?.includes(item.id);
-          const active=game.automation?.[item.id]??false;
-          return <div className="energy-shop-item" key={item.id}>
-            <div><strong>{item.name}</strong><small>{item.description}</small></div>
-            {owned?<button type="button" aria-pressed={active} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:item.id})}>
-              {active?'활성화 · 끄기':'비활성화 · 켜기'}</button>:
-              <button type="button" disabled={compareAmount(game.energyBalances[item.type]??0,item.cost)<0||game.phase==='paused'}
-                onClick={()=>dispatch({type:'BUY_AUTOMATION',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {item.cost} 해금</button>}
-          </div>;
         })}
+        {energyTab==='abilities'&&<>
+          <div className="energy-shop-item">
+            <div><strong>{POINT_CIRCULATION.abilityId} · {POINT_CIRCULATION.name}</strong><small>노말 에너지 +0.5/초</small></div>
+            {game.pointCirculationUnlocked?<button type="button" disabled>구매 완료</button>:
+              <button type="button" disabled={game.phase!=='running'||Object.entries(POINT_CIRCULATION.costs).some(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)<0)}
+                onClick={()=>dispatch({type:'BUY_CIRCULATION',id:POINT_CIRCULATION.id})}>{Object.entries(POINT_CIRCULATION.costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</button>}
+          </div>
+          {AUTOMATIONS.map(item=>{
+            const owned=game.qolUnlocks?.includes(item.id);
+            const active=game.automation?.[item.id]??false;
+            return <div className="energy-shop-item" key={item.id}>
+              <div><strong>{item.abilityId} · {item.name}</strong><small>{item.description}</small></div>
+              {owned?<button type="button" aria-pressed={active} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:item.id})}>
+                {active?'활성화 · 끄기':'비활성화 · 켜기'}</button>:
+                <button type="button" disabled={compareAmount(game.energyBalances[item.type]??0,item.cost)<0||game.phase==='paused'}
+                  onClick={()=>dispatch({type:'BUY_AUTOMATION',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {item.cost} 해금</button>}
+            </div>;
+          })}
+        </>}
         <small>구매 시 소비한 타입 에너지와 동일한 수량의 입자가 생성됩니다. 미해금 계층의 입자는 보관됩니다.</small>
       </div>
     </section>}
