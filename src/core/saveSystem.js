@@ -1,6 +1,6 @@
 import {migrateEncounterSave} from './encounterSave.js';
 import {initialState,PHASE} from './gameState.js';
-import {ALL_POKEMON,ENCOUNTER_SLOTS,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
+import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
@@ -246,8 +246,12 @@ export function decodeSave(encoded){
       throw new Error('지역 정보가 올바르지 않습니다.');
     cleanGame.activeRegionId=original.activeRegionId;
   }
-  cleanGame.uncommonStarterId=starter;
+  // The slot outcome is authoritative; legacy flags are compatibility aliases only.
+  cleanGame.uncommonStarterId=cleanGame.raritySlotResults?.R10602??starter;
+  if(cleanGame.raritySlotResults!==null)
+    cleanGame.berryRareAppeared=cleanGame.raritySlotResults.R20502==='pikachu';
   cleanGame.uncommonChance=Math.min(1,Math.max(chance,stellarUncommonBonus(cleanGame)));
+
   cleanGame.dexDiscovered=[...new Set(found.map(id=>id==='jigglypuff'?'igglybuff':id))];
   if(!isRegionUnlocked(cleanGame,cleanGame.activeRegionId))cleanGame.activeRegionId=REGION.id;
   // Active combat is deliberately not persisted. Resuming requires a new battle.
