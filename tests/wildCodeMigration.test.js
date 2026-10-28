@@ -1,0 +1,51 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {initialState,transition} from '../src/core/gameState.js';
+import {encodeSave,decodeSave,SAVE_VERSION} from '../src/core/saveSystem.js';
+import {ENCOUNTER_SLOTS,appearedInRegion,REGION,BERRY_REGION,STARTER_IDS} from '../src/core/wildData.js';
+import {encounterSlotOrder,rollEncounterSlots} from '../src/core/raritySystem.js';
+
+const repack=payload=>btoa(Array.from(new TextEncoder().encode(JSON.stringify(payload)),n=>String.fromCharCode(n)).join(''));
+const rawSave=state=>JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(state)),c=>c.charCodeAt(0))));
+test('all current encounter IDs follow W plus two-digit region, position and rarity',()=>{
+ assert.equal(SAVE_VERSION,17);
+ for(const slot of ENCOUNTER_SLOTS)assert.match(slot.id,/^W\d{6}$/);
+ assert.ok(ENCOUNTER_SLOTS.some(s=>s.id==='W010802'&&s.candidates.length===3));
+ assert.ok(ENCOUNTER_SLOTS.some(s=>s.id==='W011502'&&s.candidates.length===2));
+ assert.deepEqual(encounterSlotOrder('W010101').slice(0,2),[1,1]);
+ assert.deepEqual(encounterSlotOrder('W100101').slice(0,2),[10,1]);
+ assert.deepEqual(encounterSlotOrder('W200101').slice(0,2),[20,1]);
+});
+test('legacy v16 R slots and all slot-scoped preferences migrate to W without reroll',()=>{
+ const save=rawSave(initialState());
+ save.version=16;
+ save.game.raritySlotResults={R10101:'rattata',R10802:'charmander',R11302:'rookidee',R11502:'zigzagoon-galar',R20502:'pikachu'};
+ save.game.rarityGuarantees=['R10802','R20502','zigzagoon-galar'];
+ save.game.rarityBanishments=['R11302'];
+ save.game.raritySpecialUnlocks=['R11502'];
+ const state=decodeSave(repack(save)).game;
+ assert.equal(state.raritySlotResults.W010101,'rattata');
+ assert.equal(state.raritySlotResults.W010802,'charmander');
+ assert.equal(state.raritySlotResults.W011302,'rookidee');
+ assert.equal(state.raritySlotResults.W011502,'zigzagoon-galar');
+ assert.equal(state.raritySlotResults.W020502,'pikachu');
+ assert.equal(state.raritySlotResults.W010302,null);
+ assert.deepEqual(state.rarityGuarantees,['W010802','W020502','zigzagoon-galar']);
+ assert.deepEqual(state.rarityBanishments,['W011302']);
+ assert.deepEqual(state.raritySpecialUnlocks,['W011502']);
+ assert.equal(appearedInRegion(state,REGION.id).filter(p=>STARTER_IDS.includes(p.id)).length,1);
+ assert.ok(appearedInRegion(state,BERRY_REGION.id).some(p=>p.id==='pikachu'));
+ const again=decodeSave(encodeSave(state)).game;
+ assert.deepEqual(again.raritySlotResults,state.raritySlotResults);
+});
+test('W format moves and rerolls once per slot, preserving N of one',()=>{
+ const start=transition(initialState(),{type:'START'});
+ const moved=transition({...start,permanentUpgrades:{SU013:40}},{type:'MOVE_PLANET',random:()=>0});
+ assert.ok(moved.raritySlotResults);
+ assert.equal(Object.keys(moved.raritySlotResults).length,ENCOUNTER_SLOTS.length);
+ assert.equal(appearedInRegion(moved,REGION.id).filter(p=>STARTER_IDS.includes(p.id)).length,1);
+ assert.equal(appearedInRegion(moved,REGION.id).filter(p=>p.id.startsWith('zigzagoon')).length,1);
+ const rolled=rollEncounterSlots(ENCOUNTER_SLOTS,{chances:{uncommon:1},random:()=>0});
+ assert.equal(rolled.W010802,'bulbasaur');
+ assert.equal(rolled.W011502,'zigzagoon');
+});
