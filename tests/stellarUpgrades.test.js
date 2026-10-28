@@ -69,3 +69,17 @@ test('unaffordable, maxed, unknown and paused attempts are no-ops',()=>{
  assert.equal(buyStellarUpgrade(s,'SU999'),s);
  assert.equal(transition({...s,stellar:10,phase:'paused'},{type:'BUY_STELLAR_UPGRADE',id:'SU011'}).stellar,10);
 });
+
+test('legacy v12 permanent upgrades migrate without discarding ownership or breaking save',()=>{
+ const original={...initialState(),phase:'running',permanentUpgrades:{SU011:1,SU012:1,SU013:1}};
+ const source=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(original)),c=>c.charCodeAt(0))));
+ source.version=12;
+ const bytes=new TextEncoder().encode(JSON.stringify(source));
+ const encoded=btoa(String.fromCharCode(...bytes));
+ const decoded=decodeSave(encoded).game;
+ assert.deepEqual(decoded.permanentUpgrades,{SU011:1,SU012:1});
+ assert.equal(effectiveDittoStats(decoded).hp,20);
+ assert.equal(effectiveDittoStats(decoded).attack,2);
+ assert.equal(stellarBattleEnergyReward(decoded,'노말',10),11);
+ assert.equal(decodeSave(encodeSave(decoded)).game.permanentUpgrades.SU012,1);
+});
