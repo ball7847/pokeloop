@@ -26,7 +26,7 @@ test('region 1 extends to 10 common species with configured stats, energy and fi
  assert.equal(WILD_POKEMON[9].defense,9.5);
  assert.equal(WILD_POKEMON[9].specialDefense,7);
 });
-test('70% uses appeared non-evolution species; uncommon encounter changes denominator',()=>{
+test('region unlock threshold stays seven whether an uncommon slot appears or not',()=>{
  const s=initialState();
  assert.equal(regionUnlockRequirement(s),7);
  const counted=ids.slice(0,7);
@@ -35,7 +35,7 @@ test('70% uses appeared non-evolution species; uncommon encounter changes denomi
  assert.equal(isRegionUnlocked({...s,killCounts:Object.fromEntries(counted.slice(0,6).map(id=>[id,1]))},BERRY_REGION.id),false);
  const appeared={...s,uncommonStarterId:'bulbasaur'};
  assert.equal(regionUnlockRequirement(appeared),7);
- assert.equal(isRegionUnlocked({...appeared,killCounts:kills},BERRY_REGION.id),false);
+ assert.equal(isRegionUnlocked({...appeared,killCounts:kills},BERRY_REGION.id),true);
  assert.equal(isRegionUnlocked({...appeared,killCounts:{...kills,bulbasaur:1}},BERRY_REGION.id),true);
  assert.equal(REGION.defaultKillLimit,10);
 });
