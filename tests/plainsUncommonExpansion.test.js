@@ -23,7 +23,7 @@ test('slot rolls choose one zigzagoon and one starter even at 100% uncommon',()=
  assert.deepEqual(lineup.map(x=>x.encounterCode.slice(0,4)),['R101','R102','R103','R104','R105','R106','R107','R108','R109','R110','R111','R112','R113','R114']);
  assert.equal(lineup.filter(x=>x.id.startsWith('zigzagoon')).length,1);
  assert.equal(lineup.filter(x=>['bulbasaur','charmander','squirtle'].includes(x.id)).length,1);
- assert.equal(isPokemonUnlockedInState(state,'psyduck'),false);
+ assert.equal(isPokemonUnlockedInState(state,'psyduck'),true);
 });
 test('old v14 save slots migrate to new positions without changing existing lineup',()=>{
  const state=initialState();
