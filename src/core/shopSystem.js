@@ -47,12 +47,12 @@ export function effectiveDittoStats(state){
   const levels=state.energyUpgrades??{};
   const hpFlat=decimal(levels.hp??0).mul(4),attackFlat=decimal(levels.attack??0);
   const attackMultiplier=1+(levels.attackMultiplier??0)*0.04,hpMultiplier=1+(levels.hpMultiplier??0)*0.04,speed=1+(levels.speed??0)*0.01;
-  return {...stats,hp:storedAmount(decimal(stats.hp).add(hpFlat).mul(hpMultiplier).add(suHp)),
+  return {...stats,hp:storedAmount(decimal(stats.hp).add(hpFlat).add(suHp).mul(hpMultiplier).mul(decimal(1).add(decimal(state.permanentUpgrades?.SU014??0).mul(0.10)))),
     specialAttack:storedAmount(decimal(stats.specialAttack??0).add(levels.specialAttack??0).mul(1+(levels.specialAttackMultiplier??0)*0.04)),
     defense:storedAmount(decimal(stats.defense??0).add(levels.defense??0).mul(1+(levels.defenseMultiplier??0)*0.04)),
     specialDefense:storedAmount(decimal(stats.specialDefense??0).add(levels.specialDefense??0).mul(1+(levels.specialDefenseMultiplier??0)*0.04)),
     regeneration:storedAmount(decimal(stats.regeneration??0).add(levels.regeneration??0).mul(decimal(1).add(decimal(levels.regenerationMultiplier??0).mul(0.03)))),
-    attack:storedAmount(decimal(stats.attack).add(attackFlat).mul(attackMultiplier).add(suAttack)),
+    attack:storedAmount(decimal(stats.attack).add(attackFlat).add(suAttack).mul(attackMultiplier).mul(decimal(1).add(decimal(state.permanentUpgrades?.SU015??0).mul(0.08)))),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
     poison:storedAmount(decimal(stats.poison??0).mul(decimal(1).add(decimal(levels.poisonMultiplier??0).mul(0.03)))),
     speed:Math.max(100,(stats.speed-(levels.speedFlat??0)*10)/speed)};
