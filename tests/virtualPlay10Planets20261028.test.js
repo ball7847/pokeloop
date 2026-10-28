@@ -11,7 +11,11 @@ test('2026-10-28 virtual play: up to 10 real planet moves, stop on repeat stall 
   assert.ok(p.appeared.every(id=>(p.kills[id]??0)<=10),'kill cap exceeded');
   const fiveEnd=p.events.findIndex(x=>x.kind==='five-phase-completed'||x.kind==='five-phase-completed-after-farming');
   const firstPhase=fiveEnd<0?p.events:p.events.slice(0,fiveEnd+1);
-  console.log('VPLAY_TIMELINE '+JSON.stringify({planet:p.planet,fiveCleared:p.fiveCleared,events:firstPhase}));
+  // Split event lines: GitHub Actions may truncate a very long JSON log line.
+  for(let offset=0;offset<firstPhase.length;offset+=15){
+   console.log('VPLAY_TIMELINE_CHUNK '+JSON.stringify({planet:p.planet,offset,total:firstPhase.length,
+    events:firstPhase.slice(offset,offset+15)}));
+  }
  }
  console.log('VPLAY_SUMMARY '+JSON.stringify({
   rng:0.5,stop:result.stop,repeatForecast:result.repeatForecast,moveCount:result.moves.length,
