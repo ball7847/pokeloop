@@ -25,7 +25,7 @@ test('v15 saves remap existing slots without rolling new ones',()=>{
  const state=initialState();
  const payload=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(state)),v=>v.charCodeAt(0))));
  payload.version=15;
- payload.game.raritySlotResults={W010101:'rattata',W011101:'exeggcute',W011201:'sentret',W011302:'zigzagoon',W011401:'tauros'};
+ payload.game.raritySlotResults={R10101:'rattata',R11101:'exeggcute',R11201:'sentret',R11302:'zigzagoon',R11401:'tauros'};
  const imported=decodeSave(encode(payload)).game;
  assert.equal(imported.raritySlotResults.W011201,'exeggcute');
  assert.equal(imported.raritySlotResults.W011401,'sentret');
