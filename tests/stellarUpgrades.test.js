@@ -11,8 +11,8 @@ test('Normal physical slots 1, 3, 5 retain SU011, SU012, SU013 identifiers',()=>
  assert.deepEqual(Object.values(STELLAR_UPGRADES.노말).map(x=>x.id),['SU011','SU012','SU013']);
 });
 test('SU012 baby doubles TOTAL effect without summing old levels',()=>{
- let s={...initialState(),phase:'running',stellar:111};
- for(const [level,cost,hp,atk] of [[1,1,20,2],[2,10,30,3],[3,100,50,5]]){
+ let s={...initialState(),phase:'running',stellar:1301};
+ for(const [level,cost,hp,atk] of [[1,1,20,2],[2,300,30,3],[3,1000,50,5]]){
   assert.equal(stellarUpgradeCost(s,'SU012'),cost);
   s=transition(s,{type:'BUY_STELLAR_UPGRADE',id:'SU012'});
   assert.equal(stellarUpgradeLevel(s,'SU012'),level);
@@ -23,11 +23,11 @@ test('SU012 baby doubles TOTAL effect without summing old levels',()=>{
  assert.equal(stellarUpgradeCost(s,'SU012'),null);
  assert.equal(transition(s,{type:'BUY_STELLAR_UPGRADE',id:'SU012'}),s);
 });
-test('SU011 Normal battle energy additive level growth and factor 10 costs',()=>{
- let s={...initialState(),phase:'running',stellar:110};
+test('SU011 Normal battle energy additive level growth and factor 100 costs',()=>{
+ let s={...initialState(),phase:'running',stellar:1010};
  assert.equal(stellarUpgradeCost(s,'SU011'),10);
  s=transition(s,{type:'BUY_STELLAR_UPGRADE',id:'SU011'});
- assert.equal(stellarUpgradeCost(s,'SU011'),100);
+ assert.equal(stellarUpgradeCost(s,'SU011'),1000);
  s=transition(s,{type:'BUY_STELLAR_UPGRADE',id:'SU011'});
  assert.equal(stellarBattleEnergyReward(s,'노말',10),12);
  assert.equal(stellarBattleEnergyReward(s,'불꽃',10),10);
@@ -54,7 +54,7 @@ test('uncommon roll does not force rare encounters if random misses',()=>{
  assert.equal(next.berryRareAppeared,false);
 });
 test('stellar upgrades survive planet move and saved roundtrip',()=>{
- let s={...initialState(),phase:'running',stellar:11};
+ let s={...initialState(),phase:'running',stellar:301};
  s=transition(s,{type:'BUY_STELLAR_UPGRADE',id:'SU012'});
  s=transition(s,{type:'BUY_STELLAR_UPGRADE',id:'SU012'});
  s=movePlanet(s);

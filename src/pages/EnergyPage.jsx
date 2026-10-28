@@ -107,7 +107,7 @@ function OuterStellarWorld(){
         <h3 id="energy-su-modal-title">{detail.name}</h3>
         <div className="energy-su-modal-field"><span>업그레이드 비용</span><strong>{maxed?'최대 레벨':`SE ${formatAmount(nextCost)}`}</strong></div>
         <div className="energy-su-modal-field"><span>업그레이드 효과</span><strong id="energy-su-modal-effect">{detail.description} · 현재 {effectText}</strong></div>
-        <small>보유 SE {formatAmount(game.stellar??0)} · 레벨 {currentLevel}/{detail.maxLevel} · 비용 레벨당 ×{detail.costGrowth}</small>
+        <small>보유 SE {formatAmount(game.stellar??0)} · 레벨 {currentLevel}/{detail.maxLevel} · {detail.levelCosts?'레벨별 고정 비용 1 / 300 / 1,000 SE':`비용 레벨당 ×${detail.costGrowth}`}</small>
         <button type="button" className="energy-su-modal-buy"
           disabled={maxed||nextCost===null||compareAmount(game.stellar??0,nextCost)<0||game.phase!=='running'}
           onClick={()=>dispatch({type:'BUY_STELLAR_UPGRADE',id:selected})}>
