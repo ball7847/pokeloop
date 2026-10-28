@@ -76,3 +76,27 @@ test('invalid slot selections in saved data are rejected',()=>{
  const broken=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(snap))));
  assert.throws(()=>decodeSave(broken),/희귀도 슬롯 판정/);
 });
+
+test('exclusion removes a common slot from the next planet only',()=>{
+ let state=transition(initialState(),{type:'START'});
+ assert.ok(appearedInRegion(state,REGION.id).some(p=>p.id==='rattata'));
+ state={...state,rarityBanishments:['R10101']};
+ const moved=transition(state,{type:'MOVE_PLANET',random:()=>.9});
+ assert.equal(moved.raritySlotResults.R10101,null);
+ assert.ok(!appearedInRegion(moved,REGION.id).some(p=>p.id==='rattata'));
+});
+test('v13 legacy saves preserve old uncommon starter and berry flag',()=>{
+ let state=transition(initialState(),{type:'START'});
+ state={...state,uncommonStarterId:'bulbasaur',berryRareAppeared:true};
+ const payload=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(state)),v=>v.charCodeAt(0))));
+ payload.version=13;
+ delete payload.game.raritySlotResults;
+ delete payload.game.rarityGuarantees;
+ delete payload.game.rarityBanishments;
+ delete payload.game.raritySpecialUnlocks;
+ const prior=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(payload))));
+ const restored=decodeSave(prior).game;
+ assert.equal(restored.raritySlotResults,null);
+ assert.equal(appearedInRegion(restored,REGION.id).some(p=>p.id==='bulbasaur'),true);
+ assert.equal(appearedInRegion(restored,BERRY_REGION.id).some(p=>p.id==='pikachu'),true);
+});
