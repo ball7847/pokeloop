@@ -1,11 +1,11 @@
 import {initialState,transition} from '../../src/core/gameState.js';
 import {REGIONS,REGION,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon} from '../../src/core/wildData.js';
 import {UPGRADES,AUTOMATIONS,effectiveDittoStats} from '../../src/core/shopSystem.js';
-import {STELLAR_UPGRADE_BY_ID} from '../../src/core/stellarUpgrades.js';
+import {STELLAR_UPGRADE_BY_ID,stellarUpgradeCost,stellarUpgradeMaxed} from '../../src/core/stellarUpgrades.js';
 import {TYPES} from '../../src/core/energySystem.js';
 import {addAmount,compareAmount,subtractAmount} from '../../src/core/bigNumber.js';
 
-export const DEFAULT_SU_ORDER=Object.freeze(['SU012','SU011','SU013']);
+export const DEFAULT_SU_ORDER=Object.freeze(['SU012','SU013','SU011']);
 const balance=()=>Object.fromEntries(TYPES.map(type=>[type,0]));
 const sumValues=values=>Object.values(values).reduce((n,v)=>n+Number(v||0),0);
 
@@ -26,10 +26,14 @@ export function decidePlanetExit(state,attemptsExhausted=false){
 }
 export function chooseStellarUpgrades(state,order=DEFAULT_SU_ORDER){
   const bought=[];
-  for(const id of [...order,...Object.keys(STELLAR_UPGRADE_BY_ID).filter(id=>!order.includes(id))]){
-    if(!STELLAR_UPGRADE_BY_ID[id])continue;
-    const next=transition(state,{type:'BUY_STELLAR_UPGRADE',id});
-    if(next!==state){state=next;bought.push(id);}
+  for(let round=0;round<400;round++){
+    let progressed=false;
+    for(const id of [...order,...Object.keys(STELLAR_UPGRADE_BY_ID).filter(id=>!order.includes(id))]){
+      if(!STELLAR_UPGRADE_BY_ID[id])continue;
+      const next=transition(state,{type:'BUY_STELLAR_UPGRADE',id});
+      if(next!==state){state=next;bought.push(id);progressed=true;}
+    }
+    if(!progressed)break;
   }
   return {state,bought};
 }
@@ -252,7 +256,7 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,logLimit=5000,
     const fp=JSON.stringify({kills:report.kills,stellar:state.totalStellarEarned,
       permanent:state.permanentUpgrades,pending:state.pendingStellar});
     const noAffordableSu=Object.values(STELLAR_UPGRADE_BY_ID).every(node=>
-      state.permanentUpgrades[node.id]===1||compareAmount(state.stellar,node.cost)<0);
+      stellarUpgradeMaxed(state,node.id)||stellarUpgradeCost(state,node.id)===null||compareAmount(state.stellar,stellarUpgradeCost(state,node.id))<0);
     if(lastFingerprint===fp&&noAffordableSu){
       stop='no-progress';break;
     }
@@ -262,7 +266,7 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,logLimit=5000,
       lifetime:state.totalStellarEarned,upgrades:{...state.permanentUpgrades},
       discoveries:[...state.dexDiscovered],kills:{...state.dexLifetimeKills}};
     const previous=state;
-    state=transition(state,{type:'MOVE_PLANET'});
+    state=transition(state,{type:'MOVE_PLANET',random});
     if(state===previous){stop='move-rejected';break;}
     if(state.planetMoves!==previous.planetMoves+1)throw Error('bad planet count');
     const acquired=chooseStellarUpgrades(state);
