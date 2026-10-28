@@ -14,7 +14,7 @@ export const emptyCombat = hp=>({
 });
 export function startBattle(state,id,carryHp=null,carryStatus=null) {
   const p=getWildPokemon(id);
-  if(!p || (p.rarity==='uncommon'&&!p.evolvesFrom&&!(p.id==='pikachu'?state.berryRareAppeared:p.id===state.uncommonStarterId)) || state.combat.active || (state.recoveryMs??0)>0 || state.phase==='paused'||state.phase==='finished' ||
+  if(!p || state.combat.active || (state.recoveryMs??0)>0 || state.phase==='paused'||state.phase==='finished' ||
     (state.killCounts[id]||0)>=REGION.defaultKillLimit || !isPokemonUnlockedInState(state,id))return state;
   const effective=effectiveDittoStats(state);
   const hp=effective.hp;
