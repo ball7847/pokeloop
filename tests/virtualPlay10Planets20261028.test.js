@@ -5,7 +5,7 @@ import {runMultiPlanet} from './helpers/virtualPlaySimulator.js';
 // Explicit full-play audit. This is not a balance change or an invented reward.
 // Log lines deliberately carry a structured timeline so the report can be
 // generated from the actual game transitions rather than reconstructed guesses.
-test('2026-10-28 virtual play: 10 actual planet moves with fixed RNG 0.5',()=>{
+test('2026-10-28 virtual play: up to 10 real planet moves, stop on repeat stall (RNG 0.5)',()=>{
  const result=runMultiPlanet({maxMoves:10,random:()=>0.5,logLimit:12000,maxBattles:1000,maxTicks:75000});
  for(const p of result.planets){
   assert.ok(p.appeared.every(id=>(p.kills[id]??0)<=10),'kill cap exceeded');
@@ -14,7 +14,7 @@ test('2026-10-28 virtual play: 10 actual planet moves with fixed RNG 0.5',()=>{
   console.log('VPLAY_TIMELINE '+JSON.stringify({planet:p.planet,fiveCleared:p.fiveCleared,events:firstPhase}));
  }
  console.log('VPLAY_SUMMARY '+JSON.stringify({
-  rng:0.5,stop:result.stop,moveCount:result.moves.length,
+  rng:0.5,stop:result.stop,repeatForecast:result.repeatForecast,moveCount:result.moves.length,
   planets:result.planets.map(p=>({planet:p.planet,reason:p.reason,exitReason:p.exitReason,
    fiveCleared:p.fiveCleared,battles:p.battles,attempts:p.attempts,defeats:p.defeats,
    maxStreak:p.maxStreak,seconds:p.seconds,kills:p.kills,
@@ -29,4 +29,8 @@ test('2026-10-28 virtual play: 10 actual planet moves with fixed RNG 0.5',()=>{
  }));
  assert.ok(result.planets.length>=1);
  assert.ok(result.moves.length<=10);
+ if(result.stop.startsWith('repeat-')){
+  assert.ok(result.repeatForecast,'repeat stop requires an actual forecast');
+  assert.ok(result.moves.length<10,'repeat stop must preempt the safety limit');
+ }
 });

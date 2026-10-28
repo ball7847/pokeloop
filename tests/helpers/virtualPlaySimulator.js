@@ -7,7 +7,34 @@ import {addAmount,compareAmount,subtractAmount} from '../../src/core/bigNumber.j
 
 export const DEFAULT_SU_ORDER=Object.freeze(['SU012','SU013','SU011']);
 const balance=()=>Object.fromEntries(TYPES.map(type=>[type,0]));
-const sumValues=values=>Object.values(values).reduce((n,v)=>n+Number(v||0),0);
+const MAX_SAME_CONDITION_FAILURES=3;
+const MAX_REPEAT_WAIT_PLANETS=2;
+// Compare earned progress and combat outcomes, not the ever-growing lifetime SE.
+export function planetPattern(report){
+  return JSON.stringify({
+    appeared:report.appeared,kills:report.kills,attempts:report.attempts,
+    defeats:report.defeats,maxStreak:report.maxStreak,battles:report.battles,
+    fiveCleared:report.fiveCleared,stats:report.stats,
+    remaining:report.remaining,gained:report.gained,spent:report.spent,
+    production:report.production,pendingStellar:report.pendingStellar
+  });
+}
+// Prediction only: projected planets, kills and SE are never inserted into game state.
+export function nextStellarForecast(state,planetGain){
+  const choices=Object.values(STELLAR_UPGRADE_BY_ID)
+    .filter(node=>!stellarUpgradeMaxed(state,node.id))
+    .map(node=>({id:node.id,cost:stellarUpgradeCost(state,node.id)}))
+    .filter(entry=>entry.cost!==null)
+    .sort((a,b)=>compareAmount(a.cost,b.cost));
+  if(!choices.length)return {status:'all-maxed',next:null,estimatedPlanets:null};
+  const next=choices[0];
+  const missing=compareAmount(next.cost,state.stellar)<=0?0:subtractAmount(next.cost,state.stellar);
+  const income=Number(planetGain);
+  const estimatedPlanets=compareAmount(missing,0)===0?0:
+    Number.isFinite(income)&&income>0?Math.ceil(Number(missing)/income):null;
+  return {status:estimatedPlanets===null?'no-measured-income':'estimated',
+    next:{...next,missing},estimatedPlanets};
+}
 
 // No direct mutation of game state. Every purchase, battle, recovery and move
 // flows through the same transition handler as the live game.
@@ -49,6 +76,7 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
   let state=start.phase==='ready'?transition(start,{type:'START'}):start;
   const startMoves=state.planetMoves,started={...state.killCounts};
   const timeline=[],events=[],attempts={},defeats={},maxStreak={},firstChallenges={};
+  const failedConditions=new Map();
   const gained=balance(),spent=balance(),production=balance();
   let ticks=0,battles=0,seconds=0,goal=5,safetyStop=null,firstPassDone=false;
   const note=(kind,data={})=>{
@@ -119,6 +147,13 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     if(state.activeRegionId!==region)act({type:'SELECT_REGION',regionId:region});
     if(state.activeRegionId!==region)return {result:'locked',wins:0};
     const startingKills=state.killCounts[id]??0;
+    const condition=JSON.stringify([id,startingKills,effectiveDittoStats(state),
+      state.energyUpgrades,state.permanentUpgrades,state.itemOwned]);
+    const failed=failedConditions.get(condition)??0;
+    if(failed>=MAX_SAME_CONDITION_FAILURES){
+      note('retry-blocked',{id,kills:startingKills,attempts:failed});
+      return {result:'blocked',wins:0};
+    }
     if(!firstChallenges[id])firstChallenges[id]=statsSnapshot(state);
     toggleHunger(startingKills<target-1);
     if(!act({type:'SELECT_WILD',pokemonId:id})||!state.combat.active)
@@ -146,7 +181,11 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     }
     if(state.combat.active){safetyStop='combat-tick-budget';return {result:'limit',wins};}
     const result=state.combat.lastEvent?.type;
-    if(result==='defeat'){defeats[id]=(defeats[id]??0)+1;note('defeat',{id,wins});}
+    if(result==='defeat'){
+      defeats[id]=(defeats[id]??0)+1;
+      if(wins===0)failedConditions.set(condition,failed+1);
+      note('defeat',{id,wins});
+    }
     maxStreak[id]=Math.max(maxStreak[id]??0,wins);
     note('battle-end',{id,result,wins,kills:state.killCounts[id]??0});
     return {result,wins};
@@ -175,7 +214,7 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
         shop();
         const current=identity(state);
         if(current!==signature){signature=current;failures=0;}
-        if(failures>=5)break;
+        if(failures>=MAX_SAME_CONDITION_FAILURES)break;
         const result=battle(id,target);
         if(result.result==='limit'){break;}
         if(result.wins>0){failures=0;progressed=true;signature=identity(state);}
@@ -189,7 +228,7 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
             let gainedKills=0;
             for(const previousId of earlier){
               let failed=0;
-              while((state.killCounts[previousId]??0)<10&&failed<5&&!safetyStop){
+              while((state.killCounts[previousId]??0)<10&&failed<MAX_SAME_CONDITION_FAILURES&&!safetyStop){
                 const prior=state.killCounts[previousId]??0;
                 const farm= battle(previousId,10);
                 if(farm.result==='limit')break;
@@ -246,21 +285,13 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,logLimit=5000,
   if(!Number.isInteger(maxMoves)||maxMoves<0||maxMoves>10)throw RangeError('maxMoves must be 0..10');
   let state=transition(initialState(),{type:'START'});
   const planets=[],moves=[];
-  let stop='move-budget',lastFingerprint=null;
+  let stop='move-budget',repeatForecast=null;
   for(let cycle=0;cycle<=maxMoves;cycle++){
     const {state:finished,report}=playOnePlanet(state,{random,logLimit,maxBattles,maxTicks});
     state=finished;planets.push(report);
     if(report.reason==='battle-budget'||report.reason==='combat-tick-budget'){
       stop=report.reason;break;
     }
-    const fp=JSON.stringify({kills:report.kills,stellar:state.totalStellarEarned,
-      permanent:state.permanentUpgrades,pending:state.pendingStellar});
-    const noAffordableSu=Object.values(STELLAR_UPGRADE_BY_ID).every(node=>
-      stellarUpgradeMaxed(state,node.id)||stellarUpgradeCost(state,node.id)===null||compareAmount(state.stellar,stellarUpgradeCost(state,node.id))<0);
-    if(lastFingerprint===fp&&noAffordableSu){
-      stop='no-progress';break;
-    }
-    lastFingerprint=fp;
     if(cycle===maxMoves)break;
     const before={pending:state.pendingStellar,stellar:state.stellar,
       lifetime:state.totalStellarEarned,upgrades:{...state.permanentUpgrades},
@@ -274,6 +305,20 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,logLimit=5000,
     moves.push({from:cycle+1,to:cycle+2,reason:report.reason,before,
       gain:before.pending,afterStellar:state.stellar,bought:acquired.bought,
       permanent:{...state.permanentUpgrades},firstStats:effectiveDittoStats(state)});
+    // No extrapolation: always perform a real move and try real SU purchases first.
+    if(planets.length>=2&&acquired.bought.length===0&&
+        planetPattern(planets.at(-2))===planetPattern(report)){
+      const forecast=nextStellarForecast(state,report.pendingStellar);
+      if(forecast.status==='all-maxed'){
+        stop='repeat-all-maxed';repeatForecast=forecast;break;
+      }
+      if(forecast.estimatedPlanets===null){
+        stop='repeat-no-income';repeatForecast=forecast;break;
+      }
+      if(forecast.estimatedPlanets>MAX_REPEAT_WAIT_PLANETS){
+        stop='repeat-wait-too-long';repeatForecast=forecast;break;
+      }
+    }
   }
-  return {planets,moves,state,stop};
+  return {planets,moves,state,stop,repeatForecast};
 }
