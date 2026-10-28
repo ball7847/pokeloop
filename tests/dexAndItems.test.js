@@ -49,7 +49,7 @@ test('item progress and encyclopedia history persist in v12 saves',()=>{
     killCounts:{...initialState().killCounts,rattata:2},dexLifetimeKills:{rattata:4},
     itemRunProgress:{victories:2,'pokemon:rattata':2},itemLifetimeProgress:{victories:4,'pokemon:rattata':4}};
   const restored=decodeSave(encodeSave(original)).game;
-  assert.equal(SAVE_VERSION,15);
+  assert.equal(SAVE_VERSION,16);
   assert.equal(restored.dexLifetimeKills.rattata,4);
   assert.equal(restored.itemRunProgress.victories,2);
   assert.equal(restored.itemLifetimeProgress['pokemon:rattata'],4);
