@@ -3,8 +3,10 @@ import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemo
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 import {initialEconomy,tickEconomy,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
-import {buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION,effectiveDittoStats} from './shopSystem.js';
+import {UPGRADES,buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION,DEFAULT_AUTO_BUY_SELECTION,effectiveDittoStats} from './shopSystem.js';
+import {autoAbilityTick} from './abilityAutomation.js';
 import {buyStellarUpgrade} from './stellarUpgrades.js';
+const UPGRADE_IDS=new Set(UPGRADES.map(item=>item.id));
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
@@ -15,7 +17,7 @@ export const initialState = () => ({
   rarityGuarantees:[],rarityBanishments:[],raritySpecialUnlocks:[],dexDiscovered:[],
   dexLifetimeKills:{},itemRunProgress:{},itemLifetimeProgress:{},itemPending:[],itemOwned:[],
   ...initialEconomy(),
-  automation:{...DEFAULT_AUTOMATION},recoveryMs:0,retryPokemonId:null,
+  automation:{...DEFAULT_AUTOMATION},autoBuySelection:{...DEFAULT_AUTO_BUY_SELECTION},recoveryMs:0,retryPokemonId:null,
   combat:emptyCombat(DEFAULT_DITTO_STATS.hp)
 });
 export function transition(state, action) {
@@ -35,6 +37,8 @@ export function transition(state, action) {
     case 'BUY_UPGRADE': return state.phase===PHASE.RUNNING?buyUpgrade(state,action.id):state;
     case 'BUY_AUTOMATION': return state.phase===PHASE.RUNNING?buyAutomation(state,action.id):state;
     case 'TOGGLE_AUTOMATION': return toggleAutomation(state,action.id);
+    case 'TOGGLE_AUTO_BUY_ITEM': return state.qolUnlocks.includes('download')&&UPGRADE_IDS.has(action.id)?{...state,autoBuySelection:{...state.autoBuySelection,[action.id]:!(state.autoBuySelection?.[action.id]??true)}}:state;
+    case 'ABILITY_TICK': return autoAbilityTick(state);
     case 'RECOVERY_TICK': {
       if(state.phase!==PHASE.RUNNING||state.recoveryMs<=0||!Number.isFinite(action.deltaMs)||action.deltaMs<=0)return state;
       const remaining=Math.max(0,state.recoveryMs-Math.min(action.deltaMs,5000));
