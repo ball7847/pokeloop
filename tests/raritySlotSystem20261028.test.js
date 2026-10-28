@@ -6,12 +6,12 @@ import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 import {appearedInRegion,ENCOUNTER_SLOTS,STARTER_IDS,REGION,BERRY_REGION} from '../src/core/wildData.js';
 
 const defs=[
- {id:'a',encounterCode:'R10102-01',rarity:'uncommon'},
- {id:'b',encounterCode:'R10102-02',rarity:'uncommon'},
- {id:'c',encounterCode:'R10202',rarity:'uncommon'},
- {id:'d',encounterCode:'R10302',rarity:'uncommon'},
- {id:'e',encounterCode:'R10403',rarity:'rare'},
- {id:'f',encounterCode:'R10506',rarity:'transcendent'}
+ {id:'a',encounterCode:'W010102-01',rarity:'uncommon'},
+ {id:'b',encounterCode:'W010102-02',rarity:'uncommon'},
+ {id:'c',encounterCode:'W010202',rarity:'uncommon'},
+ {id:'d',encounterCode:'W010302',rarity:'uncommon'},
+ {id:'e',encounterCode:'W010403',rarity:'rare'},
+ {id:'f',encounterCode:'W010506',rarity:'transcendent'}
 ];
 test('group by encounter code, each slot rolls independently, then picks one of N candidates',()=>{
  const slots=createEncounterSlots(defs);
@@ -20,11 +20,11 @@ test('group by encounter code, each slot rolls independently, then picks one of 
  const samples=[.2,.8,.1,.9,.1,.9];
  let consumed=0;
  const results=rollEncounterSlots(slots,{chances:{uncommon:.6,rare:.3},random:()=>samples[consumed++]});
- assert.equal(results.R10102,'b');
- assert.equal(results.R10202,'c');
- assert.equal(results.R10302,null);
- assert.equal(results.R10403,'e');
- assert.equal(results.R10506,null);
+ assert.equal(results.W010102,'b');
+ assert.equal(results.W010202,'c');
+ assert.equal(results.W010302,null);
+ assert.equal(results.W010403,'e');
+ assert.equal(results.W010506,null);
  assert.equal(consumed,5);
 });
 test('original rarity decay uses position after last permanently unlocked slot',()=>{
@@ -37,16 +37,16 @@ test('original rarity decay uses position after last permanently unlocked slot',
 test('guarantee, exclusion and conditional transcendent appearance preserve slot exclusivity',()=>{
  const slots=createEncounterSlots(defs);
  const out=rollEncounterSlots(slots,{chances:{uncommon:0,rare:0},guaranteed:['b'],banished:['a','e'],special:['f'],random:()=>.1});
- assert.equal(out.R10102,'b');
- assert.equal(out.R10403,null);
- assert.equal(out.R10506,'f');
- const blocked=rollEncounterSlots(slots,{chances:{uncommon:0},guaranteed:['b'],banished:['R10102'],special:['f'],random:()=>.2});
- assert.equal(blocked.R10102,null);
+ assert.equal(out.W010102,'b');
+ assert.equal(out.W010403,null);
+ assert.equal(out.W010506,'f');
+ const blocked=rollEncounterSlots(slots,{chances:{uncommon:0},guaranteed:['b'],banished:['W010102'],special:['f'],random:()=>.2});
+ assert.equal(blocked.W010102,null);
 });
 test('existing SU013 level cap and configured target probabilities stay unchanged',()=>{
  assert.deepEqual(RARITY_MAX_TARGETS,{uncommon:.60,rare:.30,legendary:.15,divine:.075});
  assert.equal(initialState().uncommonChance,0);
- assert.equal(ENCOUNTER_SLOTS.find(s=>s.id==='R10802').candidates.length,3);
+ assert.equal(ENCOUNTER_SLOTS.find(s=>s.id==='W010802').candidates.length,3);
 });
 test('planet move locks starter candidate and Pikachu independently; save retains exact roll',()=>{
  let state=transition(initialState(),{type:'START'});
@@ -72,7 +72,7 @@ test('planet move locks starter candidate and Pikachu independently; save retain
 test('invalid slot selections in saved data are rejected',()=>{
  const original=transition(initialState(),{type:'START'});
  const snap=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(original)),v=>v.charCodeAt(0))));
- snap.game.raritySlotResults={R10602:'pikachu'};
+ snap.game.raritySlotResults={W010602:'pikachu'};
  const broken=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(snap))));
  assert.throws(()=>decodeSave(broken),/희귀도 슬롯 판정/);
 });
@@ -80,9 +80,9 @@ test('invalid slot selections in saved data are rejected',()=>{
 test('exclusion removes a common slot from the next planet only',()=>{
  let state=transition(initialState(),{type:'START'});
  assert.ok(appearedInRegion(state,REGION.id).some(p=>p.id==='rattata'));
- state={...state,rarityBanishments:['R10101']};
+ state={...state,rarityBanishments:['W010101']};
  const moved=transition(state,{type:'MOVE_PLANET',random:()=>.9});
- assert.equal(moved.raritySlotResults.R10101,null);
+ assert.equal(moved.raritySlotResults.W010101,null);
  assert.ok(!appearedInRegion(moved,REGION.id).some(p=>p.id==='rattata'));
 });
 test('v13 legacy saves preserve old uncommon starter and berry flag',()=>{
@@ -96,33 +96,33 @@ test('v13 legacy saves preserve old uncommon starter and berry flag',()=>{
  delete payload.game.raritySpecialUnlocks;
  const prior=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(payload))));
  const restored=decodeSave(prior).game;
- assert.equal(restored.raritySlotResults.R10802,'bulbasaur');
- assert.equal(restored.raritySlotResults.R20502,'pikachu');
+ assert.equal(restored.raritySlotResults.W010802,'bulbasaur');
+ assert.equal(restored.raritySlotResults.W020502,'pikachu');
  assert.equal(appearedInRegion(restored,REGION.id).some(p=>p.id==='bulbasaur'),true);
  assert.equal(appearedInRegion(restored,BERRY_REGION.id).some(p=>p.id==='pikachu'),true);
 });
 
 test('rarity decay is globally ordered by region then in-region slot regardless of registration order',()=>{
  const shuffled=[
-  {id:'late',rarity:'uncommon',encounterCode:'R20402'},
-  {id:'first',rarity:'uncommon',encounterCode:'R10102'},
-  {id:'later1',rarity:'uncommon',encounterCode:'R10702'},
-  {id:'second',rarity:'uncommon',encounterCode:'R10202'}
+  {id:'late',rarity:'uncommon',encounterCode:'W020402'},
+  {id:'first',rarity:'uncommon',encounterCode:'W010102'},
+  {id:'later1',rarity:'uncommon',encounterCode:'W010702'},
+  {id:'second',rarity:'uncommon',encounterCode:'W010202'}
  ];
  const slots=createEncounterSlots(shuffled);
  // last unlocked is second in region 1; later1 is one ahead, late is two ahead.
  const result=rollEncounterSlots(slots,{chances:{uncommon:.6},
   lifetimeKills:{second:1},random:()=>.55});
- assert.equal(result.R20402,null); // 60%/1.1 = 54.5% is below the .55 roll
- assert.equal(result.R10102,'first');
- assert.equal(result.R10702,'later1');
+ assert.equal(result.W020402,null); // 60%/1.1 = 54.5% is below the .55 roll
+ assert.equal(result.W010102,'first');
+ assert.equal(result.W010702,'later1');
 });
 test('explicit conditional candidate is selected even if another member shares its slot',()=>{
  const slots=createEncounterSlots([
-  {id:'one',rarity:'transcendent',encounterCode:'R30306-01'},
-  {id:'two',rarity:'transcendent',encounterCode:'R30306-02'}
+  {id:'one',rarity:'transcendent',encounterCode:'W030306-01'},
+  {id:'two',rarity:'transcendent',encounterCode:'W030306-02'}
  ]);
- assert.equal(rollEncounterSlots(slots,{special:['two'],random:()=>0}).R30306,'two');
+ assert.equal(rollEncounterSlots(slots,{special:['two'],random:()=>0}).W030306,'two');
 });
 test('new catalog slots do not invalidate previously generated v14 saves',()=>{
  const old=transition(initialState(),{type:'START'});
@@ -132,6 +132,6 @@ test('new catalog slots do not invalidate previously generated v14 saves',()=>{
  payload.game.raritySlotResults={R10602:'bulbasaur'};
  const modified=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(payload))));
  const loaded=decodeSave(modified).game;
- assert.equal(loaded.raritySlotResults.R10802,'bulbasaur');
- assert.equal(loaded.raritySlotResults.R20502,null);
+ assert.equal(loaded.raritySlotResults.W010802,'bulbasaur');
+ assert.equal(loaded.raritySlotResults.W020502,null);
 });

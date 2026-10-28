@@ -17,8 +17,8 @@ export function prepareNextPlanet(state,random=Math.random){
   special:state.raritySpecialUnlocks??[],random
  });
  return {...preserved,...items,uncommonChance,
-  uncommonStarterId:raritySlotResults.R10802??null,
-  berryRareAppeared:raritySlotResults.R20502==='pikachu',
+  uncommonStarterId:raritySlotResults.W010802??null,
+  berryRareAppeared:raritySlotResults.W020502==='pikachu',
   raritySlotResults,rarityGuarantees:state.rarityGuarantees??[],
   rarityBanishments:state.rarityBanishments??[],
   raritySpecialUnlocks:state.raritySpecialUnlocks??[],

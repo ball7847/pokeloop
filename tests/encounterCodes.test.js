@@ -6,30 +6,30 @@ import {initialState} from '../src/core/gameState.js';
 test('every registered Pokémon has a unique stable regional encounter code',()=>{
  assert.equal(ALL_POKEMON.length,32);
  const codes=ALL_POKEMON.map(p=>p.encounterCode);
- assert.ok(codes.every(code=>typeof code==='string'&&/^R\d+\d{2}\d{2}(?:-\d{2}|-E\d+)?$/.test(code)));
+ assert.ok(codes.every(code=>typeof code==='string'&&/^W\d{2}\d{2}\d{2}(?:-\d{2}|-E\d+)?$/.test(code)));
  assert.equal(new Set(codes).size,codes.length);
 });
 test('region 1 slot 6 starters and shifted common slots retain their codes',()=>{
  assert.deepEqual(WILD_POKEMON.map(p=>p.encounterCode),[
- 'R10101','R10201','R10401','R10501','R10701',
- 'R10901','R11001','R11201','R11401','R11601']);
+ 'W010101','W010201','W010401','W010501','W010701',
+ 'W010901','W011001','W011201','W011401','W011601']);
  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.encounterCode),[
- 'R10802-01','R10802-02','R10802-03']);
+ 'W010802-01','W010802-02','W010802-03']);
 });
 test('region 2 conditional and evolved species inherit fixed region slots',()=>{
  const codes=Object.fromEntries(BERRY_POKEMON.map(p=>[p.id,p.encounterCode]));
  assert.deepEqual(codes,{
-  caterpie:'R20101',weedle:'R20201',kakuna:'R20201-E1',
-  metapod:'R20101-E1',taillow:'R20301',pikachu:'R20502',
-  igglybuff:'R20401','nidoran-m':'R20601','nidoran-f':'R20701',tangela:'R20801',bidoof:'R20901',surskit:'R21001',tropius:'R21101'
+  caterpie:'W020101',weedle:'W020201',kakuna:'W020201-E1',
+  metapod:'W020101-E1',taillow:'W020301',pikachu:'W020502',
+  igglybuff:'W020401','nidoran-m':'W020601','nidoran-f':'W020701',tangela:'W020801',bidoof:'W020901',surskit:'W021001',tropius:'W021101'
  });
  const base=initialState();
  assert.deepEqual(appearedInRegion(base,BERRY_REGION.id).map(p=>p.encounterCode),[
-  'R20101','R20201','R20301','R20401','R20601','R20701','R20801','R20901','R21001','R21101'
+  'W020101','W020201','W020301','W020401','W020601','W020701','W020801','W020901','W021001','W021101'
  ]);
  const appeared={...base,berryRareAppeared:true,evolutionResults:{metapod:true,kakuna:true}};
  assert.deepEqual(appearedInRegion(appeared,BERRY_REGION.id).map(p=>p.encounterCode),[
- 'R20101','R20101-E1','R20201','R20201-E1','R20301',
- 'R20401','R20502','R20601','R20701','R20801','R20901','R21001','R21101']);
+ 'W020101','W020101-E1','W020201','W020201-E1','W020301',
+ 'W020401','W020502','W020601','W020701','W020801','W020901','W021001','W021101']);
  assert.equal(appearedInRegion(base,REGION.id).length,10);
 });

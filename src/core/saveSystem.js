@@ -11,7 +11,7 @@ import {ITEM_BY_ID} from './itemSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=16;
+export const SAVE_VERSION=17;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -63,7 +63,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -251,9 +251,9 @@ export function decodeSave(encoded){
     cleanGame.activeRegionId=original.activeRegionId;
   }
   // The slot outcome is authoritative; legacy flags are compatibility aliases only.
-  cleanGame.uncommonStarterId=cleanGame.raritySlotResults?.R10602??starter;
+  cleanGame.uncommonStarterId=cleanGame.raritySlotResults?.W010802??starter;
   if(cleanGame.raritySlotResults!==null)
-    cleanGame.berryRareAppeared=cleanGame.raritySlotResults.R20502==='pikachu';
+    cleanGame.berryRareAppeared=cleanGame.raritySlotResults.W020502==='pikachu';
   cleanGame.uncommonChance=Math.min(1,Math.max(chance,stellarUncommonBonus(cleanGame)));
 
   cleanGame.dexDiscovered=[...new Set(found.map(id=>id==='jigglypuff'?'igglybuff':id))];

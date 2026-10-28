@@ -12,13 +12,13 @@ test('Ekans and Rookidee preserve exact stats and decaying poison/flying rewards
  assert.deepEqual(b.rewards,{hp:8,defense:8,specialDefense:8,accuracy:4});
  assert.deepEqual(battleEnergyRewards(a,0),{독:8});
  assert.deepEqual(battleEnergyRewards(b,1),{비행:4});
- assert.equal(a.encounterCode,'R11102');assert.equal(b.encounterCode,'R11302');
+ assert.equal(a.encounterCode,'W011102');assert.equal(b.encounterCode,'W011302');
 });
 test('all uncommon candidates only appear in correct 16-position order',()=>{
  const slots=Object.fromEntries(ENCOUNTER_SLOTS.map(s=>[s.id,s.candidates[0]]));
  const state={...initialState(),raritySlotResults:slots};
  assert.deepEqual(appearedInRegion(state,REGION.id).map(p=>p.encounterCode.split('-')[0]),[
- 'R10101','R10201','R10302','R10401','R10501','R10602','R10701','R10802','R10901','R11001','R11102','R11201','R11302','R11401','R11502','R11601'
+ 'W010101','W010201','W010302','W010401','W010501','W010602','W010701','W010802','W010901','W011001','W011102','W011201','W011302','W011401','W011502','W011601'
  ]);
 });
 test('v15 saves remap existing slots without rolling new ones',()=>{
@@ -27,10 +27,10 @@ test('v15 saves remap existing slots without rolling new ones',()=>{
  payload.version=15;
  payload.game.raritySlotResults={R10101:'rattata',R11101:'exeggcute',R11201:'sentret',R11302:'zigzagoon',R11401:'tauros'};
  const imported=decodeSave(encode(payload)).game;
- assert.equal(imported.raritySlotResults.R11201,'exeggcute');
- assert.equal(imported.raritySlotResults.R11401,'sentret');
- assert.equal(imported.raritySlotResults.R11502,'zigzagoon');
- assert.equal(imported.raritySlotResults.R11601,'tauros');
- assert.equal(imported.raritySlotResults.R11102,null);
- assert.equal(imported.raritySlotResults.R11302,null);
+ assert.equal(imported.raritySlotResults.W011201,'exeggcute');
+ assert.equal(imported.raritySlotResults.W011401,'sentret');
+ assert.equal(imported.raritySlotResults.W011502,'zigzagoon');
+ assert.equal(imported.raritySlotResults.W011601,'tauros');
+ assert.equal(imported.raritySlotResults.W011102,null);
+ assert.equal(imported.raritySlotResults.W011302,null);
 });

@@ -7,7 +7,7 @@ import {resolveStats,statLabel} from '../src/core/dittoStats.js';
 
 test('Tangela occupies an ordinary Berry Forest slot with its specified stats and rewards',()=>{
   const p=getWildPokemon('tangela');
-  assert.equal(p.encounterCode,'R20801');
+  assert.equal(p.encounterCode,'W020801');
   assert.deepEqual(p.types,['풀']);
   assert.equal(p.hp,195);
   assert.equal(p.energyReward,11.4);
