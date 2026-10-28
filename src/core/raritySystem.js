@@ -5,10 +5,10 @@ export const RARITY_DECAY=Object.freeze({uncommon:1.1,rare:1.15,legendary:1.05,d
 export const RARITY_MAX_TARGETS=Object.freeze({uncommon:.60,rare:.30,legendary:.15,divine:.075});
 // These are future design targets, NOT current upgrades or automatic starting chances.
 export const baseSlotId=pokemon=>pokemon.encounterCode.split('-')[0];
-// R{region}{position:2}{rarity-code:2}. Region and in-region order are
+// W{region:2}{position:2}{rarity-code:2}. Region and in-region order are
 // explicit; source-array order must not affect rarity decay.
 export function encounterSlotOrder(id){
- const match=/^R(\d+)(\d{2})(\d{2})$/.exec(id);
+ const match=/^W(\d{2})(\d{2})(\d{2})$/.exec(id);
  if(!match)return [Number.MAX_SAFE_INTEGER,Number.MAX_SAFE_INTEGER,id];
  return [Number(match[1]),Number(match[2]),id];
 }
