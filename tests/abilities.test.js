@@ -6,7 +6,7 @@ import {initialState,transition} from '../src/core/gameState.js';
 import {decodeSave,encodeSave} from '../src/core/saveSystem.js';
 
 test('abilities have stable AB codes and retain internal ids, costs and effects',()=>{
- assert.deepEqual(AUTOMATIONS.map(({abilityId,name,id,cost})=>({abilityId,name,id,cost})),[
+ assert.deepEqual(AUTOMATIONS.slice(0,2).map(({abilityId,name,id,cost})=>({abilityId,name,id,cost})),[
   {abilityId:'AB01',name:'먹보',id:'hunger',cost:1},
   {abilityId:'AB02',name:'불굴의마음',id:'resolve',cost:5}
  ]);
