@@ -45,11 +45,12 @@ export function rollEncounterSlots(slots,{chances={},lifetimeKills={},guaranteed
   const allBanned=banishedSet.has(slot.id)||slot.candidates.every(id=>banishedSet.has(id));
   const eligible=slot.candidates.filter(id=>!banishedSet.has(id));
   // Original sequencing: independent natural roll, guarantee/conditional additions, exclusion last.
+  const rate=effectiveSlotChance(slot,chances[slot.rarity],index,lastUnlocked);
   const natural=slot.rarity!=='transcendent'&&
-   (slot.rarity==='common'||random()<effectiveSlotChance(slot,chances[slot.rarity],index,lastUnlocked));
+   (slot.rarity==='common'||(rate>0&&(rate>=1||random()<rate)));
   if(allBanned||(!natural&&!forced&&!selectedGuaranteed.length)){result[slot.id]=null;continue;}
   const pool=selectedGuaranteed.length?selectedGuaranteed:eligible;
-  result[slot.id]=pool[Math.min(pool.length-1,Math.floor(random()*pool.length))]??null;
+  result[slot.id]=pool.length===1?pool[0]:pool[Math.min(pool.length-1,Math.floor(random()*pool.length))]??null;
  }
  return result;
 }
