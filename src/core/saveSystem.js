@@ -10,7 +10,7 @@ import {ITEM_BY_ID} from './itemSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=12;
+export const SAVE_VERSION=13;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -58,7 +58,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,8,9,10,11,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,9,10,11,12,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -177,7 +177,21 @@ export function decodeSave(encoded){
     for(const [target,source] of [['energyUpgrades',previous?'essenceUpgrades':'energyUpgrades'],['permanentUpgrades','permanentUpgrades']]){
       const value=original[source]??{};
       if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>100)throw new Error('강화 기록이 올바르지 않습니다.');
-      if(target==='permanentUpgrades'&&Object.entries(value).some(([id,level])=>!STELLAR_UPGRADE_BY_ID[id]||!validInteger(level,STELLAR_UPGRADE_BY_ID[id].maxLevel)))throw new Error('SE 영구 강화 기록이 올바르지 않습니다.');
+      if(target==='permanentUpgrades'){
+        if(data.version<13){
+          if(Object.entries(value).some(([id,level])=>!STELLAR_UPGRADE_BY_ID[id]||level!==1))
+            throw new Error('기존 SE 영구 강화 기록이 올바르지 않습니다.');
+          // Old SU011: HP +10, SU012: ATK +1, SU013: Normal battle energy +10%.
+          // Old HP/ATK nodes are now combined into baby Lv1; preserved at no cost.
+          eco[target]={
+            ...(value.SU013?{SU011:1}:{}),
+            ...((value.SU011||value.SU012)?{SU012:1}:{})
+          };
+          continue;
+        }
+        if(Object.entries(value).some(([id,level])=>!STELLAR_UPGRADE_BY_ID[id]||!validInteger(level,STELLAR_UPGRADE_BY_ID[id].maxLevel)))
+          throw new Error('SE 영구 강화 기록이 올바르지 않습니다.');
+      }
       eco[target]={...value};
     }
     const qol=original.qolUnlocks??[];
