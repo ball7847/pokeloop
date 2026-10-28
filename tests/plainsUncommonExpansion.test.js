@@ -6,7 +6,7 @@ import {initialState} from '../src/core/gameState.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 const slot=id=>ENCOUNTER_SLOTS.find(s=>s.id===id);
 test('six uncommon slots sit at 3, 6, 8, 11, 13, 15; normals stay at 10',()=>{
- assert.deepEqual(ENCOUNTER_SLOTS.filter(x=>x.id.startsWith('R1')&&x.rarity==='uncommon').map(x=>x.id).sort(),['W010302','W010602','W010802','W011102','W011302','W011502']);
+ assert.deepEqual(ENCOUNTER_SLOTS.filter(x=>x.id.startsWith('W01')&&x.rarity==='uncommon').map(x=>x.id).sort(),['W010302','W010602','W010802','W011102','W011302','W011502']);
  assert.equal(regionUnlockRequirement(),7);
  assert.deepEqual(['psyduck','ponyta','zigzagoon','zigzagoon-galar'].map(x=>getWildPokemon(x).energyReward),[5.5,7.7,13.4,3.4]);
  assert.equal(getWildPokemon('zigzagoon').dodge,260);
@@ -34,7 +34,7 @@ test('old v14 save slots migrate to new positions without changing existing line
  const binary=atob(encoded);
  const obj=JSON.parse(new TextDecoder().decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));
  obj.version=14;
- obj.game.raritySlotResults={'W010101':'rattata','W010201':'pidgey','W010301':'mankey','W010401':'spearow','W010501':'zubat','W010602':'bulbasaur','W010701':'meowth','W010801':'geodude','W010901':'exeggcute','W011001':'sentret','W011101':'tauros'};
+ obj.game.raritySlotResults={'R010101':'rattata','R10201':'pidgey','R10301':'mankey','R10401':'spearow','R10501':'zubat','R10602':'bulbasaur','R10701':'meowth','R10801':'geodude','R10901':'exeggcute','R11001':'sentret','R11101':'tauros'};
  const raw=new TextEncoder().encode(JSON.stringify(obj));
  const legacy=btoa(Array.from(raw,b=>String.fromCharCode(b)).join(''));
  const imported=decodeSave(legacy).game;
