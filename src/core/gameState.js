@@ -1,11 +1,10 @@
-import {rollEncounterSlots} from './raritySystem.js';
-import {ALL_POKEMON,ENCOUNTER_SLOTS,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
+import {prepareNextPlanet} from './planetTransition.js';
+import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
-import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
+import {initialEconomy,tickEconomy,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
 import {buyUpgrade,buyAutomation,toggleAutomation,DEFAULT_AUTOMATION,effectiveDittoStats} from './shopSystem.js';
-import {buyStellarUpgrade,stellarUncommonBonus} from './stellarUpgrades.js';
-import {collectPendingItems} from './itemSystem.js';
+import {buyStellarUpgrade} from './stellarUpgrades.js';
 export const PHASE = Object.freeze({ READY:'ready', RUNNING:'running', PAUSED:'paused', FINISHED:'finished' });
 export const initialState = () => ({
   phase:PHASE.READY, floor:1, encounterIndex:0, victories:0, runId:0, eventSerial:0,
@@ -51,21 +50,9 @@ export function transition(state, action) {
     case 'ECONOMY_TICK': return state.phase===PHASE.RUNNING?tickEconomy(state,action.deltaMs/1000):state;
     case 'MOVE_PLANET': {
       if(state.combat.active||state.recoveryMs>0||state.phase===PHASE.PAUSED||state.phase===PHASE.FINISHED)return state;
-      const preserved=movePlanet(state);
-      const items=collectPendingItems(state);
-      const chance=Math.min(1,UNCOMMON_BASE_CHANCE+stellarUncommonBonus(preserved));
       const random=typeof action.random==='function'?action.random:Math.random;
-      const raritySlotResults=rollEncounterSlots(ENCOUNTER_SLOTS,{
-        chances:{uncommon:chance},lifetimeKills:state.dexLifetimeKills,
-        guaranteed:state.rarityGuarantees??[],banished:state.rarityBanishments??[],
-        special:state.raritySpecialUnlocks??[],random
-      });
-      const starter=raritySlotResults.R10602??null;
-      const berryRareAppeared=raritySlotResults.R20502==='pikachu';
-      return {...initialState(),...preserved,...items,uncommonChance:chance,uncommonStarterId:starter,berryRareAppeared,
-        raritySlotResults,rarityGuarantees:state.rarityGuarantees??[],
-        rarityBanishments:state.rarityBanishments??[],raritySpecialUnlocks:state.raritySpecialUnlocks??[],
-        dexDiscovered:[...state.dexDiscovered],dexLifetimeKills:{...state.dexLifetimeKills},phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};
+      return {...initialState(),...prepareNextPlanet(state,random),
+        phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};
     }
     case 'SELECT_REGION': return !state.combat.active&&isRegionUnlocked(state,action.regionId)?{...state,activeRegionId:action.regionId}:state;
     case 'SELECT_WILD': return startBattle(state,action.pokemonId);

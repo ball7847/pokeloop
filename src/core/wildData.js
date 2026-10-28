@@ -83,7 +83,9 @@ export function appearedInRegion(state,regionId){
  baseLineup(state,regionId).forEach(insert);
  return result;
 }
-export const regionUnlockRequirement=state=>Math.ceil(baseLineup(state,REGION.id).length*.7);
+// Region unlocking must not become harder just because a rare candidate appeared.
+// The fixed baseline is the 10 standard slots in the starting region.
+export const regionUnlockRequirement=()=>Math.ceil(WILD_POKEMON.length*.7);
 export const isRegionUnlocked=(state,regionId)=>regionId===REGION.id||
  (regionId===BERRY_REGION.id&&baseLineup(state,REGION.id)
   .filter(p=>(state.killCounts?.[p.id]??0)>0).length>=regionUnlockRequirement(state));

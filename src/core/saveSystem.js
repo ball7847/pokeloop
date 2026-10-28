@@ -1,5 +1,6 @@
+import {migrateEncounterSave} from './encounterSave.js';
 import {initialState,PHASE} from './gameState.js';
-import {ALL_POKEMON,ENCOUNTER_SLOTS,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
+import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
@@ -105,24 +106,7 @@ export function decodeSave(encoded){
       throw new Error('진화 판정 기록이 올바르지 않습니다.');
     cleanGame.evolutionResults={...results};
   }
-  if(data.version>=14){
-    const slotMap=new Map(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot]));
-    const results=original.raritySlotResults??null;
-    if(results!==null&&(!results||typeof results!=='object'||Array.isArray(results)||
-      Object.keys(results).length!==ENCOUNTER_SLOTS.length||
-      Object.entries(results).some(([id,value])=>!slotMap.has(id)||
-        (value!==null&&!slotMap.get(id).candidates.includes(value)))))
-      throw new Error('희귀도 슬롯 판정 기록이 올바르지 않습니다.');
-    cleanGame.raritySlotResults=results===null?null:{...results};
-    const validIds=new Set([...slotMap.keys(),...ALL_POKEMON.map(p=>p.id)]);
-    for(const key of ['rarityGuarantees','rarityBanishments','raritySpecialUnlocks']){
-      const ids=original[key]??[];
-      if(!Array.isArray(ids)||ids.length>validIds.size||
-        ids.some(id=>!validIds.has(id))||new Set(ids).size!==ids.length)
-        throw new Error('희귀도 출현 옵션이 올바르지 않습니다: '+key);
-      cleanGame[key]=[...ids];
-    }
-  }
+  Object.assign(cleanGame,migrateEncounterSave(original,data.version));
   const starter=original.uncommonStarterId??null;
   if(starter!==null&&!STARTER_IDS.includes(starter))throw new Error('6번 슬롯 정보가 올바르지 않습니다.');
   const chance=original.uncommonChance??0;
@@ -262,8 +246,12 @@ export function decodeSave(encoded){
       throw new Error('지역 정보가 올바르지 않습니다.');
     cleanGame.activeRegionId=original.activeRegionId;
   }
-  cleanGame.uncommonStarterId=starter;
+  // The slot outcome is authoritative; legacy flags are compatibility aliases only.
+  cleanGame.uncommonStarterId=cleanGame.raritySlotResults?.R10602??starter;
+  if(cleanGame.raritySlotResults!==null)
+    cleanGame.berryRareAppeared=cleanGame.raritySlotResults.R20502==='pikachu';
   cleanGame.uncommonChance=Math.min(1,Math.max(chance,stellarUncommonBonus(cleanGame)));
+
   cleanGame.dexDiscovered=[...new Set(found.map(id=>id==='jigglypuff'?'igglybuff':id))];
   if(!isRegionUnlocked(cleanGame,cleanGame.activeRegionId))cleanGame.activeRegionId=REGION.id;
   // Active combat is deliberately not persisted. Resuming requires a new battle.

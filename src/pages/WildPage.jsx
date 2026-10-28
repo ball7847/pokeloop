@@ -80,10 +80,11 @@ export function WildPage(){
   const killCounts=useGameStore(s=>s.game.killCounts);
   const activeRegionId=useGameStore(s=>s.game.activeRegionId);
   const berryRareAppeared=useGameStore(s=>s.game.berryRareAppeared);
+  const raritySlotResults=useGameStore(s=>s.game.raritySlotResults);
   const uncommonStarterId=useGameStore(s=>s.game.uncommonStarterId);
   const evolutionResults=useGameStore(s=>s.game.evolutionResults);
-  const game=useMemo(()=>({killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,evolutionResults}),
-    [killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,evolutionResults]);
+  const game=useMemo(()=>({killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,raritySlotResults,evolutionResults}),
+    [killCounts,activeRegionId,berryRareAppeared,uncommonStarterId,raritySlotResults,evolutionResults]);
   const combatActive=useGameStore(s=>s.game.combat.active);
   const fightingId=useGameStore(s=>s.game.combat.pokemonId);
   const phase=useGameStore(s=>s.game.phase);

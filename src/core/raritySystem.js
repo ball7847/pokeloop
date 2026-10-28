@@ -5,6 +5,17 @@ export const RARITY_DECAY=Object.freeze({uncommon:1.1,rare:1.15,legendary:1.05,d
 export const RARITY_MAX_TARGETS=Object.freeze({uncommon:.60,rare:.30,legendary:.15,divine:.075});
 // These are future design targets, NOT current upgrades or automatic starting chances.
 export const baseSlotId=pokemon=>pokemon.encounterCode.split('-')[0];
+// R{region}{position:2}{rarity-code:2}. Region and in-region order are
+// explicit; source-array order must not affect rarity decay.
+export function encounterSlotOrder(id){
+ const match=/^R(\d+)(\d{2})(\d{2})$/.exec(id);
+ if(!match)return [Number.MAX_SAFE_INTEGER,Number.MAX_SAFE_INTEGER,id];
+ return [Number(match[1]),Number(match[2]),id];
+}
+const compareSlotOrder=(a,b)=>{
+ const left=encounterSlotOrder(a.id),right=encounterSlotOrder(b.id);
+ return left[0]-right[0]||left[1]-right[1]||left[2].localeCompare(right[2]);
+};
 export const createEncounterSlots=pokemon=>{
  const grouped=new Map();
  for(const p of pokemon){
@@ -35,21 +46,34 @@ export function rollEncounterSlots(slots,{chances={},lifetimeKills={},guaranteed
   if(!byRarity.has(slot.rarity))byRarity.set(slot.rarity,[]);
   byRarity.get(slot.rarity).push(slot);
  }
+ // Precompute once per rarity, not once per slot. The order is:
+ // rarity -> entire region progression -> position within each region.
+ const rarityProgress=new Map();
+ for(const [rarity,members] of byRarity){
+  members.sort(compareSlotOrder);
+  let lastUnlocked=-1;
+  for(let i=0;i<members.length;i++){
+   if(members[i].candidates.some(id=>(lifetimeKills[id]??0)>0))lastUnlocked=i;
+  }
+  const chancesBySlot=new Map(members.map((member,i)=>[
+   member.id,effectiveSlotChance(member,chances[rarity],i,lastUnlocked)
+  ]));
+  rarityProgress.set(rarity,chancesBySlot);
+ }
  const result={};
  for(const slot of slots){
-  const siblings=byRarity.get(slot.rarity);
-  const index=siblings.indexOf(slot);
-  const lastUnlocked=siblings.reduce((last,entry,i)=>entry.candidates.some(id=>(lifetimeKills[id]??0)>0)?i:last,-1);
-  const forced=specialSet.has(slot.id)||slot.candidates.some(id=>specialSet.has(id));
+  const explicitlySpecial=slot.candidates.filter(id=>specialSet.has(id)&&!banishedSet.has(id));
+  const forced=specialSet.has(slot.id)||explicitlySpecial.length>0;
   const selectedGuaranteed=slot.candidates.filter(id=>guaranteedSet.has(id)&&!banishedSet.has(id));
   const allBanned=banishedSet.has(slot.id)||slot.candidates.every(id=>banishedSet.has(id));
   const eligible=slot.candidates.filter(id=>!banishedSet.has(id));
   // Original sequencing: independent natural roll, guarantee/conditional additions, exclusion last.
-  const rate=effectiveSlotChance(slot,chances[slot.rarity],index,lastUnlocked);
+  const rate=rarityProgress.get(slot.rarity).get(slot.id);
   const natural=slot.rarity!=='transcendent'&&
    (slot.rarity==='common'||(rate>0&&(rate>=1||random()<rate)));
   if(allBanned||(!natural&&!forced&&!selectedGuaranteed.length)){result[slot.id]=null;continue;}
-  const pool=selectedGuaranteed.length?selectedGuaranteed:eligible;
+  const pool=selectedGuaranteed.length?selectedGuaranteed:
+   explicitlySpecial.length?explicitlySpecial:eligible;
   result[slot.id]=pool.length===1?pool[0]:pool[Math.min(pool.length-1,Math.floor(random()*pool.length))]??null;
  }
  return result;

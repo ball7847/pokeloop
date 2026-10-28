@@ -57,7 +57,7 @@ test('male Nidoran minimum damage 50% and max 150%',()=>{
  assert.equal(n.maxDamagePercent,150);
  assert.equal(n.accuracy,80);
 });
-test('region 2 unlocks after 70% of appeared unique regional species and first three only',()=>{
+test('region 2 unlocks after seven standard region-1 species and first three only',()=>{
  let s=state();
  assert.equal(isRegionUnlocked(s,BERRY_REGION.id),false);
  assert.equal(transition(s,{type:'SELECT_REGION',regionId:BERRY_REGION.id}),s);
@@ -85,7 +85,7 @@ test('region 2 unlocks after 70% of appeared unique regional species and first t
  assert.equal(appearedInRegion(s,BERRY_REGION.id).length,10);
  assert.equal(appearedInRegion({...s,berryRareAppeared:true},BERRY_REGION.id).length,11);
  let rare={...state(),uncommonStarterId:'bulbasaur'};
- assert.equal(isRegionUnlocked({...rare,killCounts:{...rare.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1}},BERRY_REGION.id),false);
+ assert.equal(isRegionUnlocked({...rare,killCounts:{...rare.killCounts,rattata:1,pidgey:1,mankey:1,spearow:1,meowth:1,geodude:1,exeggcute:1}},BERRY_REGION.id),true);
 });
 function combat(){
  return {currentHp:500,dittoHp:{current:500,max:500},enemy:{hp:{current:500,max:500}},

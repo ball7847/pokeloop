@@ -96,7 +96,41 @@ test('v13 legacy saves preserve old uncommon starter and berry flag',()=>{
  delete payload.game.raritySpecialUnlocks;
  const prior=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(payload))));
  const restored=decodeSave(prior).game;
- assert.equal(restored.raritySlotResults,null);
+ assert.equal(restored.raritySlotResults.R10602,'bulbasaur');
+ assert.equal(restored.raritySlotResults.R20502,'pikachu');
  assert.equal(appearedInRegion(restored,REGION.id).some(p=>p.id==='bulbasaur'),true);
  assert.equal(appearedInRegion(restored,BERRY_REGION.id).some(p=>p.id==='pikachu'),true);
+});
+
+test('rarity decay is globally ordered by region then in-region slot regardless of registration order',()=>{
+ const shuffled=[
+  {id:'late',rarity:'uncommon',encounterCode:'R20402'},
+  {id:'first',rarity:'uncommon',encounterCode:'R10102'},
+  {id:'later1',rarity:'uncommon',encounterCode:'R10702'},
+  {id:'second',rarity:'uncommon',encounterCode:'R10202'}
+ ];
+ const slots=createEncounterSlots(shuffled);
+ // last unlocked is second in region 1; later1 is one ahead, late is two ahead.
+ const result=rollEncounterSlots(slots,{chances:{uncommon:.6},
+  lifetimeKills:{second:1},random:()=>.55});
+ assert.equal(result.R20402,null); // 60%/1.1 = 54.5% is below the .55 roll
+ assert.equal(result.R10102,'first');
+ assert.equal(result.R10702,'later1');
+});
+test('explicit conditional candidate is selected even if another member shares its slot',()=>{
+ const slots=createEncounterSlots([
+  {id:'one',rarity:'transcendent',encounterCode:'R30306-01'},
+  {id:'two',rarity:'transcendent',encounterCode:'R30306-02'}
+ ]);
+ assert.equal(rollEncounterSlots(slots,{special:['two'],random:()=>0}).R30306,'two');
+});
+test('new catalog slots do not invalidate previously generated v14 saves',()=>{
+ const old=transition(initialState(),{type:'START'});
+ const encoded=encodeSave(old);
+ const payload=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded),v=>v.charCodeAt(0))));
+ payload.game.raritySlotResults={R10602:'bulbasaur'};
+ const modified=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(payload))));
+ const loaded=decodeSave(modified).game;
+ assert.equal(loaded.raritySlotResults.R10602,'bulbasaur');
+ assert.equal(loaded.raritySlotResults.R20502,null);
 });
