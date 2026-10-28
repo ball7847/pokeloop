@@ -41,7 +41,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     aria-label={pokemon.name+(capped?' 처치 완료':' 선택')} onClick={onSelect}>
     <div className="wild-card-upper">
       <div className="wild-card-portrait">
-        <img src={spriteUrl(pokemon.number)} alt={pokemon.name} width="64" height="64"/>
+        <img src={spriteUrl(pokemon.spriteNumber??pokemon.number)} alt={pokemon.name} width="64" height="64"/>
       </div>
       <div className="wild-card-info">
         <strong className="wild-name">{pokemon.name}</strong>
