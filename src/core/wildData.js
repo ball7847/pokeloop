@@ -24,7 +24,7 @@ export const PLAINS_UNCOMMON=Object.freeze([
  {id:'psyduck',number:54,name:'고라파덕',types:['물'],rarity:'uncommon',encounterCode:'R10302',hp:50,attack:5.2,speed:1400,energyReward:5.5,rewards:{hp:8,attack:2.6}},
  {id:'ponyta',number:77,name:'포니타',types:['불꽃'],rarity:'uncommon',encounterCode:'R10602',hp:77,attack:8.5,speed:800,energyReward:7.7,rewards:{attack:4.1,speed:-20}},
  {id:'zigzagoon',number:263,name:'지그제구리',types:['노말'],rarity:'uncommon',encounterCode:'R11302-01',hp:138,attack:13,speed:1100,dodge:260,energyReward:13.4,rewards:{dodge:13}},
- {id:'zigzagoon-galar',number:263,name:'지그제구리(가라르의 모습)',types:['악','노말'],rarity:'uncommon',encounterCode:'R11302-02',hp:138,attack:26,speed:1100,dodge:130,energyReward:3.4,rewards:{attack:2.6,dodge:13}}
+ {id:'zigzagoon-galar',number:263,spriteNumber:10174,name:'지그제구리(가라르의 모습)',types:['악','노말'],rarity:'uncommon',encounterCode:'R11302-02',hp:138,attack:26,speed:1100,dodge:130,energyReward:3.4,rewards:{attack:2.6,dodge:13}}
 ].map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 const berryEntries=[
