@@ -1,4 +1,4 @@
-import {compareAmount,subtractAmount,multiplyAmount,decimal,storedAmount} from './bigNumber.js';
+import {compareAmount,subtractAmount,multiplyAmount,storedAmount} from './bigNumber.js';
 
 // Slot indices are zero based; SU identifiers count occupied positions.
 export const STELLAR_UPGRADES=Object.freeze({
@@ -23,7 +23,7 @@ export const stellarUpgradeMaxed=(state,id)=>{
 export function stellarUpgradeCost(state,id){
   const node=STELLAR_UPGRADE_BY_ID[id];
   if(!node||stellarUpgradeMaxed(state,id))return null;
-  try{return storedAmount(decimal(node.baseCost).mul(decimal(node.costGrowth).pow(stellarUpgradeLevel(state,id))));}
+  try{return storedAmount((BigInt(node.baseCost)*BigInt(node.costGrowth)**BigInt(stellarUpgradeLevel(state,id))).toString());}
   catch(error){if(error instanceof RangeError)return null;throw error;}
 }
 export function stellarChildBonus(state){
