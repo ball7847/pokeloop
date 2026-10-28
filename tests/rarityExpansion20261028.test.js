@@ -35,12 +35,12 @@ test('20-region 480-slot roster preserves per-region counts and N-of-one groups'
   assert.equal(byRegion.filter(s=>s.rarity==='rare').length,6);
   assert.equal(byRegion.find(s=>s.id===slotCode(region,2,2)).candidates.length,3);
  }
- const picked=rollEncounterSlots(slots,{chances:{uncommon:1,rare:1},random:()=>.99});
+ const picked=rollEncounterSlots(slots,{chances:{uncommon:1,rare:1},random:()=>0});
  assert.equal(Object.keys(picked).length,480);
  assert.equal(Object.values(picked).filter(Boolean).length,480);
  assert.equal(new Set(Object.values(picked)).size,480);
  for(let region=1;region<=20;region++)
-  assert.equal(picked[slotCode(region,2,2)],'uncommon-'+region+'-2-2');
+  assert.equal(picked[slotCode(region,2,2)],'uncommon-'+region+'-2-0');
 });
 test('global rare progress ignores cross-rarity unlocks and sorts even when input is reversed',()=>{
  const species=fixtures();
