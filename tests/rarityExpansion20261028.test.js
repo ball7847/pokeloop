@@ -7,7 +7,7 @@ import {initialState,transition} from '../src/core/gameState.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 // Future regions and candidates are fixtures, not new game content.
-const slotCode=(region,position,rarity)=>'R'+region+String(position).padStart(2,'0')+String(rarity).padStart(2,'0');
+const slotCode=(region,position,rarity)=>'W'+String(region).padStart(2,'0')+String(position).padStart(2,'0')+String(rarity).padStart(2,'0');
 const fixtures=()=>{
  const result=[];
  for(let region=1;region<=20;region++){
@@ -29,7 +29,7 @@ test('20-region 480-slot roster preserves per-region counts and N-of-one groups'
  assert.equal(slots.length,480);
  assert.equal(species.length,520);
  for(let region=1;region<=20;region++){
-  const byRegion=slots.filter(slot=>Number(/^R(\d+)(\d{4})$/.exec(slot.id)?.[1])===region);
+  const byRegion=slots.filter(slot=>Number(/^W(\d{2})(\d{4})$/.exec(slot.id)?.[1])===region);
   assert.equal(byRegion.filter(s=>s.rarity==='common').length,10);
   assert.equal(byRegion.filter(s=>s.rarity==='uncommon').length,8);
   assert.equal(byRegion.filter(s=>s.rarity==='rare').length,6);
@@ -58,14 +58,14 @@ test('global rare progress ignores cross-rarity unlocks and sorts even when inpu
 });
 test('save migration expands an older catalog without rerolling any existing slot',()=>{
  const future=createEncounterSlots(fixtures());
- const starter=ENCOUNTER_SLOTS.find(s=>s.id==='R10802');
+ const starter=ENCOUNTER_SLOTS.find(s=>s.id==='W010802');
  const expanded=[...ENCOUNTER_SLOTS,...future.filter(s=>!ENCOUNTER_SLOTS.some(existing=>existing.id===s.id))];
  const old=Object.fromEntries(ENCOUNTER_SLOTS.map(slot=>[slot.id,
   slot.rarity==='common'?slot.candidates[0]:null]));
  old[starter.id]='charmander';
  const migrated=migrateEncounterSave({raritySlotResults:old,rarityGuarantees:[],rarityBanishments:[],raritySpecialUnlocks:[]},
-  16,expanded,ALL_POKEMON);
- assert.equal(migrated.raritySlotResults.R10802,'charmander');
+  17,expanded,ALL_POKEMON);
+ assert.equal(migrated.raritySlotResults.W010802,'charmander');
  assert.equal(Object.keys(migrated.raritySlotResults).length,expanded.length);
  for(const [id,value] of Object.entries(old))assert.equal(migrated.raritySlotResults[id],value);
  assert.equal(migrated.raritySlotResults[slotCode(20,2,3)],null);
