@@ -1,0 +1,44 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {ALL_POKEMON,REGION,ENCOUNTER_SLOTS,appearedInRegion,getWildPokemon,isPokemonUnlockedInState,regionUnlockRequirement} from '../src/core/wildData.js';
+import {rollEncounterSlots} from '../src/core/raritySystem.js';
+import {initialState} from '../src/core/gameState.js';
+import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
+const slot=id=>ENCOUNTER_SLOTS.find(s=>s.id===id);
+test('four uncommon slots sit at 3, 6, 8, 13; normals stay at 10',()=>{
+ assert.deepEqual(ENCOUNTER_SLOTS.filter(x=>x.id.startsWith('R1')&&x.rarity==='uncommon').map(x=>x.id).sort(),['R10302','R10602','R10802','R11302']);
+ assert.equal(regionUnlockRequirement(),7);
+ assert.deepEqual(['psyduck','ponyta','zigzagoon','zigzagoon-galar'].map(x=>getWildPokemon(x).energyReward),[5.5,7.7,13.4,3.4]);
+ assert.equal(getWildPokemon('zigzagoon').dodge,260);
+ assert.equal(getWildPokemon('zigzagoon-galar').dodge,130);
+});
+test('slot rolls choose one zigzagoon and one starter even at 100% uncommon',()=>{
+ const results=rollEncounterSlots(ENCOUNTER_SLOTS,{chances:{uncommon:1},random:()=>0.1});
+ assert.equal(results.R10302,'psyduck');
+ assert.equal(results.R10602,'ponyta');
+ assert.ok(slot('R10802').candidates.includes(results.R10802));
+ assert.ok(slot('R11302').candidates.includes(results.R11302));
+ const state={...initialState(),raritySlotResults:results};
+ const lineup=appearedInRegion(state,REGION.id);
+ assert.deepEqual(lineup.map(x=>x.encounterCode.slice(0,4)),['R101','R102','R103','R104','R105','R106','R107','R108','R109','R110','R111','R112','R113','R114']);
+ assert.equal(lineup.filter(x=>x.id.startsWith('zigzagoon')).length,1);
+ assert.equal(lineup.filter(x=>['bulbasaur','charmander','squirtle'].includes(x.id)).length,1);
+ assert.equal(isPokemonUnlockedInState(state,'psyduck'),true);
+});
+test('old v14 save slots migrate to new positions without changing existing lineup',()=>{
+ const state=initialState();
+ const encoded=encodeSave({...state,raritySlotResults:Object.fromEntries(ENCOUNTER_SLOTS.map(x=>[x.id,x.candidates[0]]))});
+ const fresh=decodeSave(encoded).game;
+ assert.equal(fresh.raritySlotResults.R10302,'psyduck');
+ assert.equal(fresh.raritySlotResults.R11302,'zigzagoon');
+ const binary=atob(encoded);
+ const obj=JSON.parse(new TextDecoder().decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));
+ obj.version=14;
+ obj.game.raritySlotResults={'R10101':'rattata','R10201':'pidgey','R10301':'mankey','R10401':'spearow','R10501':'zubat','R10602':'bulbasaur','R10701':'meowth','R10801':'geodude','R10901':'exeggcute','R11001':'sentret','R11101':'tauros'};
+ const raw=new TextEncoder().encode(JSON.stringify(obj));
+ const legacy=btoa(Array.from(raw,b=>String.fromCharCode(b)).join(''));
+ const imported=decodeSave(legacy).game;
+ assert.equal(imported.raritySlotResults.R10401,'mankey');
+ assert.equal(imported.raritySlotResults.R10802,'bulbasaur');
+ assert.equal(imported.raritySlotResults.R10302,null);
+});

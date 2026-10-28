@@ -25,7 +25,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
     ...emptyCombat(hp),currentHp,dittoHp:{current:currentHp,max:hp},active:true,pokemonId:id,
     playerStatus:carryStatus??{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0},
     enemy:{
-      name:p.name,imageUrl:spriteUrl(p.number),
+      name:p.name,imageUrl:spriteUrl(p.spriteNumber??p.number),
       hp:{current:p.hp,max:p.hp},
       stats:Object.fromEntries(visibleNonDefaultStats(p).map(({key,label})=>[label,p[key]])),
       minDamagePercent:p.minDamagePercent,maxDamagePercent:p.maxDamagePercent,

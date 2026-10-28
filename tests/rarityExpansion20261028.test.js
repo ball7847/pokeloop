@@ -58,14 +58,14 @@ test('global rare progress ignores cross-rarity unlocks and sorts even when inpu
 });
 test('save migration expands an older catalog without rerolling any existing slot',()=>{
  const future=createEncounterSlots(fixtures());
- const starter=ENCOUNTER_SLOTS.find(s=>s.id==='R10602');
+ const starter=ENCOUNTER_SLOTS.find(s=>s.id==='R10802');
  const expanded=[...ENCOUNTER_SLOTS,...future.filter(s=>!ENCOUNTER_SLOTS.some(existing=>existing.id===s.id))];
  const old=Object.fromEntries(ENCOUNTER_SLOTS.map(slot=>[slot.id,
   slot.rarity==='common'?slot.candidates[0]:null]));
  old[starter.id]='charmander';
  const migrated=migrateEncounterSave({raritySlotResults:old,rarityGuarantees:[],rarityBanishments:[],raritySpecialUnlocks:[]},
-  14,expanded,ALL_POKEMON);
- assert.equal(migrated.raritySlotResults.R10602,'charmander');
+  15,expanded,ALL_POKEMON);
+ assert.equal(migrated.raritySlotResults.R10802,'charmander');
  assert.equal(Object.keys(migrated.raritySlotResults).length,expanded.length);
  for(const [id,value] of Object.entries(old))assert.equal(migrated.raritySlotResults[id],value);
  assert.equal(migrated.raritySlotResults[slotCode(20,2,3)],null);

@@ -4,17 +4,17 @@ import {ALL_POKEMON,WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,appearedInRegio
 import {initialState} from '../src/core/gameState.js';
 
 test('every registered Pokémon has a unique stable regional encounter code',()=>{
- assert.equal(ALL_POKEMON.length,26);
+ assert.equal(ALL_POKEMON.length,30);
  const codes=ALL_POKEMON.map(p=>p.encounterCode);
  assert.ok(codes.every(code=>typeof code==='string'&&/^R\d+\d{2}\d{2}(?:-\d{2}|-E\d+)?$/.test(code)));
  assert.equal(new Set(codes).size,codes.length);
 });
 test('region 1 slot 6 starters and shifted common slots retain their codes',()=>{
  assert.deepEqual(WILD_POKEMON.map(p=>p.encounterCode),[
- 'R10101','R10201','R10301','R10401','R10501',
- 'R10701','R10801','R10901','R11001','R11101']);
+ 'R10101','R10201','R10401','R10501','R10701',
+ 'R10901','R11001','R11101','R11201','R11401']);
  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.encounterCode),[
- 'R10602-01','R10602-02','R10602-03']);
+ 'R10802-01','R10802-02','R10802-03']);
 });
 test('region 2 conditional and evolved species inherit fixed region slots',()=>{
  const codes=Object.fromEntries(BERRY_POKEMON.map(p=>[p.id,p.encounterCode]));
