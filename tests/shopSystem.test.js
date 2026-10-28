@@ -265,8 +265,8 @@ test('upgrade costs beyond supported amount range are unavailable instead of thr
 
 test('new water and grass upgrades use confirmed costs, correct stat order, energy spending and persistence',()=>{
  let s={...funded(),energyBalances:{...funded().energyBalances,물:100,풀:100},dittoStats:{...funded().dittoStats,hp:100,specialAttack:4,regeneration:5}};
- assert.equal(upgradeCost('specialAttack',0),1);
- assert.equal(upgradeCost('specialAttack',1),1.5);
+ assert.equal(upgradeCost('specialAttack',0),8);
+ assert.equal(upgradeCost('specialAttack',1),12);
  assert.equal(upgradeCost('hpMultiplier',0),10);
  assert.equal(upgradeCost('hpMultiplier',1),15);
  assert.equal(upgradeCost('regenerationMultiplier',0),10);
@@ -276,9 +276,9 @@ test('new water and grass upgrades use confirmed costs, correct stat order, ener
  assert.ok(Math.abs(stats.hp-112.32)<1e-9);
  assert.equal(stats.specialAttack,6);
  assert.ok(Math.abs(stats.regeneration-5.3)<1e-9);
- assert.equal(s.energyBalances.물,72.5);
+ assert.equal(s.energyBalances.물,55);
  assert.equal(s.energyBalances.풀,75);
- assert.equal(s.particleBank.물,27.5);
+ assert.equal(s.particleBank.물,45);
  assert.equal(s.particleBank.풀,25);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.hpMultiplier,2);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.specialAttack,2);
