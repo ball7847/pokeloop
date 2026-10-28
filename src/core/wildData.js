@@ -64,11 +64,13 @@ export function evolutionChance(pokemon,state){
 const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
 export const regionForPokemon=id=>berryIds.has(id)?BERRY_REGION.id:REGION.id;
 const selectedInSlot=(state,p)=>state?.raritySlotResults==null?
- (p.id==='pikachu'?state?.berryRareAppeared===true:state?.uncommonStarterId===p.id):
+ (!p.rarity||p.rarity==='common'?true:
+   (p.id==='pikachu'?state?.berryRareAppeared===true:state?.uncommonStarterId===p.id)):
  state.raritySlotResults[baseSlotId(p)]===p.id;
-const region1Lineup=state=>[...WILD_POKEMON.slice(0,5),...UNCOMMON_STARTERS.filter(p=>selectedInSlot(state,p)),...WILD_POKEMON.slice(5)];
+const region1Lineup=state=>[...WILD_POKEMON.slice(0,5).filter(p=>selectedInSlot(state,p)),
+ ...UNCOMMON_STARTERS.filter(p=>selectedInSlot(state,p)),...WILD_POKEMON.slice(5).filter(p=>selectedInSlot(state,p))];
 const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
- BERRY_POKEMON.filter(p=>!p.evolvesFrom&&(p.rarity==null||p.rarity==='common'||selectedInSlot(state,p))):
+ BERRY_POKEMON.filter(p=>!p.evolvesFrom&&selectedInSlot(state,p)):
  region1Lineup(state);
 // Recursive insertion also supports later second and third evolutionary stages.
 export function appearedInRegion(state,regionId){
