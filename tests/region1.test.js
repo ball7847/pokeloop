@@ -82,7 +82,7 @@ test('first victories survive saves and the unlock count restores automatically'
 test('slot 6 inserts the appeared uncommon starter before Meowth and preserves fixed codes',()=>{
  const base=initialState();
  assert.deepEqual(appearedInRegion(base,REGION.id).map(p=>p.id),WILD_POKEMON.map(p=>p.id));
- assert.deepEqual(WILD_POKEMON.map(p=>p.encounterCode),['R10101','R10201','R10401','R10501','R10701','R10901','R11001','R11101','R11201','R11401']);
+ assert.deepEqual(WILD_POKEMON.map(p=>p.encounterCode),['R10101','R10201','R10401','R10501','R10701','R10901','R11001','R11201','R11401','R11601']);
  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.encounterCode),['R10802-01','R10802-02','R10802-03']);
  for(const id of ['bulbasaur','charmander','squirtle']){
   const s={...base,uncommonStarterId:id};

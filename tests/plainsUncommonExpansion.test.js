@@ -5,8 +5,8 @@ import {rollEncounterSlots} from '../src/core/raritySystem.js';
 import {initialState} from '../src/core/gameState.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 const slot=id=>ENCOUNTER_SLOTS.find(s=>s.id===id);
-test('four uncommon slots sit at 3, 6, 8, 13; normals stay at 10',()=>{
- assert.deepEqual(ENCOUNTER_SLOTS.filter(x=>x.id.startsWith('R1')&&x.rarity==='uncommon').map(x=>x.id).sort(),['R10302','R10602','R10802','R11302']);
+test('six uncommon slots sit at 3, 6, 8, 11, 13, 15; normals stay at 10',()=>{
+ assert.deepEqual(ENCOUNTER_SLOTS.filter(x=>x.id.startsWith('R1')&&x.rarity==='uncommon').map(x=>x.id).sort(),['R10302','R10602','R10802','R11102','R11302','R11502']);
  assert.equal(regionUnlockRequirement(),7);
  assert.deepEqual(['psyduck','ponyta','zigzagoon','zigzagoon-galar'].map(x=>getWildPokemon(x).energyReward),[5.5,7.7,13.4,3.4]);
  assert.equal(getWildPokemon('zigzagoon').dodge,260);
@@ -17,10 +17,10 @@ test('slot rolls choose one zigzagoon and one starter even at 100% uncommon',()=
  assert.equal(results.R10302,'psyduck');
  assert.equal(results.R10602,'ponyta');
  assert.ok(slot('R10802').candidates.includes(results.R10802));
- assert.ok(slot('R11302').candidates.includes(results.R11302));
+ assert.ok(slot('R11502').candidates.includes(results.R11502));
  const state={...initialState(),raritySlotResults:results};
  const lineup=appearedInRegion(state,REGION.id);
- assert.deepEqual(lineup.map(x=>x.encounterCode.slice(0,4)),['R101','R102','R103','R104','R105','R106','R107','R108','R109','R110','R111','R112','R113','R114']);
+ assert.deepEqual(lineup.map(x=>x.encounterCode.slice(0,4)),['R101','R102','R103','R104','R105','R106','R107','R108','R109','R110','R111','R112','R113','R114','R115','R116']);
  assert.equal(lineup.filter(x=>x.id.startsWith('zigzagoon')).length,1);
  assert.equal(lineup.filter(x=>['bulbasaur','charmander','squirtle'].includes(x.id)).length,1);
  assert.equal(isPokemonUnlockedInState(state,'psyduck'),true);
@@ -30,7 +30,7 @@ test('old v14 save slots migrate to new positions without changing existing line
  const encoded=encodeSave({...state,raritySlotResults:Object.fromEntries(ENCOUNTER_SLOTS.map(x=>[x.id,x.candidates[0]]))});
  const fresh=decodeSave(encoded).game;
  assert.equal(fresh.raritySlotResults.R10302,'psyduck');
- assert.equal(fresh.raritySlotResults.R11302,'zigzagoon');
+ assert.equal(fresh.raritySlotResults.R11502,'zigzagoon');
  const binary=atob(encoded);
  const obj=JSON.parse(new TextDecoder().decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));
  obj.version=14;
