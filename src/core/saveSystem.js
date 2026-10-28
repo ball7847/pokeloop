@@ -251,7 +251,7 @@ export function decodeSave(encoded){
     cleanGame.activeRegionId=original.activeRegionId;
   }
   // The slot outcome is authoritative; legacy flags are compatibility aliases only.
-  cleanGame.uncommonStarterId=cleanGame.raritySlotResults?.W010602??starter;
+  cleanGame.uncommonStarterId=cleanGame.raritySlotResults?.W010802??starter;
   if(cleanGame.raritySlotResults!==null)
     cleanGame.berryRareAppeared=cleanGame.raritySlotResults.W020502==='pikachu';
   cleanGame.uncommonChance=Math.min(1,Math.max(chance,stellarUncommonBonus(cleanGame)));
