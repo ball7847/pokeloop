@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
 import {autoBuyTick,autoChallengeTick} from '../src/core/abilityAutomation.js';
-import {AUTOMATIONS} from '../src/core/shopSystem.js';
+import {AUTOMATIONS,UPGRADES} from '../src/core/shopSystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 const ready=()=>({...initialState(),phase:'running'});
 test('AB04 to AB06 identities and costs',()=>{
@@ -15,7 +15,7 @@ test('download buys by next cost and respects exclusions',()=>{
  assert.equal(next.energyUpgrades?.hp,1);
  assert.equal(next.energyUpgrades?.attack??0,0);
  assert.equal(next.energyBalances.노말,99);
- s={...s,autoBuySelection:Object.fromEntries(Object.keys(s.autoBuySelection).map(k=>[k,false]))};
+ s={...s,autoBuySelection:Object.fromEntries(UPGRADES.map(k=>[k.id,false]))};
  assert.equal(autoBuyTick(s),s);
 });
 test('moxie starts unlocked targets, advances on tenth kill and respects defeats',()=>{
