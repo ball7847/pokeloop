@@ -8,8 +8,8 @@
 - 게임: **PokeLoop** — Pokémon 테마의 자동 전투·성장·재화 생산 기반 방치형 게임.
 - 개발 저장소: https://github.com/ball7847/pokeloop
 - 실행 주소: https://ball7847.github.io/pokeloop/
-- 참고 원작: **Rejected Draft**. **스팀 버전**(비공개 원작 배포 번들): https://github.com/ball7847/rejected-draft-reference ; **웹 버전**: https://github.com/ball7847/pokeloop2 (실행: https://ball7847.github.io/pokeloop2/). 두 버전 모두 원작 참조 저장소이며, 비교 요청 시 대상 버전을 구분해 해당 코드 기준으로 확인한다.
-- 두 원작 저장소는 **읽기·분석·비교 용도만 허용**하며 수정·커밋·PR·병합 금지. 원작의 구조를 참고하되 PokeLoop의 확정된 포켓몬/밸런스 규칙을 임의 변경하지 않는다.
+- 참고 원작: **Rejected Draft**. 원작 분석의 **유일한 참조 저장소**: https://github.com/ball7847/rejected-draft-reference (비공개). **스팀 버전** `steam/source/`, **웹 버전** `web/`으로 구분되어 있으며 해당 위치의 실제 코드를 분석한다. 별도 웹 배포 저장소 https://github.com/ball7847/pokeloop2 (실행 https://ball7847.github.io/pokeloop2/)는 유지하되 PokeLoop 개발 중 원작 코드 참조에는 사용하지 않는다.
+- 통합 원작 참조 저장소는 **읽기·분석·비교 용도만 허용**하며 수정·커밋·PR·병합 금지. 원작의 구조를 참고하되 PokeLoop의 확정된 포켓몬/밸런스 규칙을 임의 변경하지 않는다.
 
 ## 2. 기술 구성 / 실제 코드 위치
 
@@ -94,7 +94,7 @@
 ### 새 대화에서 바로 복사할 프롬프트
 
 ```text
-PokeLoop 개발을 이어가자. GitHub ball7847/pokeloop의 development/DEVELOPMENT_GUIDE.md, IMPLEMENTED_SYSTEMS.md, PLANNED_SYSTEMS.md, VIRTUAL_PLAY_RULES.md 4개를 먼저 읽고 최신 main과 대조해. 원작 분석은 스팀 버전 ball7847/rejected-draft-reference 또는 웹 버전 ball7847/pokeloop2에서 요청 대상 버전의 실제 코드로 확인하며 둘 다 읽기 전용이다.
+PokeLoop 개발을 이어가자. GitHub ball7847/pokeloop의 development/DEVELOPMENT_GUIDE.md, IMPLEMENTED_SYSTEMS.md, PLANNED_SYSTEMS.md, VIRTUAL_PLAY_RULES.md 4개를 먼저 읽고 최신 main과 대조해. 원작 분석은 비공개 ball7847/rejected-draft-reference 안에서 스팀 버전 steam/source/ 또는 웹 버전 web/의 실제 코드로 확인한다. pokeloop2는 별도 유지되지만 원작 참조 경로로 사용하지 않는다.
 2026-10-28 기준 PR #132, #133, #134 모두 병합 완료. 최신 확인된 main: 06f9f320c0ea2ae71f064a73bb4895f8a8cc4379. PR #134에서 20지역/480슬롯 합성 확장성 테스트, N종 단일 선택, 세이브 확장 테스트가 238개 전체 테스트 및 빌드 통과 후 반영됨. 신규 지역/포켓몬 데이터는 실제 게임에 추가되지 않음.
 희귀도 추첨은 슬롯 단위 독립 판정, 성공 후 N종 중 1종, 스타터 3종 중 1종 유지. 확률 감소 순서는 같은 희귀도 전체 지역 → 지역 내 슬롯 순이며 원작 계수 유지. SU013 최대 40레벨 +1%p/레벨/가격 변경 금지; 나중에 ×1.5 강화 추가 계획. 현재 포켓몬 수치·지역 해금 7종·전투/경제 밸런스 유지. 브랜치/PR·회귀 테스트를 사용하고 수행하지 않은 검증은 완료로 말하지 마.
 ```
