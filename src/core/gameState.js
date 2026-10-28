@@ -1,4 +1,5 @@
-import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,rollUncommonStarter,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
+import {rollEncounterSlots} from './raritySystem.js';
+import {ALL_POKEMON,ENCOUNTER_SLOTS,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
 import {initialEconomy,tickEconomy,movePlanet,purchaseWithEnergy,buyPointCirculation} from './energySystem.js';
@@ -11,7 +12,8 @@ export const initialState = () => ({
   dittoStats:{...DEFAULT_DITTO_STATS},
   killCounts:Object.fromEntries(ALL_POKEMON.map(p=>[p.id,0])),
   activeRegionId:REGION.id,berryRareAppeared:false,evolutionResults:{},
-  uncommonChance:UNCOMMON_BASE_CHANCE,uncommonStarterId:null,dexDiscovered:[],
+  uncommonChance:UNCOMMON_BASE_CHANCE,uncommonStarterId:null,raritySlotResults:null,
+  rarityGuarantees:[],rarityBanishments:[],raritySpecialUnlocks:[],dexDiscovered:[],
   dexLifetimeKills:{},itemRunProgress:{},itemLifetimeProgress:{},itemPending:[],itemOwned:[],
   ...initialEconomy(),
   automation:{...DEFAULT_AUTOMATION},recoveryMs:0,retryPokemonId:null,
@@ -53,9 +55,16 @@ export function transition(state, action) {
       const items=collectPendingItems(state);
       const chance=Math.min(1,UNCOMMON_BASE_CHANCE+stellarUncommonBonus(preserved));
       const random=typeof action.random==='function'?action.random:Math.random;
-      const starter=rollUncommonStarter(chance,random);
-      const berryRareAppeared=chance>0&&random()<chance;
+      const raritySlotResults=rollEncounterSlots(ENCOUNTER_SLOTS,{
+        chances:{uncommon:chance},lifetimeKills:state.dexLifetimeKills,
+        guaranteed:state.rarityGuarantees??[],banished:state.rarityBanishments??[],
+        special:state.raritySpecialUnlocks??[],random
+      });
+      const starter=raritySlotResults.R10602??null;
+      const berryRareAppeared=raritySlotResults.R20502==='pikachu';
       return {...initialState(),...preserved,...items,uncommonChance:chance,uncommonStarterId:starter,berryRareAppeared,
+        raritySlotResults,rarityGuarantees:state.rarityGuarantees??[],
+        rarityBanishments:state.rarityBanishments??[],raritySpecialUnlocks:state.raritySpecialUnlocks??[],
         dexDiscovered:[...state.dexDiscovered],dexLifetimeKills:{...state.dexLifetimeKills},phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};
     }
     case 'SELECT_REGION': return !state.combat.active&&isRegionUnlocked(state,action.regionId)?{...state,activeRegionId:action.regionId}:state;
