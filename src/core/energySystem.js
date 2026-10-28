@@ -15,7 +15,7 @@ export const LAYERS=Object.freeze([
   {name:'초월',types:['페어리']}
 ].map((layer,index)=>Object.freeze({...layer,level:index+1,types:Object.freeze(layer.types)})));
 export const FIRST_MILESTONE=1025;
-export const POINT_CIRCULATION=Object.freeze({id:'point',name:'노말에너지 기초 생산',costs:Object.freeze({노말:10,벌레:10,비행:10}),production:Object.freeze({노말:0.5})});
+export const POINT_CIRCULATION=Object.freeze({id:'point',abilityId:'AB03',name:'슬로스타트',costs:Object.freeze({노말:10,벌레:10,비행:10}),production:Object.freeze({노말:0.5})});
 export function buyPointCirculation(state){
   if(state.pointCirculationUnlocked)return state;
   const purchased=purchaseWithEnergy(state,POINT_CIRCULATION.costs);
