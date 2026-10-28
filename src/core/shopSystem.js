@@ -1,6 +1,6 @@
 import {decimal,storedAmount,compareAmount} from './bigNumber.js';
 import {purchaseWithEnergy} from './energySystem.js';
-import {ownsStellarUpgrade} from './stellarUpgrades.js';
+import {stellarChildBonus} from './stellarUpgrades.js';
 
 // Rejected Draft shop pattern: base cost * growth^currentLevel,
 // additive per-level bonuses to the base stat.
@@ -43,8 +43,7 @@ export function upgradeCosts(id,level){
 }
 export function effectiveDittoStats(state){
   const stats=state.dittoStats;
-  const suHp=ownsStellarUpgrade(state,'SU011')?10:0;
-  const suAttack=ownsStellarUpgrade(state,'SU012')?1:0;
+  const {hp:suHp,attack:suAttack}=stellarChildBonus(state);
   const levels=state.energyUpgrades??{};
   const hpFlat=decimal(levels.hp??0).mul(4),attackFlat=decimal(levels.attack??0);
   const attackMultiplier=1+(levels.attackMultiplier??0)*0.04,hpMultiplier=1+(levels.hpMultiplier??0)*0.04,speed=1+(levels.speed??0)*0.01;
