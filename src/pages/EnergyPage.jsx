@@ -75,7 +75,9 @@ function OuterStellarWorld(){
   const maxed=detail?stellarUpgradeMaxed(game,selected):false;
   const effectText=detail?.id==='SU012'?(currentLevel?`HP +${10*2**(currentLevel-1)}, 공격 +${2**(currentLevel-1)}`:'HP +10, 공격 +1'):
     detail?.id==='SU011'?`전투 노말에너지 +${currentLevel*10}%`:
-    detail?.id==='SU013'?`안흔한 등장 확률 +${currentLevel}%p`:'';
+    detail?.id==='SU013'?`안흔한 등장 확률 +${currentLevel}%p`:
+    detail?.id==='SU014'?`HP +${currentLevel*10}%`:
+    detail?.id==='SU015'?`공격 +${currentLevel*8}%`:'';
   return <section className="panel energy-outer-panel" role="tabpanel" aria-label="외체계">
     <div className="energy-outer-scroll" role="region" aria-label="외체계 육각형 강화 격자" tabIndex={0}>
       <svg className="energy-outer-honeycomb" viewBox="0 0 800 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="10계층 18타입 243개 육각형 슬롯">
