@@ -10,6 +10,9 @@ const LEGACY_PLAINS_SLOTS=Object.freeze({
 const V15_PLAINS_SLOTS=Object.freeze({R11101:'R11201',R11201:'R11401',R11302:'R11502',R11401:'R11601'});
 const remapLegacySlot=id=>LEGACY_PLAINS_SLOTS[id]??id;
 const remapV15Slot=id=>V15_PLAINS_SLOTS[id]??id;
+// Previous save versions used variable-width R-prefixed region codes.
+const toWildSlot=id=>typeof id==='string'?id.replace(/^R(\d{1,2})(\d{2})(\d{2})$/,(_,region,position,rarity)=>'W'+region.padStart(2,'0')+position+rarity):id;
+const legacyToWildSlot=(id,version)=>toWildSlot(version<=16?legacyToWildSlot(id,version):id);
 export function migrateEncounterSave(original,version,slots=ENCOUNTER_SLOTS,pokemon=ALL_POKEMON){
  const slotMap=new Map(slots.map(slot=>[slot.id,slot]));
  let results=original.raritySlotResults??null;
@@ -21,8 +24,8 @@ export function migrateEncounterSave(original,version,slots=ENCOUNTER_SLOTS,poke
   if(original.berryRareAppeared===true)results.R20502='pikachu';
  }
  if(results!==null){
-  if(version>=14&&version<=15){
-   results=Object.fromEntries(Object.entries(results).map(([id,value])=>[version===14?remapV15Slot(remapLegacySlot(id)):remapV15Slot(id),value]));
+  if(version>=14&&version<=16){
+   results=Object.fromEntries(Object.entries(results).map(([id,value])=>[legacyToWildSlot(id,version),value]));
   }
   if(typeof results!=='object'||Array.isArray(results)||
     Object.entries(results).some(([id,value])=>!slotMap.has(id)||
