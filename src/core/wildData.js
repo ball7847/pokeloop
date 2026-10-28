@@ -33,7 +33,7 @@ const berryEntries=[
 {id:'tangela',number:114,name:'덩쿠리',types:['풀'],energyReward:11.4,hp:195,specialAttack:15.5,regeneration:5,speed:1600,rewards:{hp:11.4,regeneration:1.14}},
 {id:'bidoof',number:399,name:'비버니',types:['노말'],energyReward:40,hp:390,attack:25,specialAttack:15,speed:2900,rewards:{hp:20,attack:4}},
 {id:'surskit',number:283,name:'비구술',types:['벌레','물'],energyReward:28,hp:40,attack:30,defense:32,specialAttack:50,specialDefense:52,speed:990,rewards:{speed:-28}},
-{id:'tropius',number:357,name:'트로피우스',types:['풀','비행'],energyReward:100,hp:990,attack:68,specialAttack:72,regeneration:35.7,speed:6000,rewards:{hp:50,attack:10,specialAttack:10,regeneration:10}}
+{id:'tropius',number:357,name:'트로피우스',types:['풀','비행'],energyReward:100,hp:990,attack:68,specialAttack:72,regeneration:46,speed:5100,rewards:{hp:50,attack:10,specialAttack:10,regeneration:10}}
 ];
 // Region 2 slots remain fixed even when conditional Pokémon have not appeared.
 // Evolutions inherit their parent's slot and use -E1 for the first evolution.

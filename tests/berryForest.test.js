@@ -21,7 +21,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['tangela',195,0,15.5,0,1600,0,0,100,100],
  ['bidoof',390,25,15,0,2900,0,0,100,100],
  ['surskit',40,30,50,32,990,0,0,100,100],
- ['tropius',990,68,72,0,6000,0,0,100,100]
+ ['tropius',990,68,72,0,5100,0,0,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
@@ -41,7 +41,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit')),{벌레:28,물:28});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit'),1),{벌레:14,물:14});
  assert.equal(BERRY_POKEMON.find(p=>p.id==='surskit').specialDefense,52);
- assert.equal(BERRY_POKEMON.find(p=>p.id==='tropius').regeneration,35.7);
+ assert.equal(BERRY_POKEMON.find(p=>p.id==='tropius').regeneration,46);
  assert.deepEqual(BERRY_POKEMON.find(p=>p.id==='tropius').types,['풀','비행']);
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius')),{풀:100,비행:100});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius'),1),{풀:50,비행:50});

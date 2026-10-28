@@ -7,10 +7,10 @@ import {stellarChildBonus} from './stellarUpgrades.js';
 export const UPGRADES=Object.freeze([
   {id:'hp',name:'HP 증가',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
   {id:'attack',name:'공격 증가',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
-  {id:'specialAttack',name:'특수공격 증가',type:'물',base:1,growth:1.5,bonus:1,unit:'flat',stat:'특수공격'},
+  {id:'specialAttack',name:'특수공격 증가',type:'물',base:8,growth:1.5,bonus:1,unit:'flat',stat:'특수공격'},
   {id:'hpMultiplier',name:'HP 증폭',types:['물','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'HP'},
   {id:'defense',name:'방어 증가',type:'바위',base:1,growth:1.5,bonus:1,unit:'flat',stat:'방어'},
-  {id:'specialDefense',name:'특수방어 증가',type:'페어리',base:1,growth:1.5,bonus:1,unit:'flat',stat:'특수방어'},
+  {id:'specialDefense',name:'특수방어 증가',type:'페어리',base:8,growth:1.5,bonus:1,unit:'flat',stat:'특수방어'},
   {id:'specialAttackMultiplier',name:'특수공격 증폭',types:['에스퍼','악'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수공격'},
   {id:'defenseMultiplier',name:'방어 증폭',types:['강철','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'방어'},
   {id:'specialDefenseMultiplier',name:'특수방어 증폭',types:['강철','에스퍼'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수방어'},
