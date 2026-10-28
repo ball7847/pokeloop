@@ -16,10 +16,16 @@ const entries=[
 {id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:49,hp:225,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
 ];
 // Encounter codes identify regional slots independently from species IDs.
-const region1Codes=Object.freeze(['R10101','R10201','R10301','R10401','R10501','R10701','R10801','R10901','R11001','R11101']);
+const region1Codes=Object.freeze(['R10101','R10201','R10401','R10501','R10701','R10901','R11001','R11101','R11201','R11401']);
 export const WILD_POKEMON=Object.freeze(entries.map((p,i)=>Object.freeze({...p,...resolveStats(p),encounterCode:region1Codes[i]})));
 export const UNCOMMON_BASE_CHANCE=0;
-export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map((p,i)=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),encounterCode:'R10602-0'+(i+1),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
+export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map((p,i)=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),encounterCode:'R10802-0'+(i+1),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
+export const PLAINS_UNCOMMON=Object.freeze([
+ {id:'psyduck',number:54,name:'고라파덕',types:['물'],rarity:'uncommon',encounterCode:'R10302',hp:50,attack:5.2,speed:1400,energyReward:5.5,rewards:{hp:8,attack:2.6}},
+ {id:'ponyta',number:77,name:'포니타',types:['불꽃'],rarity:'uncommon',encounterCode:'R10602',hp:77,attack:8.5,speed:800,energyReward:7.7,rewards:{attack:4.1,speed:-20}},
+ {id:'zigzagoon',number:263,name:'지그제구리',types:['노말'],rarity:'uncommon',encounterCode:'R11302-01',hp:138,attack:13,speed:1100,dodge:260,energyReward:13.4,rewards:{dodge:13}},
+ {id:'zigzagoon-galar',number:263,name:'지그제구리(가라르의 모습)',types:['악','노말'],rarity:'uncommon',encounterCode:'R11302-02',hp:138,attack:26,speed:1100,dodge:130,energyReward:3.4,rewards:{attack:2.6,dodge:13}}
+].map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 const berryEntries=[
 {id:'caterpie',number:10,name:'캐터피',types:['벌레'],energyReward:3,hp:90,attack:12,speed:3000,rewards:{hp:7}},
@@ -46,7 +52,7 @@ const berryEncounterCodes=Object.freeze({
 });
 // Region 2 awards each configured energyReward to each of the Pokémon's types.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
-export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
+export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON]);
 export const ENCOUNTER_SLOTS=Object.freeze(createEncounterSlots(ALL_POKEMON));
 export const ENCOUNTER_SLOT_BY_ID=Object.freeze(Object.fromEntries(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot])));
 // Evolution children are stored separately from the 24 regular-rarity lineup.
@@ -67,8 +73,10 @@ const selectedInSlot=(state,p)=>state?.raritySlotResults==null?
  (!p.rarity||p.rarity==='common'?true:
    (p.id==='pikachu'?state?.berryRareAppeared===true:state?.uncommonStarterId===p.id)):
  state.raritySlotResults[baseSlotId(p)]===p.id;
-const region1Lineup=state=>[...WILD_POKEMON.slice(0,5).filter(p=>selectedInSlot(state,p)),
- ...UNCOMMON_STARTERS.filter(p=>selectedInSlot(state,p)),...WILD_POKEMON.slice(5).filter(p=>selectedInSlot(state,p))];
+const region1Lineup=state=>[...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON]
+ .filter(p=>selectedInSlot(state,p))
+ .sort((a,b)=>Number(a.encounterCode.slice(2,4))-Number(b.encounterCode.slice(2,4)));
+
 const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
  BERRY_POKEMON.filter(p=>!p.evolvesFrom&&selectedInSlot(state,p)):
  region1Lineup(state);
