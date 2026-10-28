@@ -10,8 +10,8 @@ const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialS
 test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
-    ['specialAttack','물',1,1.5,1],['hpMultiplier',undefined,10,1.5,.04],
-    ['defense','바위',1,1.5,1],['specialDefense','페어리',1,1.5,1],
+    ['specialAttack','물',8,1.5,1],['hpMultiplier',undefined,10,1.5,.04],
+    ['defense','바위',1,1.5,1],['specialDefense','페어리',8,1.5,1],
     ['specialAttackMultiplier',undefined,10,1.5,.04],
     ['defenseMultiplier',undefined,10,1.5,.04],['specialDefenseMultiplier',undefined,10,1.5,.04],
     ['attackMultiplier',undefined,10,1.5,.04],['speedFlat','전기',10,100,10],['speed',undefined,10,100,.01],
@@ -388,4 +388,11 @@ test('flat grass-fairy regeneration applies before grass multiplier with atomic 
  const missingFairy={...s,energyBalances:{...s.energyBalances,페어리:0}};
  assert.equal(buy(missingFairy,'BUY_UPGRADE','regeneration'),missingFairy);
  assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,regeneration:0}}).regeneration,2.06);
+});
+
+test('special attack and defense start at 8 with unchanged 1.5 growth',()=>{
+ assert.equal(upgradeCost('specialAttack',0),8);
+ assert.equal(upgradeCost('specialAttack',1),12);
+ assert.equal(upgradeCost('specialDefense',0),8);
+ assert.equal(upgradeCost('specialDefense',2),18);
 });
