@@ -5,7 +5,7 @@ import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
 import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
 import {DEFAULT_AUTOMATION,UPGRADES} from './shopSystem.js';
-import {STELLAR_UPGRADE_BY_ID} from './stellarUpgrades.js';
+import {STELLAR_UPGRADE_BY_ID,stellarUncommonBonus} from './stellarUpgrades.js';
 import {ITEM_BY_ID} from './itemSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
@@ -177,7 +177,7 @@ export function decodeSave(encoded){
     for(const [target,source] of [['energyUpgrades',previous?'essenceUpgrades':'energyUpgrades'],['permanentUpgrades','permanentUpgrades']]){
       const value=original[source]??{};
       if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>100)throw new Error('강화 기록이 올바르지 않습니다.');
-      if(target==='permanentUpgrades'&&Object.entries(value).some(([id,level])=>!STELLAR_UPGRADE_BY_ID[id]||level!==1))throw new Error('SE 영구 강화 기록이 올바르지 않습니다.');
+      if(target==='permanentUpgrades'&&Object.entries(value).some(([id,level])=>!STELLAR_UPGRADE_BY_ID[id]||!validInteger(level,STELLAR_UPGRADE_BY_ID[id].maxLevel)))throw new Error('SE 영구 강화 기록이 올바르지 않습니다.');
       eco[target]={...value};
     }
     const qol=original.qolUnlocks??[];
@@ -227,7 +227,8 @@ export function decodeSave(encoded){
       throw new Error('지역 정보가 올바르지 않습니다.');
     cleanGame.activeRegionId=original.activeRegionId;
   }
-  cleanGame.uncommonStarterId=starter;cleanGame.uncommonChance=chance;
+  cleanGame.uncommonStarterId=starter;
+  cleanGame.uncommonChance=Math.min(1,Math.max(chance,stellarUncommonBonus(cleanGame)));
   cleanGame.dexDiscovered=[...new Set(found.map(id=>id==='jigglypuff'?'igglybuff':id))];
   if(!isRegionUnlocked(cleanGame,cleanGame.activeRegionId))cleanGame.activeRegionId=REGION.id;
   // Active combat is deliberately not persisted. Resuming requires a new battle.
