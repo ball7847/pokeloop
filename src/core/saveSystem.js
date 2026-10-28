@@ -1,5 +1,5 @@
 import {initialState,PHASE} from './gameState.js';
-import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
+import {ALL_POKEMON,ENCOUNTER_SLOTS,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
@@ -10,7 +10,7 @@ import {ITEM_BY_ID} from './itemSystem.js';
 
 export const SAVE_KEY='pokeloop.save.v1';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
-export const SAVE_VERSION=13;
+export const SAVE_VERSION=14;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
@@ -29,6 +29,9 @@ export function gameSnapshot(game){
     activeRegionId:game.activeRegionId??REGION.id,berryRareAppeared:game.berryRareAppeared??false,
     uncommonChance:game.uncommonChance??0,
     uncommonStarterId:game.uncommonStarterId??null,
+    raritySlotResults:game.raritySlotResults??null,
+    rarityGuarantees:game.rarityGuarantees??[],rarityBanishments:game.rarityBanishments??[],
+    raritySpecialUnlocks:game.raritySpecialUnlocks??[],
     dexDiscovered:game.dexDiscovered??[],
     dexLifetimeKills:game.dexLifetimeKills??{},
     itemRunProgress:game.itemRunProgress??{},itemLifetimeProgress:game.itemLifetimeProgress??{},
@@ -58,7 +61,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,8,9,10,11,12,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,9,10,11,12,13,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -101,6 +104,24 @@ export function decodeSave(encoded){
       Object.entries(results).some(([id,value])=>!EVOLUTIONS.some(p=>p.id===id)||typeof value!=='boolean'))
       throw new Error('진화 판정 기록이 올바르지 않습니다.');
     cleanGame.evolutionResults={...results};
+  }
+  if(data.version>=14){
+    const slotMap=new Map(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot]));
+    const results=original.raritySlotResults??null;
+    if(results!==null&&(!results||typeof results!=='object'||Array.isArray(results)||
+      Object.keys(results).length!==ENCOUNTER_SLOTS.length||
+      Object.entries(results).some(([id,value])=>!slotMap.has(id)||
+        (value!==null&&!slotMap.get(id).candidates.includes(value)))))
+      throw new Error('희귀도 슬롯 판정 기록이 올바르지 않습니다.');
+    cleanGame.raritySlotResults=results===null?null:{...results};
+    const validIds=new Set([...slotMap.keys(),...ALL_POKEMON.map(p=>p.id)]);
+    for(const key of ['rarityGuarantees','rarityBanishments','raritySpecialUnlocks']){
+      const ids=original[key]??[];
+      if(!Array.isArray(ids)||ids.length>validIds.size||
+        ids.some(id=>!validIds.has(id))||new Set(ids).size!==ids.length)
+        throw new Error('희귀도 출현 옵션이 올바르지 않습니다: '+key);
+      cleanGame[key]=[...ids];
+    }
   }
   const starter=original.uncommonStarterId??null;
   if(starter!==null&&!STARTER_IDS.includes(starter))throw new Error('6번 슬롯 정보가 올바르지 않습니다.');

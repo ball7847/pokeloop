@@ -57,5 +57,5 @@ test('legacy v9 Jigglypuff progress migrates to Igglybuff with 100% max damage d
  assert.equal(restored.killCounts.igglybuff,7);
  assert.deepEqual(restored.dexDiscovered,['igglybuff']);
  assert.equal(restored.dittoStats.maxDamagePercent,100);
- assert.equal(SAVE_VERSION,13);
+ assert.equal(SAVE_VERSION,14);
 });

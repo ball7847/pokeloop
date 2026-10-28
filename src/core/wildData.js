@@ -1,3 +1,4 @@
+import {createEncounterSlots,baseSlotId} from './raritySystem.js';
 import {resolveStats} from './dittoStats.js';
 export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',defaultKillLimit:10,rewardDecay:1});
 export const BERRY_REGION=Object.freeze({id:'berry-forest',name:'베리숲',defaultKillLimit:10,rewardDecay:1});
@@ -46,6 +47,8 @@ const berryEncounterCodes=Object.freeze({
 // Region 2 awards each configured energyReward to each of the Pokémon's types.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...BERRY_POKEMON]);
+export const ENCOUNTER_SLOTS=Object.freeze(createEncounterSlots(ALL_POKEMON));
+export const ENCOUNTER_SLOT_BY_ID=Object.freeze(Object.fromEntries(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot])));
 // Evolution children are stored separately from the 24 regular-rarity lineup.
 // Regions have no population cap; evolved, legendary and divine encounters may be added independently.
 export const EVOLUTIONS=Object.freeze(ALL_POKEMON.filter(p=>p.evolvesFrom));
@@ -60,9 +63,14 @@ export function evolutionChance(pokemon,state){
 }
 const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
 export const regionForPokemon=id=>berryIds.has(id)?BERRY_REGION.id:REGION.id;
-const region1Lineup=state=>[...WILD_POKEMON.slice(0,5),...UNCOMMON_STARTERS.filter(p=>p.id===state?.uncommonStarterId),...WILD_POKEMON.slice(5)];
+const selectedInSlot=(state,p)=>state?.raritySlotResults==null?
+ (!p.rarity||p.rarity==='common'?true:
+   (p.id==='pikachu'?state?.berryRareAppeared===true:state?.uncommonStarterId===p.id)):
+ state.raritySlotResults[baseSlotId(p)]===p.id;
+const region1Lineup=state=>[...WILD_POKEMON.slice(0,5).filter(p=>selectedInSlot(state,p)),
+ ...UNCOMMON_STARTERS.filter(p=>selectedInSlot(state,p)),...WILD_POKEMON.slice(5).filter(p=>selectedInSlot(state,p))];
 const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
- BERRY_POKEMON.filter(p=>!p.evolvesFrom&&(p.id!=='pikachu'||state?.berryRareAppeared===true)):
+ BERRY_POKEMON.filter(p=>!p.evolvesFrom&&selectedInSlot(state,p)):
  region1Lineup(state);
 // Recursive insertion also supports later second and third evolutionary stages.
 export function appearedInRegion(state,regionId){
