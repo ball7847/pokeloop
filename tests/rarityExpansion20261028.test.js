@@ -64,7 +64,7 @@ test('save migration expands an older catalog without rerolling any existing slo
   slot.rarity==='common'?slot.candidates[0]:null]));
  old[starter.id]='charmander';
  const migrated=migrateEncounterSave({raritySlotResults:old,rarityGuarantees:[],rarityBanishments:[],raritySpecialUnlocks:[]},
-  15,expanded,ALL_POKEMON);
+  16,expanded,ALL_POKEMON);
  assert.equal(migrated.raritySlotResults.R10802,'charmander');
  assert.equal(Object.keys(migrated.raritySlotResults).length,expanded.length);
  for(const [id,value] of Object.entries(old))assert.equal(migrated.raritySlotResults[id],value);
