@@ -61,11 +61,11 @@ test('repeat pattern excludes cumulative SE but detects changed permanent upgrad
 test('next SU forecast uses real cost, current SE and measured income only',()=>{
  const state={...initialState(),stellar:50,permanentUpgrades:{SU012:1,SU013:2,SU011:1}};
  const next=nextStellarForecast(state,100);
- // SU012 Lv2 = 300; SU013 Lv3 = 484; SU011 Lv2 = 1000.
- assert.deepEqual(next,{status:'estimated',next:{id:'SU012',cost:300,missing:250},estimatedPlanets:3});
- assert.equal(nextStellarForecast(state,200).estimatedPlanets,2);
+ // SU014 Lv1 = 100 is now the cheapest; SU012 Lv2 = 300, SU013 Lv3 = 484, SU011 Lv2 = 1000.
+ assert.deepEqual(next,{status:'estimated',next:{id:'SU014',cost:100,missing:50},estimatedPlanets:1});
+ assert.equal(nextStellarForecast(state,200).estimatedPlanets,1);
  assert.equal(nextStellarForecast(state,0).status,'no-measured-income');
- assert.equal(nextStellarForecast({...state,permanentUpgrades:{SU011:100,SU012:3,SU013:40}},100).status,'all-maxed');
+ assert.equal(nextStellarForecast({...state,permanentUpgrades:{SU011:100,SU012:3,SU013:40,SU014:1000,SU015:1250}},100).status,'all-maxed');
 });
 test('three unchanged-condition losses do not fabricate extra combat attempts',()=>{
  const s=transition(initialState(),{type:'START'});
