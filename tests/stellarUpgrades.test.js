@@ -7,8 +7,8 @@ import {movePlanet} from '../src/core/energySystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 test('Normal physical slots 1, 3, 5 retain SU011, SU012, SU013 identifiers',()=>{
- assert.deepEqual(Object.keys(STELLAR_UPGRADES.노말),['0','2','4']);
- assert.deepEqual(Object.values(STELLAR_UPGRADES.노말).map(x=>x.id),['SU011','SU012','SU013']);
+ assert.deepEqual(Object.keys(STELLAR_UPGRADES.노말),['0','2','4','6','7']);
+ assert.deepEqual(Object.values(STELLAR_UPGRADES.노말).map(x=>x.id),['SU011','SU012','SU013','SU014','SU015']);
 });
 test('SU012 baby doubles TOTAL effect without summing old levels',()=>{
  let s={...initialState(),phase:'running',stellar:1301};
@@ -82,4 +82,25 @@ test('legacy v12 permanent upgrades migrate without discarding ownership or brea
  assert.equal(effectiveDittoStats(decoded).attack,2);
  assert.equal(stellarBattleEnergyReward(decoded,'노말',10),11);
  assert.equal(decodeSave(encodeSave(decoded)).game.permanentUpgrades.SU012,1);
+});
+
+test('SU014 and SU015 apply independently after additive flat rewards including SU012',()=>{
+ const s={...initialState(),permanentUpgrades:{SU012:2,SU014:3,SU015:2},energyUpgrades:{hp:5,hpMultiplier:5,attack:3,attackMultiplier:5},dittoStats:{...initialState().dittoStats,hp:100,attack:50}};
+ assert.equal(effectiveDittoStats(s).hp, (100+20+20)*1.20*1.30);
+ assert.equal(effectiveDittoStats(s).attack,(50+3+2)*1.20*1.16);
+});
+test('SU014/SU015 costs and maximum levels are enforced',()=>{
+ const s=initialState();
+ assert.equal(stellarUpgradeCost(s,'SU014'),100);
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU014:1}},'SU014'),250);
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU014:2}},'SU014'),625);
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU014:3}},'SU014'),1562.5);
+ assert.equal(stellarUpgradeCost(s,'SU015'),133);
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU015:1}},'SU015'),399);
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU015:2}},'SU015'),1197);
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU014:1000}},'SU014'),null);
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU015:1250}},'SU015'),null);
+ const loaded=decodeSave(encodeSave({...s,permanentUpgrades:{SU014:3,SU015:4}})).game;
+ assert.equal(loaded.permanentUpgrades.SU014,3);
+ assert.equal(loaded.permanentUpgrades.SU015,4);
 });
