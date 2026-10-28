@@ -23,8 +23,8 @@ export const UPGRADES=Object.freeze([
   {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'}
 ]);
 export const AUTOMATIONS=Object.freeze([
-  {id:'hunger',name:'끝없는 허기',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
-  {id:'resolve',name:'불굴의 의지',type:'노말',cost:5,description:'패배 후 10초 회복을 마치면 같은 적에게 자동 재도전'}
+  {id:'hunger',abilityId:'AB01',name:'먹보',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
+  {id:'resolve',abilityId:'AB02',name:'불굴의마음',type:'노말',cost:5,description:'패배 후 10초 회복을 마치면 같은 적에게 자동 재도전'}
 ]);
 export const DEFAULT_AUTOMATION=Object.freeze({hunger:false,resolve:false});
 export function upgradeCost(id,level){
