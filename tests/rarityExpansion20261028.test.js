@@ -72,7 +72,7 @@ test('save migration expands an older catalog without rerolling any existing slo
 });
 test('existing real save remains equivalent across round-trip and no unapproved balance changes',()=>{
  let state=transition(initialState(),{type:'START'});
- state={...state,permanentUpgrades:{SU013:40},stellar:10};
+ state={...state,permanentUpgrades:{SU013:40},stellar:10,pendingStellar:1};
  let rolls=0;
  const moved=transition(state,{type:'MOVE_PLANET',random:()=>{rolls++;return .2;}});
  assert.ok(rolls>=1);
