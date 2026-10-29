@@ -1,3 +1,5 @@
+import {estimateExpectedBattle} from './expectedCombat.js';
+import {settleExpectedBattle} from './fastBattleSettlement.js';
 import {initialState,transition} from '../../src/core/gameState.js';
 import {REGIONS,REGION,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon} from '../../src/core/wildData.js';
 import {UPGRADES,AUTOMATIONS,effectiveDittoStats} from '../../src/core/shopSystem.js';
@@ -14,6 +16,7 @@ export function planetPattern(report){
   return JSON.stringify({
     appeared:report.appeared,kills:report.kills,attempts:report.attempts,
     defeats:report.defeats,maxStreak:report.maxStreak,battles:report.battles,
+    uncertainties:report.uncertainties,combatMode:report.combatMode,
     fiveCleared:report.fiveCleared,stats:report.stats,
     remaining:report.remaining,gained:report.gained,spent:report.spent,
     production:report.production,pendingStellar:report.pendingStellar
@@ -72,10 +75,11 @@ function identity(state){
   return JSON.stringify([state.killCounts,state.energyUpgrades,state.qolUnlocks,
     state.pointCirculationUnlocked,state.permanentUpgrades]);
 }
-export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=6000,maxTicks=250000}={}){
+export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode='fast',logLimit=5000,maxBattles=6000,maxTicks=250000}={}){
+  if(!['fast','exact'].includes(mode))throw new RangeError('Invalid combat mode');
   let state=start.phase==='ready'?transition(start,{type:'START'}):start;
   const startMoves=state.planetMoves,started={...state.killCounts};
-  const timeline=[],events=[],attempts={},defeats={},maxStreak={},firstChallenges={};
+  const timeline=[],events=[],attempts={},defeats={},maxStreak={},firstChallenges={},uncertainties=[];
   const failedConditions=new Map();
   const gained=balance(),spent=balance(),production=balance();
   let ticks=0,battles=0,seconds=0,goal=5,safetyStop=null,firstPassDone=false;
@@ -159,7 +163,54 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     if(!act({type:'SELECT_WILD',pokemonId:id})||!state.combat.active)
       return {result:'unavailable',wins:0};
     battles++;attempts[id]=(attempts[id]??0)+1;
-    let wins=0,steps=0,previous=startingKills;
+    let wins=0,steps=0,previous=startingKills,uncertain=false;
+    if(mode==='fast'){
+      while(state.combat.active&&(state.killCounts[id]??0)<target&&steps++<REGION.defaultKillLimit){
+        if((state.killCounts[id]??0)>=target-1)toggleHunger(false);
+        const estimate=estimateExpectedBattle(state,id);
+        note('expected-combat',{id,seconds:estimate.seconds,outcome:estimate.result,
+          uncertain:estimate.uncertain,reason:estimate.reason});
+        // Ambiguous model outputs must not create fictitious victories or defeats.
+        if(estimate.result==='uncertain'){
+          uncertainties.push({id,kills:state.killCounts[id]??0,reason:estimate.reason,
+            seconds:estimate.seconds,playerHp:estimate.playerHp,enemyHp:estimate.enemyHp});
+          failedConditions.set(condition,MAX_SAME_CONDITION_FAILURES);
+          act({type:'FLEE'});
+          uncertain=true;
+          break;
+        }
+        if(estimate.uncertain){
+          uncertainties.push({id,kills:state.killCounts[id]??0,reason:estimate.reason,
+            seconds:estimate.seconds,playerHp:estimate.playerHp,enemyHp:estimate.enemyHp,
+            estimatedOutcome:estimate.result});
+        }
+        const before={...state.energyBalances};
+        state=settleExpectedBattle(state,id,estimate,encounterRandom);
+        // Economic production is still handled by real game transitions, at
+        // legal 5s chunks. No invented energy or stellar grants.
+        let remainingMs=estimate.seconds*1000;
+        while(remainingMs>0){
+          const delta=Math.min(5000,remainingMs);
+          economy(delta);
+          remainingMs-=delta;
+        }
+        const after=state.killCounts[id]??0;
+        if(after>previous){
+          if(after!==previous+1)throw Error('Expected settlement must add exactly one kill');
+          const rewards=state.combat.lastEvent?.energyRewards;
+          if(!rewards)throw Error('Missing expected victory reward');
+          for(const [type,amount] of Object.entries(rewards))gained[type]=addAmount(gained[type],amount);
+          wins++;previous=after;
+          note('victory',{id,kills:after,streak:wins,estimated:true,uncertain:estimate.uncertain});
+        }
+        ticks++;
+      }
+      if(state.combat.active){
+        // No artificial combat timeouts in fast mode. A remaining encounter
+        // must be closed before the next target or planet.
+        act({type:'FLEE'});
+      }
+    }else{
     while(state.combat.active&&steps++<2400&&ticks<maxTicks){
       if((state.killCounts[id]??0)>=target-1)toggleHunger(false);
       const before={...state.energyBalances};
@@ -179,8 +230,9 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
       ticks++;
       if(state.combat.active&&wins>REGION.defaultKillLimit)throw Error('invalid streak');
     }
+    }
     if(state.combat.active){safetyStop='combat-tick-budget';return {result:'limit',wins};}
-    const result=state.combat.lastEvent?.type;
+    const result=uncertain?'uncertain':state.combat.lastEvent?.type;
     if(result==='defeat'){
       defeats[id]=(defeats[id]??0)+1;
       if(wins===0)failedConditions.set(condition,failed+1);
@@ -272,7 +324,7 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
   const incomplete=availableTargets(state).filter(id=>(state.killCounts[id]??0)<10);
   const report={planet:startMoves+1,reason:safetyStop??exit.status,exitReason:exit.reason,
     fiveCleared:finalFiveCleared,appeared:availableTargets(state),capped,incomplete,
-    battles,attempts,defeats,maxStreak,seconds,stats:statsSnapshot(state),
+    battles,attempts,defeats,maxStreak,uncertainties,combatMode:mode,seconds,stats:statsSnapshot(state),
     kills:{...state.killCounts},gained,spent,production,remaining:{...state.energyBalances},
     particles:{...state.particleBalances},pendingStellar:state.pendingStellar,
     stellar:state.stellar,totalStellarEarned:state.totalStellarEarned,
@@ -280,14 +332,14 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     truncated:events.length>timeline.length};
   return {state,report};
 }
-export function runMultiPlanet({maxMoves=10,random=()=>0.5,encounterRandom=random,combatRandom=random,logLimit=5000,
+export function runMultiPlanet({maxMoves=10,random=()=>0.5,encounterRandom=random,combatRandom=random,mode='fast',logLimit=5000,
   maxBattles=6000,maxTicks=250000}={}){
   if(!Number.isInteger(maxMoves)||maxMoves<0||maxMoves>10)throw RangeError('maxMoves must be 0..10');
   let state=transition(initialState(),{type:'START'});
   const planets=[],moves=[];
   let stop='move-budget',repeatForecast=null;
   for(let cycle=0;cycle<=maxMoves;cycle++){
-    const {state:finished,report}=playOnePlanet(state,{random:combatRandom,logLimit,maxBattles,maxTicks});
+    const {state:finished,report}=playOnePlanet(state,{random:combatRandom,encounterRandom,mode,logLimit,maxBattles,maxTicks});
     state=finished;planets.push(report);
     if(report.reason==='battle-budget'||report.reason==='combat-tick-budget'){
       stop=report.reason;break;
