@@ -30,3 +30,20 @@ test('paralysis and poison render with proper shared stat icons and no old text 
   }
  }finally{await vite.close();}
 });
+
+test('intimidation uses transparent dark-red face SVG instead of arrow glyph',async()=>{
+ const svg=readFileSync(new URL('../public/assets/stats/intimidation.svg',import.meta.url),'utf8');
+ assert.match(svg,/<svg /);
+ assert.match(svg,/fill="#96000E"/);
+ assert.match(svg,/fill="#fff"/);
+ assert.doesNotMatch(svg,/<rect|<image|background/i);
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+  assert.ok(homeStatIconUrl('intimidation').endsWith('assets/stats/intimidation.svg'));
+  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'intimidation'}));
+  assert.match(icon,/intimidation\.svg/);
+  assert.doesNotMatch(icon,/extra-stat-icon|↓/);
+  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'intimidation',label:'위협'})),/intimidation\.svg/);
+ }finally{await vite.close();}
+});
