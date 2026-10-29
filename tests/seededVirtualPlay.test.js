@@ -20,6 +20,8 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
   const result=runMultiPlanet({maxMoves:10,encounterRandom,combatRandom,logLimit:seed===7847?5000:0});
   const planets=result.planets.map(p=>({
    planet:p.planet,reason:p.reason,fiveCleared:p.fiveCleared,
+   combatMode:p.combatMode,approximateUnresolved:p.approximateUnresolved,
+   uncertainties:p.uncertainties,
    capped:p.capped,incomplete:p.incomplete,battles:p.battles,
    defeats:Object.values(p.defeats).reduce((a,b)=>a+b,0),
    appeared:p.appeared.map(x=>x.id??x),maxStreak:p.maxStreak,
@@ -39,6 +41,7 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
  moveSummaries:seed===7847?moves.map(m=>({gain:+Number(m.gain).toFixed(2),bought:m.bought})):undefined,
  planets:planets.map(p=>({
   planet:p.planet,reason:p.reason,fiveCleared:p.fiveCleared,capped:p.capped.length,
+  combatMode:p.combatMode,uncertaintyCount:p.uncertainties.length,approximateUnresolved:p.approximateUnresolved,
   incomplete:p.incomplete,battles:p.battles,defeats:p.defeats,
   rare:p.appeared.filter(id=>!['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros','caterpie','metapod','weedle','kakuna','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit','tropius'].includes(id)),
   pendingSE:+Number(p.pendingSE).toFixed(2),

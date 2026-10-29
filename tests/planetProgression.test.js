@@ -20,11 +20,12 @@ test('virtual play completes or explicitly reports a limit, never fabricates kil
  const state=transition(initialState(),{type:'START'});
  const {state:end,report}=playOnePlanet(state,{maxBattles:600,maxTicks:40000,logLimit:250});
  assert.ok(report.battles>0);
- assert.ok(['COMPLETE','STALLED','battle-budget','combat-tick-budget'].includes(report.reason));
+ assert.ok(['COMPLETE','STALLED','UNCERTAIN','battle-budget','combat-tick-budget'].includes(report.reason));
  assert.equal(report.planet,1);
  assert.equal(report.truncated,report.events.length>report.timeline.length);
  assert.equal(end.victories,Object.values(end.killCounts).reduce((sum,count)=>sum+count,0));
  assert.ok(report.appeared.every(id=>report.kills[id]>=0&&report.kills[id]<=10));
+ if(report.reason==='UNCERTAIN')assert.equal(report.approximateUnresolved,true);
 });
 test('multi-planet progression preserves real reset and stellar purchase semantics',()=>{
  const result=runMultiPlanet({maxMoves:1,maxBattles:800,maxTicks:50000,logLimit:80});
@@ -72,5 +73,6 @@ test('three unchanged-condition losses do not fabricate extra combat attempts',(
  const {report}=playOnePlanet(s,{maxBattles:550,maxTicks:30000,logLimit:1200});
  assert.ok(report.battles>0);
  assert.ok(report.appeared.every(id=>report.kills[id]<=10));
- assert.ok(['COMPLETE','STALLED','battle-budget','combat-tick-budget'].includes(report.reason));
+ if(report.reason==='UNCERTAIN')assert.equal(report.approximateUnresolved,true);
+ assert.ok(['COMPLETE','STALLED','UNCERTAIN','battle-budget','combat-tick-budget'].includes(report.reason));
 });
