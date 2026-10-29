@@ -20,6 +20,8 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
   const result=runMultiPlanet({maxMoves:10,encounterRandom,combatRandom,logLimit:seed===7847?5000:0});
   const planets=result.planets.map(p=>({
    planet:p.planet,reason:p.reason,fiveCleared:p.fiveCleared,
+   combatMode:p.combatMode,approximateUnresolved:p.approximateUnresolved,
+   uncertainties:p.uncertainties,
    capped:p.capped,incomplete:p.incomplete,battles:p.battles,
    defeats:Object.values(p.defeats).reduce((a,b)=>a+b,0),
    appeared:p.appeared.map(x=>x.id??x),maxStreak:p.maxStreak,
