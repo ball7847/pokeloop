@@ -280,14 +280,14 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     truncated:events.length>timeline.length};
   return {state,report};
 }
-export function runMultiPlanet({maxMoves=10,random=()=>0.5,logLimit=5000,
+export function runMultiPlanet({maxMoves=10,random=()=>0.5,encounterRandom=random,combatRandom=random,logLimit=5000,
   maxBattles=6000,maxTicks=250000}={}){
   if(!Number.isInteger(maxMoves)||maxMoves<0||maxMoves>10)throw RangeError('maxMoves must be 0..10');
   let state=transition(initialState(),{type:'START'});
   const planets=[],moves=[];
   let stop='move-budget',repeatForecast=null;
   for(let cycle=0;cycle<=maxMoves;cycle++){
-    const {state:finished,report}=playOnePlanet(state,{random,logLimit,maxBattles,maxTicks});
+    const {state:finished,report}=playOnePlanet(state,{random:combatRandom,logLimit,maxBattles,maxTicks});
     state=finished;planets.push(report);
     if(report.reason==='battle-budget'||report.reason==='combat-tick-budget'){
       stop=report.reason;break;
@@ -297,7 +297,7 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,logLimit=5000,
       lifetime:state.totalStellarEarned,upgrades:{...state.permanentUpgrades},
       discoveries:[...state.dexDiscovered],kills:{...state.dexLifetimeKills}};
     const previous=state;
-    state=transition(state,{type:'MOVE_PLANET',random});
+    state=transition(state,{type:'MOVE_PLANET',random:encounterRandom});
     if(state===previous){stop='move-rejected';break;}
     if(state.planetMoves!==previous.planetMoves+1)throw Error('bad planet count');
     const acquired=chooseStellarUpgrades(state);
