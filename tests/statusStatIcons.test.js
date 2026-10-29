@@ -47,3 +47,19 @@ test('intimidation uses transparent dark-red face SVG instead of arrow glyph',as
   assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'intimidation',label:'위협'})),/intimidation\.svg/);
  }finally{await vite.close();}
 });
+
+test('sound uses the black transparent double-note SVG instead of a text glyph',async()=>{
+ const svg=readFileSync(new URL('../public/assets/stats/sound.svg',import.meta.url),'utf8');
+ assert.match(svg,/viewBox="0 0 128 128"/);
+ assert.match(svg,/fill="#000"/);
+ assert.doesNotMatch(svg,/<rect|<image|background|♪/i);
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+  assert.ok(homeStatIconUrl('sound').endsWith('assets/stats/sound.svg'));
+  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'sound'}));
+  assert.match(icon,/sound\.svg/);
+  assert.doesNotMatch(icon,/extra-stat-icon|♪/);
+  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'sound',label:'소리'})),/sound\.svg/);
+ }finally{await vite.close();}
+});
