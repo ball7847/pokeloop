@@ -84,6 +84,7 @@ test('uncommon evolutions roll once after first parent victory and persist throu
   s.activeRegionId=region;
   s.uncommonChance=0.5;
   s.killCounts[parent]=0;
+  s.killCounts.zubat=1; // Maintain the seven-first-kills prerequisite for Berry Forest.
   s.dittoStats={...s.dittoStats,hp:10000,attack:10000,speed:100};
   s=transition(s,{type:'SELECT_WILD',pokemonId:parent});
   assert.equal(s.combat.active,true,parent);
