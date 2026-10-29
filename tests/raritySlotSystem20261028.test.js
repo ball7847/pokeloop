@@ -53,7 +53,7 @@ test('planet move locks starter candidate and Pikachu independently; save retain
  assert.equal(state.raritySlotResults,null);
  const before=appearedInRegion(state,REGION.id);
  assert.equal(before.filter(p=>STARTER_IDS.includes(p.id)).length,0);
- state={...state,stellar:100,permanentUpgrades:{SU013:20}};
+ state={...state,stellar:100,pendingStellar:1,permanentUpgrades:{SU013:20}};
  const sequence=[.15,.85,.05];let count=0;
  const moved=transition(state,{type:'MOVE_PLANET',random:()=>sequence[count++]});
  assert.equal(moved.planetMoves,1);
@@ -80,7 +80,7 @@ test('invalid slot selections in saved data are rejected',()=>{
 test('exclusion removes a common slot from the next planet only',()=>{
  let state=transition(initialState(),{type:'START'});
  assert.ok(appearedInRegion(state,REGION.id).some(p=>p.id==='rattata'));
- state={...state,rarityBanishments:['W010101']};
+ state={...state,rarityBanishments:['W010101'],pendingStellar:1};
  const moved=transition(state,{type:'MOVE_PLANET',random:()=>.9});
  assert.equal(moved.raritySlotResults.W010101,null);
  assert.ok(!appearedInRegion(moved,REGION.id).some(p=>p.id==='rattata'));
