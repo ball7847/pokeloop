@@ -120,7 +120,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       }
     }
     if(compareAmount(damage,0)>0){
-      if(random()<(attackerStats.criticalChance??0)/100){
+      if((attackerStats.criticalChance??0)>0&&random()<(attackerStats.criticalChance??0)/100){
         damage=multiplyAmount(damage,(attackerStats.criticalMultiplier??150)/100);
         for(const channel of channels)channel.value=multiplyAmount(channel.value,(attackerStats.criticalMultiplier??150)/100);
       }
