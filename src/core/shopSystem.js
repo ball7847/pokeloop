@@ -22,6 +22,8 @@ export const UPGRADES=Object.freeze([
   {id:'regeneration',name:'회복 증가',types:['풀','페어리'],base:10,growth:1.5,bonus:1,unit:'flat',stat:'회복'},
   {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'}
 ]);
+// Immutable catalog for constant-time ID lookup (same costs and ordering).
+export const UPGRADE_BY_ID=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,item])));
 export const AUTOMATIONS=Object.freeze([
   {id:'hunger',abilityId:'AB01',name:'먹보',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
   {id:'resolve',abilityId:'AB02',name:'불굴의마음',type:'노말',cost:5,description:'패배 후 10초 회복을 마치면 같은 적에게 자동 재도전'},
@@ -32,7 +34,7 @@ export const AUTOMATIONS=Object.freeze([
 export const DEFAULT_AUTOMATION=Object.freeze({hunger:false,resolve:false,download:false,moxie:false,intimidate:false});
 export const DEFAULT_AUTO_BUY_SELECTION=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,true])));
 export function upgradeCost(id,level){
-  const item=UPGRADES.find(x=>x.id===id);
+  const item=UPGRADE_BY_ID[id];
   if(!item||!Number.isSafeInteger(level)||level<0||level>1e6)return null;
   // A mathematically valid level may still produce a cost beyond the supported Decimal range.
   // Treat an unrepresentable cost as maxed instead of crashing the energy tab.
@@ -40,7 +42,7 @@ export function upgradeCost(id,level){
   catch(error){if(error instanceof RangeError)return null;throw error;}
 }
 export function upgradeCosts(id,level){
-  const item=UPGRADES.find(x=>x.id===id);
+  const item=UPGRADE_BY_ID[id];
   const cost=upgradeCost(id,level);
   if(!item||cost===null)return null;
   return Object.fromEntries((item.types??[item.type]).map(type=>[type,cost]));
@@ -62,7 +64,7 @@ export function effectiveDittoStats(state){
     speed:Math.max(100,(stats.speed-(levels.speedFlat??0)*10)/speed)};
 }
 export function buyUpgrade(state,id){
-  const item=UPGRADES.find(x=>x.id===id);
+  const item=UPGRADE_BY_ID[id];
   if(!item)return state;
   const current=state.energyUpgrades?.[id]??0,costs=upgradeCosts(id,current);
   if(costs===null||Object.entries(costs).some(([type,cost])=>compareAmount(state.energyBalances[type]??0,cost)<0))return state;
