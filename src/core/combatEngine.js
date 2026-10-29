@@ -47,10 +47,11 @@ function finish(state,c,type,random=Math.random) {
     const stats={...state.dittoStats};
     const honeyMultiplier=1+(effectiveDittoStats(state).honey??0)*.001;
     for(const [key,base] of Object.entries(p.rewards)){
-      const value=multiplyAmount(scaledReward(key,base,count),honeyMultiplier);
+      const originalReward=scaledReward(key,base,count);
+      const value=honeyMultiplier===1?originalReward:key==='speed'?-Number(multiplyAmount(Math.abs(originalReward),honeyMultiplier)):multiplyAmount(originalReward,honeyMultiplier);
       stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
-    const energyRewards=Object.fromEntries(Object.entries(battleEnergyRewards(p,count)).map(([type,amount])=>[type,multiplyAmount(stellarBattleEnergyReward(state,type,amount),honeyMultiplier)]));
+    const energyRewards=Object.fromEntries(Object.entries(battleEnergyRewards(p,count)).map(([type,amount])=>[type,honeyMultiplier===1?stellarBattleEnergyReward(state,type,amount):multiplyAmount(stellarBattleEnergyReward(state,type,amount),honeyMultiplier)]));
     let rewarded=state;
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
@@ -62,7 +63,7 @@ function finish(state,c,type,random=Math.random) {
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
       combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type:'victory',pokemonId:p.id,name:p.name,
-        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,multiplyAmount(scaledReward(k,v,count),honeyMultiplier)])),energyRewards}}};
+        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,honeyMultiplier===1?scaledReward(k,v,count):k==='speed'?-Number(multiplyAmount(Math.abs(scaledReward(k,v,count)),honeyMultiplier)):multiplyAmount(scaledReward(k,v,count),honeyMultiplier)])),energyRewards}}};
     if(updated.automation?.hunger&&count+1<REGION.defaultKillLimit&&compareAmount(c.currentHp,0)>0){
       // Reward applies before next encounter. Current HP carries over without healing.
       // A follow-up attack starts a fresh enemy and cooldown, not a new run.
