@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createEncounterSlots,effectiveSlotChance,rollEncounterSlots,RARITY_MAX_TARGETS} from '../src/core/raritySystem.js';
-import {initialState,transition} from '../src/core/gameState.js';\nimport {STELLAR_UPGRADES} from '../src/core/stellarUpgrades.js';
+import {initialState,transition} from '../src/core/gameState.js';
+import {STELLAR_UPGRADES} from '../src/core/stellarUpgrades.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 import {appearedInRegion,ENCOUNTER_SLOTS,STARTER_IDS,REGION,BERRY_REGION} from '../src/core/wildData.js';
 
