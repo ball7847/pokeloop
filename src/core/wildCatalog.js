@@ -70,7 +70,13 @@ const lakeEntries=[
 {id:'sobble',number:816,name:'울머기',types:['물'],rarity:'uncommon',hp:1500,specialAttack:70,specialDefense:40,criticalChance:50,criticalMultiplier:200,speed:3000,energyReward:100,rewards:{specialAttack:40,specialDefense:20,criticalChance:1},encounterCode:'W030302-02'},
 {id:'quaxly',number:912,name:'꾸왁스',types:['물'],rarity:'uncommon',hp:1550,attack:65,defense:45,specialDefense:45,dodge:30,multiStrike:300,speed:3000,energyReward:100,rewards:{attack:40,dodge:15,multiStrike:15},encounterCode:'W030302-03'},
 {id:'cutiefly',number:742,name:'에블리',types:['벌레','페어리'],hp:400,specialAttack:25,speed:620,energyReward:30.4,rewards:{specialAttack:7,speed:-42},encounterCode:'W030401'},
-{id:'ribombee',number:743,name:'에리본',types:['벌레','페어리'],rarity:'uncommon',evolvesFrom:'cutiefly',hp:1200,specialAttack:75,speed:420,energyReward:46.4,rewards:{specialAttack:14,honey:14},encounterCode:'W030401-E1'}
+{id:'ribombee',number:743,name:'에리본',types:['벌레','페어리'],rarity:'uncommon',evolvesFrom:'cutiefly',hp:1200,specialAttack:75,speed:420,energyReward:46.4,rewards:{specialAttack:14,honey:14},encounterCode:'W030401-E1'},
+{id:'azurill',number:298,name:'루리리',types:['노말','페어리'],hp:1000,attack:100,speed:4000,minDamagePercent:100,maxDamagePercent:200,energyReward:50,rewards:{hp:50,attack:20,minDamagePercent:1,maxDamagePercent:2},encounterCode:'W030501'},
+{id:'marill',number:183,name:'마릴',types:['물','페어리'],rarity:'uncommon',evolvesFrom:'azurill',hp:1830,attack:100,speed:3000,minDamagePercent:150,maxDamagePercent:200,energyReward:75,rewards:{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3},encounterCode:'W030501-E1'},
+{id:'azumarill',number:184,name:'마릴리',types:['물','페어리'],rarity:'uncommon',evolvesFrom:'marill',hp:1840,attack:250,speed:2800,minDamagePercent:200,maxDamagePercent:200,energyReward:200,rewards:{hp:100,attack:50,minDamagePercent:5,maxDamagePercent:5},encounterCode:'W030501-E2'},
+{id:'wingull',number:278,name:'갈모매',types:['물','비행'],hp:1333,specialAttack:70,speed:1533,accuracy:333,regeneration:70,energyReward:55.6,rewards:{specialAttack:13,accuracy:13},encounterCode:'W030601'},
+{id:'feebas',number:349,name:'빈티나',types:['물'],hp:95,specialAttack:10,defense:1250,specialDefense:79,regeneration:95,speed:3500,energyReward:20,rewards:{},encounterCode:'W030701'},
+{id:'milotic',number:350,name:'밀로틱',types:['물'],rarity:'rare',evolvesFrom:'feebas',hp:3950,specialAttack:100,defense:118.5,specialDefense:125,regeneration:35,speed:1750,energyReward:350,rewards:{hp:100,specialDefense:40},encounterCode:'W030701-E1'}
 ];
 export const LAKE_POKEMON=Object.freeze(lakeEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...PLAINS_EVOLUTIONS,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON,...LAKE_POKEMON]);
