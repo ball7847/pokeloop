@@ -26,7 +26,8 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
    pendingSE:p.pendingStellar,stellar:p.stellar,totalSE:p.totalStellarEarned,
    stats:p.stats,upgrades:p.stats.upgrades,
    gained:p.gained,spent:p.spent,remaining:p.remaining,
-   kills:p.kills,
+   kills:p.kills,stalledBattles:p.stalledBattles,
+   unlockedRegions:p.unlockedRegions,berryFirstKills:p.berryFirstKills,
    ...(seed===7847?{timeline:p.timeline}:{}),
   }));
   for(const move of result.moves)assert.ok(Number(move.gain)>=1,'every moved planet needs at least 1 pending SE');
@@ -36,9 +37,13 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
  assert.equal(results.length,10);
  console.log('SEEDED_VIRTUAL_PLAY_REPORT '+JSON.stringify({durationMs,results:results.map(({seed,stop,moves,planets})=>({
  seed,stop,moves:moves.length,
+ reachedLake:planets.some(p=>p.unlockedRegions.includes('moonlit-lake')),
+ stallCount:planets.reduce((sum,p)=>sum+p.stalledBattles.length,0),
  moveSummaries:seed===7847?moves.map(m=>({gain:+Number(m.gain).toFixed(2),bought:m.bought})):undefined,
  planets:planets.map(p=>({
   planet:p.planet,reason:p.reason,fiveCleared:p.fiveCleared,capped:p.capped.length,
+  unlockedRegions:p.unlockedRegions,berryFirstKills:p.berryFirstKills,
+  stalls:p.stalledBattles.map(({id,reason,steps,planetTicks,playerHp,enemyHp})=>({id,reason,steps,planetTicks,playerHp,enemyHp})),
   incomplete:p.incomplete,battles:p.battles,defeats:p.defeats,
   rare:p.appeared.filter(id=>!['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros','caterpie','metapod','weedle','kakuna','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit','tropius'].includes(id)),
   pendingSE:+Number(p.pendingSE).toFixed(2),
