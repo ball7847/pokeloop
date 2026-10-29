@@ -10,7 +10,7 @@ import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 test('exactly eight basic stats, remaining stats special, and default display rules stay intact',()=>{
  assert.deepEqual(BASIC_STAT_KEYS,['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','maxDamagePercent']);
- assert.deepEqual(SPECIAL_STAT_KEYS,['paralysis','multiStrike','poison','antidote','regeneration','accuracy','dodge']);
+ assert.deepEqual(SPECIAL_STAT_KEYS,['paralysis','multiStrike','poison','antidote','regeneration','intimidation','sound','criticalChance','criticalMultiplier','honey','accuracy','dodge']);
  let state=initialState();
  assert.deepEqual(visibleSpecialStats(state.dittoStats),[]);
  assert.deepEqual(visibleBasicStats(state.dittoStats).map(x=>x.key),['hp','attack','speed','minDamagePercent']);
