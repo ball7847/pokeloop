@@ -90,13 +90,12 @@ export function formatStatValue(key,value) {
   return formatted+suffix;
 }
 export const formatBasicStat=formatStatValue;
-// One integer-percent roll from [lowerBound, 100], inclusive.
-// Only used when the future combat damage calculation is connected.
+// Stored damage bounds retain their fractional precision. Only the combat roll
+// truncates each bound to an integer; inclusive integer rolls remain unchanged.
 export function rollDamagePercent(lowerBound, random = Math.random, upperBound = 100) {
-  if (!Number.isInteger(lowerBound) || lowerBound < 0 || !Number.isFinite(upperBound) || upperBound < lowerBound) {
+  if (!Number.isFinite(lowerBound) || lowerBound < 0 || !Number.isFinite(upperBound) || upperBound < lowerBound) {
     throw new RangeError('Invalid damage percentage range.');
   }
-  // Damage rolls remain integer-percent values, even if a bonus grants fractional max damage.
-  const ceiling=Math.floor(upperBound);
-  return lowerBound + Math.floor(Math.min(0.9999999999999999, Math.max(0, random())) * (ceiling - lowerBound + 1));
+  const floor=Math.floor(lowerBound),ceiling=Math.floor(upperBound);
+  return floor + Math.floor(Math.min(0.9999999999999999, Math.max(0, random())) * (ceiling - floor + 1));
 }
