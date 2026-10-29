@@ -102,22 +102,25 @@ export function purchaseWithEnergy(state,costs){
   }
   return processMilestones({...state,energyBalances:energy,particleBalances:particles,particleEarned:earned,particleBank:bank});
 }
-export function particleRates(state){
+function particleRatesFromBalances(particleBalances,particleMilestones,unlockedLayer){
   const rates=zeros();
-  for(let layer=2;layer<=state.unlockedLayer;layer++){
+  for(let layer=2;layer<=unlockedLayer;layer++){
     const upper=LAYERS[layer-1],lower=LAYERS[layer-2];
     // A multi-type upper layer uses the arithmetic mean of its type outputs.
     let sum=decimal(0);
     for(const type of upper.types){
-      if(state.particleMilestones[type]<=0)continue;
-      const amount=state.particleBalances[type];
-      const mult=productionMultiplier(state.particleMilestones[type]);
+      if(particleMilestones[type]<=0)continue;
+      const amount=particleBalances[type];
+      const mult=productionMultiplier(particleMilestones[type]);
       sum=sum.add(decimal(amount).mul(mult));
     }
     const output=sum.div(upper.types.length).div(lower.types.length);
     for(const type of lower.types)rates[type]=storedAmount(output);
   }
   return rates;
+}
+export function particleRates(state){
+  return particleRatesFromBalances(state.particleBalances,state.particleMilestones,state.unlockedLayer);
 }
 function originalSoftcapMultiplier(pending,total,planetMoves){
   // PokeLoop: first planet-move softcap begins at 100 pending stellar; later threshold is lifetime stellar.
@@ -141,8 +144,8 @@ export function tickEconomy(state,seconds){
   const steps=Math.max(1,Math.ceil(seconds/0.05)),dt=seconds/steps;
   let pending=state.pendingStellar;
   for(let step=0;step<steps;step++){
-    const current={...state,particleBalances:particles};
-    const currentRates=particleRates(current);
+    // Do not create a new state wrapper for each 50ms production substep.
+    const currentRates=particleRatesFromBalances(particles,state.particleMilestones,state.unlockedLayer);
     const normal=decimal(particles['노말']).mul(productionMultiplier(state.particleMilestones['노말']));
     if(state.particleMilestones['노말']>0){
       pending=addAmount(pending,storedAmount(normal.mul(dt).div(1000).mul(originalSoftcapMultiplier(pending,state.totalStellarEarned,state.planetMoves))));
