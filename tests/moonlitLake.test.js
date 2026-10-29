@@ -15,7 +15,7 @@ test('moonlit lake roster and 3-to-1 uncommon slot are registered',()=>{
  assert.equal(ENCOUNTER_SLOTS.find(s=>s.id==='W030201').candidates.length,1);
  const s=prepared();assert.ok(isRegionUnlocked(s,LAKE_REGION.id));
  assert.deepEqual(appearedInRegion(s,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','cutiefly','azurill','wingull','feebas']);
- const rare={...s,raritySlotResults:{W030302:'sobble',W030101:'buizel',W030201:'magikarp',W030401:'cutiefly'}};
+ const rare={...s,raritySlotResults:{W030302:'sobble',W030101:'buizel',W030201:'magikarp',W030401:'cutiefly',W030501:'azurill',W030601:'wingull',W030701:'feebas'}};
  assert.deepEqual(appearedInRegion(rare,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','sobble','cutiefly','azurill','wingull','feebas']);
 });
 test('enemy intimidation halves player physical attack at battle start',()=>{
