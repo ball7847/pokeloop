@@ -65,7 +65,7 @@ export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p
 const lakeEntries=[
 {id:'buizel',number:418,name:'브이젤',types:['물'],hp:550,attack:20,speed:850,multiStrike:2000,energyReward:33,rewards:{attack:3,multiStrike:33},encounterCode:'W030101'},
 {id:'magikarp',number:129,name:'잉어킹',types:['물'],hp:95,attack:12.5,speed:1290,dodge:100,energyReward:20,rewards:{},encounterCode:'W030201'},
-{id:'gyarados',number:130,name:'갸라도스',types:['물','비행'],rarity:'uncommon',evolvesFrom:'magikarp',hp:950,attack:125,speed:1300,intimidation:500,energyReward:130,rewards:{attack:20,intimidation:16},encounterCode:'W030201-E1'},
+{id:'gyarados',number:130,name:'갸라도스',types:['물','비행'],rarity:'common',evolvesFrom:'magikarp',hp:950,attack:125,speed:1300,intimidation:500,energyReward:130,rewards:{attack:20,intimidation:16},encounterCode:'W030201-E1'},
 {id:'popplio',number:728,name:'누리공',types:['물'],rarity:'uncommon',hp:1500,specialAttack:66,specialDefense:56,sound:40,speed:3000,energyReward:100,rewards:{specialAttack:30,specialDefense:30,sound:10},encounterCode:'W030302-01'},
 {id:'sobble',number:816,name:'울머기',types:['물'],rarity:'uncommon',hp:1500,specialAttack:70,specialDefense:40,criticalChance:50,criticalMultiplier:200,speed:3000,energyReward:100,rewards:{specialAttack:40,specialDefense:20,criticalChance:1},encounterCode:'W030302-02'},
 {id:'quaxly',number:912,name:'꾸왁스',types:['물'],rarity:'uncommon',hp:1550,attack:65,defense:45,specialDefense:45,dodge:30,multiStrike:300,speed:3000,energyReward:100,rewards:{attack:40,dodge:15,multiStrike:15},encounterCode:'W030302-03'},
