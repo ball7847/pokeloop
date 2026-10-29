@@ -1,6 +1,6 @@
 import {migrateEncounterSave} from './encounterSave.js';
 import {initialState,PHASE} from './gameState.js';
-import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,isRegionUnlocked} from './wildData.js';
+import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,LAKE_REGION,isRegionUnlocked} from './wildData.js';
 import {resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
@@ -246,7 +246,7 @@ export function decodeSave(encoded){
   if(data.version>=6){
     if(typeof original.berryRareAppeared!=='boolean')throw new Error('베리숲 안흔함 등장 정보가 올바르지 않습니다.');
     cleanGame.berryRareAppeared=original.berryRareAppeared;
-    if(![REGION.id,BERRY_REGION.id].includes(original.activeRegionId))
+    if(![REGION.id,BERRY_REGION.id,LAKE_REGION.id].includes(original.activeRegionId))
       throw new Error('지역 정보가 올바르지 않습니다.');
     cleanGame.activeRegionId=original.activeRegionId;
   }
