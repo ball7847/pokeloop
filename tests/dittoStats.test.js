@@ -72,3 +72,17 @@ test('shared speed defaults to zero while initial combat speeds remain unchanged
  assert.equal(state.combat.enemy.attackCooldown.duration,2100);
  assert.equal(state.combat.enemy.stats['스피드'],2100);
 });
+
+test('fractional damage bounds are stored but floored for inclusive integer combat rolls',()=>{
+ assert.equal(rollDamagePercent(86.5,()=>0,103.7),86);
+ assert.equal(rollDamagePercent(86.5,()=>0.5,103.7),95);
+ assert.equal(rollDamagePercent(86.5,()=>0.999999,103.7),103);
+ assert.equal(rollDamagePercent(86.5,()=>0,86.9),86);
+ assert.equal(rollDamagePercent(86.5,()=>0.999999,86.9),86);
+ for(let i=0;i<18;i++)assert.equal(rollDamagePercent(86.5,()=>i/18,103.7),86+i);
+ assert.throws(()=>rollDamagePercent(-.01,()=>0,100),RangeError);
+ assert.throws(()=>rollDamagePercent(101.5,()=>0,101.4),RangeError);
+ const stats=resolveStats({minDamagePercent:86.5,maxDamagePercent:103.7});
+ assert.equal(stats.minDamagePercent,86.5);
+ assert.equal(stats.maxDamagePercent,103.7);
+});
