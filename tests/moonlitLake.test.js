@@ -2,7 +2,7 @@ import test from 'node:test';
 import {getWildPokemon} from '../src/core/wildData.js';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
-import {LAKE_REGION,LAKE_POKEMON,appearedInRegion,isRegionUnlocked,ENCOUNTER_SLOTS} from '../src/core/wildData.js';
+import {LAKE_REGION,LAKE_POKEMON,appearedInRegion,isRegionUnlocked,ENCOUNTER_SLOTS,evolutionChance} from '../src/core/wildData.js';
 import {resolveAttack,startBattle} from '../src/core/combatEngine.js';
 import {resolveStats} from '../src/core/dittoStats.js';
 
@@ -40,4 +40,19 @@ test('region 3 dodge rebalance retains all other enemy stats and rewards',()=>{
  assert.equal(magikarp.energyReward,20);
  assert.deepEqual(magikarp.rewards,{});
  assert.deepEqual(quaxly.rewards,{attack:40,dodge:15,multiStrike:15});
+});
+
+test('Gyarados is common and guaranteed after Magikarp first defeat, regardless of uncommon chance',()=>{
+ const gyarados=getWildPokemon('gyarados');
+ assert.equal(gyarados.rarity,'common');
+ assert.equal(gyarados.evolvesFrom,'magikarp');
+ assert.equal(evolutionChance(gyarados,{uncommonChance:0}),1);
+ assert.equal(evolutionChance(gyarados,{uncommonChance:0.35}),1);
+ const state=prepared();
+ const appeared={...state,evolutionResults:{...state.evolutionResults,gyarados:true},
+  killCounts:{...state.killCounts,buizel:1,magikarp:1}};
+ assert.deepEqual(appearedInRegion(appeared,LAKE_REGION.id).map(p=>p.id),
+  ['buizel','magikarp','gyarados','cutiefly']);
+ assert.deepEqual(gyarados.rewards,{attack:20,intimidation:16});
+ assert.equal(gyarados.energyReward,130);
 });
