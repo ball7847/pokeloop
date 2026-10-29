@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {getWildPokemon} from '../src/core/wildData.js';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
 import {LAKE_REGION,LAKE_POKEMON,appearedInRegion,isRegionUnlocked,ENCOUNTER_SLOTS} from '../src/core/wildData.js';
