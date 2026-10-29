@@ -60,7 +60,7 @@ test('Gyarados is common and guaranteed after Magikarp first defeat, regardless 
 test('new Lake base slots, exact stats and type energy rewards',()=>{
  const azurill=getWildPokemon('azurill'),wingull=getWildPokemon('wingull'),feebas=getWildPokemon('feebas');
  assert.deepEqual([azurill.hp,azurill.attack,azurill.speed,azurill.minDamagePercent,azurill.maxDamagePercent],[1000,100,4000,100,200]);
- assert.deepEqual(azurill.rewards,{hp:50,attack:20,minDamagePercent:1,maxDamagePercent:2});
+ assert.deepEqual(azurill.rewards,{hp:30,attack:10,minDamagePercent:1,maxDamagePercent:2});
  assert.deepEqual(battleEnergyRewards(azurill,0),{노말:50,페어리:50});
  assert.deepEqual([wingull.hp,wingull.specialAttack,wingull.speed,wingull.accuracy,wingull.regeneration],
    [1333,70,1533,333,70]);

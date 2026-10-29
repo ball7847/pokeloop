@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ALL_POKEMON,WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,appearedInRegion,REGION,BERRY_REGION} from '../src/core/wildData.js';
+import {ALL_POKEMON,WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,appearedInRegion,REGION,BERRY_REGION,battleEnergyRewards,getWildPokemon} from '../src/core/wildData.js';
 import {initialState} from '../src/core/gameState.js';
 
 test('every registered Pokémon has a unique stable regional encounter code',()=>{
@@ -35,4 +35,20 @@ test('region 2 conditional and evolved species inherit fixed region slots',()=>{
  assert.ok(appearedInRegion(evolved,BERRY_REGION.id).some(p=>p.encounterCode==='W020301-E1'));
  assert.ok(appearedInRegion(evolved,REGION.id).some(p=>p.encounterCode==='W010401-E1'));
  assert.equal(appearedInRegion(base,REGION.id).length,10);
+});
+
+test('approved energy rebalance keeps correct per-type payouts and other stats',()=>{
+ for(const starter of UNCOMMON_STARTERS){
+  assert.equal(starter.energyReward,55);
+  assert.deepEqual(starter.rewards,{hp:10,attack:1,speed:-30});
+  for(const value of Object.values(battleEnergyRewards(starter,0)))assert.equal(value,55);
+ }
+ for(const [id,energy] of [['fearow',10],['swellow',30]]){
+  const p=getWildPokemon(id);
+  assert.equal(p.energyReward,energy);
+  assert.deepEqual(battleEnergyRewards(p,0),{'노말':energy,'비행':energy});
+  assert.deepEqual(battleEnergyRewards(p,1),{'노말':energy/2,'비행':energy/2});
+ }
+ assert.deepEqual(getWildPokemon('fearow').rewards,{accuracy:8,criticalMultiplier:3});
+ assert.deepEqual(getWildPokemon('swellow').rewards,{accuracy:14});
 });
