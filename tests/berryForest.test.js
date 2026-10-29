@@ -33,7 +33,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='metapod')),{벌레:5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='kakuna')),{벌레:5,독:5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='taillow')),{노말:27.6,비행:27.6});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='swellow')),{}); // No type-energy grant specified yet.
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='swellow')),{노말:30,비행:30});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff')),{노말:39,페어리:39});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff'),1),{노말:19.5,페어리:19.5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='pikachu')),{전기:25});
