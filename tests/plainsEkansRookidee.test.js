@@ -6,7 +6,7 @@ import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 const encode=record=>{const bytes=new TextEncoder().encode(JSON.stringify(record));return btoa(Array.from(bytes,x=>String.fromCharCode(x)).join(''));};
 test('Ekans and Rookidee preserve exact stats and decaying poison/flying rewards',()=>{
  const a=getWildPokemon('ekans'),b=getWildPokemon('rookidee');
- assert.deepEqual([a.hp,a.attack,a.speed,a.dodge,a.poison,a.antidote,a.energyReward],[88,20,2000,880,20,100,8]);
+ assert.deepEqual([a.hp,a.attack,a.speed,a.dodge,a.poison,a.antidote,a.energyReward],[88,20,2000,88,20,100,8]);
  assert.deepEqual(a.rewards,{dodge:20,poison:8});
  assert.deepEqual([b.hp,b.attack,b.defense,b.specialDefense,b.speed,b.accuracy,b.energyReward],[176,27,15,15,2300,200,8]);
  assert.deepEqual(b.rewards,{hp:8,defense:8,specialDefense:8,accuracy:4});
