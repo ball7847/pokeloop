@@ -6,7 +6,7 @@ import {resolveAttack,startBattle} from '../src/core/combatEngine.js';
 import {resolveStats} from '../src/core/dittoStats.js';
 
 const prepared=()=>{const s=initialState();return {...s,phase:'running',activeRegionId:LAKE_REGION.id,
- killCounts:{...s.killCounts,...Object.fromEntries(['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela'].map(id=>[id,1]))}}};
+ killCounts:{...s.killCounts,...Object.fromEntries(['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela'].map(id=>[id,1]))}}};
 test('moonlit lake roster and 3-to-1 uncommon slot are registered',()=>{
  assert.equal(LAKE_POKEMON.length,8);
  const slot=ENCOUNTER_SLOTS.find(s=>s.id==='W030302');
