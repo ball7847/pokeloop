@@ -322,9 +322,11 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
   if(finalFiveCleared&&!firstPassDone){firstPassDone=true;note('five-phase-completed-after-farming');}
   const capped=availableTargets(state).filter(id=>(state.killCounts[id]??0)>=10);
   const incomplete=availableTargets(state).filter(id=>(state.killCounts[id]??0)<10);
-  const report={planet:startMoves+1,reason:safetyStop??exit.status,exitReason:exit.reason,
+  // A model-indeterminate encounter is not evidence of true gameplay impossibility.
+  const approximateUnresolved=uncertainties.some(x=>!x.estimatedOutcome);
+  const report={planet:startMoves+1,reason:safetyStop??(exit.status==='STALLED'&&approximateUnresolved?'UNCERTAIN':exit.status),exitReason:exit.reason,
     fiveCleared:finalFiveCleared,appeared:availableTargets(state),capped,incomplete,
-    battles,attempts,defeats,maxStreak,uncertainties,combatMode:mode,seconds,stats:statsSnapshot(state),
+    battles,attempts,defeats,maxStreak,uncertainties,approximateUnresolved,combatMode:mode,seconds,stats:statsSnapshot(state),
     kills:{...state.killCounts},gained,spent,production,remaining:{...state.energyBalances},
     particles:{...state.particleBalances},pendingStellar:state.pendingStellar,
     stellar:state.stellar,totalStellarEarned:state.totalStellarEarned,
