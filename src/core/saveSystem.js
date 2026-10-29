@@ -1,7 +1,7 @@
 import {migrateEncounterSave} from './encounterSave.js';
 import {initialState,PHASE} from './gameState.js';
 import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,BERRY_REGION,LAKE_REGION,isRegionUnlocked} from './wildData.js';
-import {resolveStats} from './dittoStats.js';
+import {DEFAULT_STATS,resolveStats} from './dittoStats.js';
 import {emptyCombat} from './combatEngine.js';
 import {isAmount,storedAmount} from './bigNumber.js';
 import {TYPES,LAYERS,initialEconomy} from './energySystem.js';
@@ -15,7 +15,9 @@ export const SAVE_VERSION=17;
 export const AUTOSAVE_INTERVAL_MS=30000;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
-const basicKeys=['hp','attack','defense','specialAttack','specialDefense','speed','minDamagePercent','maxDamagePercent','paralysis','poison','antidote','regeneration','multiStrike','accuracy','dodge'];
+// A single source of truth prevents newly introduced combat stats from being silently lost.
+const basicKeys=Object.freeze(Object.keys(DEFAULT_STATS));
+const numericStatKeys=new Set(['speed','minDamagePercent','maxDamagePercent','accuracy','dodge','criticalChance','criticalMultiplier']);
 const progressKeys=['floor','encounterIndex','victories','runId','eventSerial'];
 const validInteger=(value,max)=>Number.isSafeInteger(value)&&value>=0&&value<=max;
 
@@ -82,7 +84,7 @@ export function decodeSave(encoded){
   if(!original.dittoStats||typeof original.dittoStats!=='object')throw new Error('메타몽 능력치가 없습니다.');
   const stats=resolveStats(original.dittoStats);
   for(const key of basicKeys){
-    if(['speed','minDamagePercent','maxDamagePercent','accuracy','dodge'].includes(key)){
+    if(numericStatKeys.has(key)){
       if(typeof stats[key]!=='number'||!Number.isFinite(stats[key])||stats[key]<0)
         throw new Error('능력치 값이 올바르지 않습니다: '+key);
     }else if(!isAmount(stats[key])){
