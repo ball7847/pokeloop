@@ -24,7 +24,8 @@ const rewardText=(stat,value)=>(value<0?'−':'+')+formatStatValue(stat,Math.abs
 const format=formatAmount;
 
 export function visibleWildBasicStats(pokemon){
-  return WILD_BASIC_FIELDS.filter(({key})=>!isDefaultStat(key,resolveStats(pokemon)[key]));
+  const stats=resolveStats(pokemon);
+  return WILD_BASIC_FIELDS.filter(({key})=>!isDefaultStat(key,stats[key]));
 }
 export function visibleWildExtraStats(pokemon){
   const resolved=resolveStats(pokemon);
@@ -34,6 +35,7 @@ export function visibleWildExtraStats(pokemon){
 function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
   const basic=new Set(visibleWildBasicStats(pokemon).map(({key})=>key));
   const extras=visibleWildExtraStats(pokemon);
+  const energyRewards=battleEnergyRewards(pokemon,count);
   const gain=Object.entries(pokemon.rewards).filter(([,v])=>typeof v==='number'?v!==0:isAmount(v)&&compareAmount(v,0)!==0)
     .map(([stat,val])=>({stat,label:statLabel(stat),value:scaledReward(stat,val,count)}));
   return <button type="button" disabled={disabled}
@@ -59,8 +61,8 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
     </div>
     <div className="wild-rewards" aria-label="처치 보상">
       {gain.map(({stat,label,value})=><span className="wild-reward" key={stat} title={label+" "+rewardText(stat,value)} aria-label={label+" "+rewardText(stat,value)}><StatIcon stat={stat} fallback/> {rewardText(stat,value)}</span>)}
-      {Object.keys(battleEnergyRewards(pokemon,count)).length===0?<span className="wild-reward">타입 에너지 보상 미설정</span>:
-       Object.entries(battleEnergyRewards(pokemon,count)).map(([type,amount])=>
+      {Object.keys(energyRewards).length===0?<span className="wild-reward">타입 에너지 보상 미설정</span>:
+       Object.entries(energyRewards).map(([type,amount])=>
          <span className="wild-reward" key={'energy-'+type} title={type+' 에너지 +'+formatAmount(amount)} aria-label={type+' 에너지 +'+formatAmount(amount)}><EnergyTypeIcon type={type}/>+{formatAmount(amount)}</span>)}
     </div>
     <div className="wild-card-footer">
