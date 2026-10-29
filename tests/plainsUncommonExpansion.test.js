@@ -9,8 +9,8 @@ test('six uncommon slots sit at 3, 6, 8, 11, 13, 15; normals stay at 10',()=>{
  assert.deepEqual(ENCOUNTER_SLOTS.filter(x=>x.id.startsWith('W01')&&x.rarity==='uncommon').map(x=>x.id).sort(),['W010302','W010602','W010802','W011102','W011302','W011502']);
  assert.equal(regionUnlockRequirement(),7);
  assert.deepEqual(['psyduck','ponyta','zigzagoon','zigzagoon-galar'].map(x=>getWildPokemon(x).energyReward),[5.5,7.7,13.4,3.4]);
- assert.equal(getWildPokemon('zigzagoon').dodge,260);
- assert.equal(getWildPokemon('zigzagoon-galar').dodge,130);
+ assert.equal(getWildPokemon('zigzagoon').dodge,26);
+ assert.equal(getWildPokemon('zigzagoon-galar').dodge,13);
 });
 test('slot rolls choose one zigzagoon and one starter even at 100% uncommon',()=>{
  const results=rollEncounterSlots(ENCOUNTER_SLOTS,{chances:{uncommon:1},random:()=>0.1});
