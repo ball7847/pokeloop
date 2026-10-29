@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
 import {appearedInRegion,isPokemonUnlockedInState,unlockedCountInRegion,
-  regionUnlockRequirement,evolutionChance,getWildPokemon,BERRY_REGION,REGION} from '../src/core/wildData.js';
+  regionUnlockRequirement,evolutionChance,getWildPokemon,BERRY_REGION,REGION,ENCOUNTER_SLOTS} from '../src/core/wildData.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 const berry=BERRY_REGION.id;
@@ -57,4 +57,56 @@ test('evolution chance derives from target rarity and can fail independently',()
  assert.equal(evolutionChance({rarity:'uncommon'},s),s.uncommonChance);
  assert.equal(evolutionChance({rarity:'rare'},s),0);
  assert.equal(evolutionChance(null,s),0);
+});
+
+test('Fearow and Swellow inherit parent slots without adding independent rarity slots',()=>{
+ const fearow=getWildPokemon('fearow'),swellow=getWildPokemon('swellow');
+ assert.deepEqual([fearow.number,fearow.rarity,fearow.evolvesFrom,fearow.encounterCode],[22,'uncommon','spearow','W010401-E1']);
+ assert.deepEqual([fearow.hp,fearow.attack,fearow.speed,fearow.accuracy,fearow.criticalChance,fearow.criticalMultiplier],[122,8.8,1000,150,8,225]);
+ assert.deepEqual(fearow.rewards,{accuracy:8,criticalMultiplier:3});
+ assert.deepEqual([swellow.number,swellow.rarity,swellow.evolvesFrom,swellow.encounterCode],[277,'uncommon','taillow','W020301-E1']);
+ assert.deepEqual([swellow.hp,swellow.attack,swellow.specialAttack,swellow.speed,swellow.accuracy],[600,15,15,825,277]);
+ assert.deepEqual(swellow.rewards,{accuracy:14});
+ assert.equal(ENCOUNTER_SLOTS.some(slot=>slot.id==='W010401-E1'||slot.id==='W020301-E1'),false);
+ const s=prepare();
+ assert.equal(appearedInRegion(s,REGION.id).some(p=>p.id==='fearow'),false);
+ assert.equal(appearedInRegion(s,berry).some(p=>p.id==='swellow'),false);
+ const appeared={...s,evolutionResults:{fearow:true,swellow:true}};
+ assert.equal(appearedInRegion(appeared,REGION.id).findIndex(p=>p.id==='fearow'),
+   appearedInRegion(appeared,REGION.id).findIndex(p=>p.id==='spearow')+1);
+ assert.equal(appearedInRegion(appeared,berry).findIndex(p=>p.id==='swellow'),
+   appearedInRegion(appeared,berry).findIndex(p=>p.id==='taillow')+1);
+});
+
+test('uncommon evolutions roll once after first parent victory and persist through save',()=>{
+ for(const [parent,child,region] of [['spearow','fearow',REGION.id],['taillow','swellow',berry]]){
+  let s=prepare();
+  s.activeRegionId=region;
+  s.uncommonChance=0.5;
+  s.killCounts[parent]=0;
+  s.killCounts.zubat=1; // Maintain the seven-first-kills prerequisite for Berry Forest.
+  s.dittoStats={...s.dittoStats,hp:10000,attack:10000,speed:100};
+  s=transition(s,{type:'SELECT_WILD',pokemonId:parent});
+  assert.equal(s.combat.active,true,parent);
+  s=transition(s,{type:'COMBAT_TICK',deltaMs:5000,random:()=>0});
+  assert.equal(s.killCounts[parent],1,parent);
+  assert.equal(s.evolutionResults[child],true,child);
+  assert.equal(isPokemonUnlockedInState(s,child),true,child);
+  assert.equal(decodeSave(encodeSave(s)).game.evolutionResults[child],true,child);
+  const before=s.evolutionResults[child];
+  s=transition(s,{type:'SELECT_WILD',pokemonId:parent});
+  s=transition(s,{type:'COMBAT_TICK',deltaMs:5000,random:()=>0.99});
+  assert.equal(s.evolutionResults[child],before,'a repeat kill must not reroll evolution');
+ }
+});
+test('failed uncommon evolution rolls remain absent and are saved',()=>{
+ let s=prepare();
+ s.uncommonChance=0;
+ s.activeRegionId=berry;
+ s.dittoStats={...s.dittoStats,hp:10000,attack:10000,speed:100};
+ s=transition(s,{type:'SELECT_WILD',pokemonId:'taillow'});
+ s=transition(s,{type:'COMBAT_TICK',deltaMs:5000,random:()=>0});
+ assert.equal(s.evolutionResults.swellow,false);
+ assert.equal(appearedInRegion(s,berry).some(p=>p.id==='swellow'),false);
+ assert.equal(decodeSave(encodeSave(s)).game.evolutionResults.swellow,false);
 });

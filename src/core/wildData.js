@@ -19,6 +19,10 @@ const entries=[
 // Encounter codes identify regional slots independently from species IDs.
 const region1Codes=Object.freeze(['W010101','W010201','W010401','W010501','W010701','W010901','W011001','W011201','W011401','W011601']);
 export const WILD_POKEMON=Object.freeze(entries.map((p,i)=>Object.freeze({...p,...resolveStats(p),encounterCode:region1Codes[i]})));
+// Evolution children use their parent's regional slot, but never count as base encounters.
+export const PLAINS_EVOLUTIONS=Object.freeze([
+ {id:'fearow',number:22,name:'깨비드릴조',types:['노말','비행'],rarity:'uncommon',evolvesFrom:'spearow',encounterCode:'W010401-E1',hp:122,attack:8.8,speed:1000,accuracy:150,criticalChance:8,criticalMultiplier:225,rewards:{accuracy:8,criticalMultiplier:3}}
+].map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const UNCOMMON_BASE_CHANCE=0;
 export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이상해씨',types:['풀','독'],energyReward:132},{id:'charmander',number:4,name:'파이리',types:['불꽃'],energyReward:132},{id:'squirtle',number:7,name:'꼬부기',types:['물'],energyReward:132}].map((p,i)=>Object.freeze({...p,...resolveStats({hp:100,attack:10,speed:3000}),encounterCode:'W010802-0'+(i+1),rarity:'uncommon',rewards:{hp:10,attack:1,speed:-30}})));
 export const PLAINS_UNCOMMON=Object.freeze([
@@ -36,6 +40,7 @@ const berryEntries=[
 {id:'weedle',number:13,name:'뿔충이',types:['벌레','독'],energyReward:3,hp:80,attack:14,speed:3500,rewards:{hp:7}},
 {id:'kakuna',evolvesFrom:'weedle',rarity:'common',number:14,name:'딱충이',types:['벌레','독'],energyReward:5,hp:160,attack:20,defense:10,speed:5000,rewards:{hp:10,defense:1}},
 {id:'taillow',number:276,name:'테일로',types:['노말','비행'],energyReward:27.6,hp:80,attack:11,speed:1100,rewards:{attack:2.76,speed:-20}},
+{id:'swellow',evolvesFrom:'taillow',rarity:'uncommon',number:277,name:'스왈로',types:['노말','비행'],hp:600,attack:15,specialAttack:15,speed:825,accuracy:277,rewards:{accuracy:14}},
 {id:'igglybuff',number:174,name:'푸푸린',types:['노말','페어리'],energyReward:39,hp:180,attack:6,specialAttack:20,specialDefense:4,speed:2000,rewards:{hp:18,specialAttack:5}},
 {id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',energyReward:25,hp:250,attack:25,specialAttack:25,speed:1025,paralysis:250,rewards:{attack:25,paralysis:25}},
 {id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:6.9,hp:230,attack:57,speed:2730,accuracy:80,minDamagePercent:50,maxDamagePercent:150,rewards:{attack:5.7,maxDamagePercent:3.2}},
@@ -50,7 +55,7 @@ const berryEntries=[
 const berryEncounterCodes=Object.freeze({
   caterpie:'W020101',metapod:'W020101-E1',
   weedle:'W020201',kakuna:'W020201-E1',
-  taillow:'W020301',pikachu:'W020502',
+  taillow:'W020301',swellow:'W020301-E1',pikachu:'W020502',
   igglybuff:'W020401','nidoran-m':'W020601','nidoran-f':'W020701',tangela:'W020801',bidoof:'W020901',surskit:'W021001',tropius:'W021101'
 });
 // Region 2 awards each configured energyReward to each of the Pokémon's types.
@@ -66,7 +71,7 @@ const lakeEntries=[
 {id:'ribombee',number:743,name:'에리본',types:['벌레','페어리'],rarity:'uncommon',evolvesFrom:'cutiefly',hp:1200,specialAttack:75,speed:420,energyReward:46.4,rewards:{specialAttack:14,honey:14},encounterCode:'W030401-E1'}
 ];
 export const LAKE_POKEMON=Object.freeze(lakeEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
-export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON,...LAKE_POKEMON]);
+export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...PLAINS_EVOLUTIONS,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON,...LAKE_POKEMON]);
 export const ENCOUNTER_SLOTS=Object.freeze(createEncounterSlots(ALL_POKEMON));
 export const ENCOUNTER_SLOT_BY_ID=Object.freeze(Object.fromEntries(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot])));
 // Evolution children are stored separately from the 24 regular-rarity lineup.

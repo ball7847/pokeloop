@@ -14,6 +14,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['weedle',80,14,0,0,3500,0,0,100,100],
  ['kakuna',160,20,0,10,5000,0,0,100,100],
  ['taillow',80,11,0,0,1100,0,0,100,100],
+ ['swellow',600,15,15,0,825,0,0,277,100],
  ['igglybuff',180,6,20,0,2000,0,0,100,100],
  ['pikachu',250,25,25,0,1025,250,0,100,100],
  ['nidoran-m',230,57,0,0,2730,0,0,80,150],
@@ -25,13 +26,14 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
- {hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:5.7,maxDamagePercent:3.2},{hp:12.9,poison:1},{hp:11.4,regeneration:1.14},{hp:20,attack:4},{speed:-28},{hp:50,attack:10,specialAttack:10,regeneration:10}
+ {accuracy:14},{hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:5.7,maxDamagePercent:3.2},{hp:12.9,poison:1},{hp:11.4,regeneration:1.14},{hp:20,attack:4},{speed:-28},{hp:50,attack:10,specialAttack:10,regeneration:10}
  ]);
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{벌레:3});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='weedle')),{벌레:3,독:3});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='metapod')),{벌레:5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='kakuna')),{벌레:5,독:5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='taillow')),{노말:27.6,비행:27.6});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='swellow')),{}); // No type-energy grant specified yet.
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff')),{노말:39,페어리:39});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff'),1),{노말:19.5,페어리:19.5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='pikachu')),{전기:25});
