@@ -43,7 +43,7 @@ test('auto retry restores its opponent region before starting combat',()=>{
 test('region filters and energy subtabs retain navigation state but reset at planet move',()=>{
  const original=useGameStore.getState();
  try{
-   useGameStore.setState({game:{...initialState(),phase:'running'},wildRegionFilter:'all',energySectionTab:'world'});
+   useGameStore.setState({game:{...initialState(),phase:'running',pendingStellar:1},wildRegionFilter:'all',energySectionTab:'world'});
    assert.equal(useGameStore.getState().wildRegionFilter,'all');
    assert.equal(useGameStore.getState().energySectionTab,'world');
    useGameStore.getState().dispatch({type:'MOVE_PLANET'});
