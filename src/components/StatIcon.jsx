@@ -10,7 +10,7 @@ export const DAMAGE_STAT_FILES=Object.freeze({minDamagePercent:'minDamagePercent
 export const STATUS_STAT_FILES=Object.freeze({paralysis:'paralysis.svg',poison:'poison.svg',antidote:'antidote.svg'});
 export const MULTISTRIKE_STAT_FILES=Object.freeze({multiStrike:'multiStrike.svg'});
 const ADDITIONAL_STAT_FILES=Object.freeze({accuracy:'accuracy.svg',dodge:'dodge.svg',regeneration:'regeneration.svg'});
-const EXTRA_ICONS=Object.freeze({});
+const EXTRA_ICONS=Object.freeze({intimidation:'↓',sound:'♪',criticalChance:'✦',criticalMultiplier:'×',honey:'✿'});
 const SHORT_LABELS=Object.freeze({
   hp:'HP',attack:'공격',defense:'방어',
   specialAttack:'특공',specialDefense:'특방',speed:'스피드'
@@ -20,7 +20,7 @@ export function homeStatIconUrl(stat) {
   return file ? import.meta.env.BASE_URL+'assets/stats/'+file : null;
 }
 export function StatIcon({stat,className='',fallback=false}) {
-  const src=homeStatIconUrl(stat)??(fallback?import.meta.env.BASE_URL+'assets/stats/unknown.svg':null);
+  const src=homeStatIconUrl(stat)??(fallback&&!EXTRA_ICONS[stat]?import.meta.env.BASE_URL+'assets/stats/unknown.svg':null);
   return src?<img className={'home-stat-icon '+className} src={src} alt="" width="18" height="18" loading="eager"/>:EXTRA_ICONS[stat]?<span className={'extra-stat-icon '+className} aria-hidden="true">{EXTRA_ICONS[stat]}</span>:null;
 }
 export function StatLabel({stat,label,compact=false}) {

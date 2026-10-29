@@ -14,6 +14,11 @@ export const DEFAULT_STATS = Object.freeze({
   multiStrike:0,
   antidote:0,
   regeneration:0,
+  intimidation:0,
+  sound:0,
+  criticalChance:0,
+  criticalMultiplier:150,
+  honey:0,
   accuracy:100,
   dodge:0,
   speed: 0,
@@ -43,6 +48,11 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'poison',label:'독',description:'명중할 때 상대에게 누적 독을 부여합니다. 누적 독은 매초 해독 처리 후 HP 피해를 줍니다.' },
   { key:'antidote',label:'해독',description:'전투 중 1초마다 독 피해 전에 누적 독을 이 수치만큼 감소시킵니다.' },
   { key:'regeneration',label:'회복',description:'전투 중 1초마다 자신의 HP를 회복 수치만큼 회복합니다. 최대 HP를 초과할 수 없습니다.' },
+  { key:'intimidation',label:'위협',description:'전투 시작 시 상대의 공격을 위협 × 0.1%만큼 감소시킵니다.' },
+  { key:'sound',label:'소리',description:'특수공격 시 상대 특수방어를 소리 수치만큼 관통합니다.' },
+  { key:'criticalChance',label:'치명타확률',description:'물리·특수 공격 타격에 치명타가 발생할 확률(%)입니다.' },
+  { key:'criticalMultiplier',label:'치명타배율',description:'치명타 시 피해량 배율(%)이며 기본값은 150%입니다.' },
+  { key:'honey',label:'꿀',description:'획득 능력치 및 타입 에너지 보상을 꿀 × 0.1%만큼 증가시킵니다.' },
   { key:'accuracy',label:'명중',description:'명중 확률(%)입니다. 100% 초과분은 상대의 회피를 감소시킵니다.' },
   { key:'dodge',label:'회피',description:'공격을 피할 확률(%)입니다.' },
   { key:'speed', label:'스피드', description:'공격 간 대기시간(ms)입니다.' },
@@ -76,7 +86,7 @@ export function formatStatValue(key,value) {
   const formatted=formatAmount(value);
   if(formatted==='—')return formatted;
   const suffix=key==='speed'?'ms':
-    ['accuracy','dodge','minDamagePercent','maxDamagePercent'].includes(key)?'%':'';
+    ['accuracy','dodge','criticalChance','criticalMultiplier','minDamagePercent','maxDamagePercent'].includes(key)?'%':'';
   return formatted+suffix;
 }
 export const formatBasicStat=formatStatValue;

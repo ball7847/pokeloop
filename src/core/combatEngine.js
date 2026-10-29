@@ -34,6 +34,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack,statistics:p
     },
+    intimidationDebuffs:{player:Math.min(1,(p.intimidation??0)*.001),enemy:Math.min(1,(effective.intimidation??0)*.001)},
     dittoAttackCooldown:{elapsed:0,duration:effective.speed},
     lastEvent:{id:state.eventSerial+1,type:'start',pokemonId:id,name:p.name}
   }};
@@ -44,11 +45,13 @@ function finish(state,c,type,random=Math.random) {
     const count=state.killCounts[p.id]||0;
     if(count>=REGION.defaultKillLimit)return {...state,combat:{...c,active:false,enemy:null}};
     const stats={...state.dittoStats};
+    const honeyMultiplier=1+(effectiveDittoStats(state).honey??0)*.001;
     for(const [key,base] of Object.entries(p.rewards)){
-      const value=scaledReward(key,base,count);
+      const originalReward=scaledReward(key,base,count);
+      const value=honeyMultiplier===1?originalReward:key==='speed'?-Number(multiplyAmount(Math.abs(originalReward),honeyMultiplier)):multiplyAmount(originalReward,honeyMultiplier);
       stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
-    const energyRewards=Object.fromEntries(Object.entries(battleEnergyRewards(p,count)).map(([type,amount])=>[type,stellarBattleEnergyReward(state,type,amount)]));
+    const energyRewards=Object.fromEntries(Object.entries(battleEnergyRewards(p,count)).map(([type,amount])=>[type,honeyMultiplier===1?stellarBattleEnergyReward(state,type,amount):multiplyAmount(stellarBattleEnergyReward(state,type,amount),honeyMultiplier)]));
     let rewarded=state;
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
@@ -60,7 +63,7 @@ function finish(state,c,type,random=Math.random) {
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
       combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type:'victory',pokemonId:p.id,name:p.name,
-        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,scaledReward(k,v,count)])),energyRewards}}};
+        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,honeyMultiplier===1?scaledReward(k,v,count):k==='speed'?-Number(multiplyAmount(Math.abs(scaledReward(k,v,count)),honeyMultiplier)):multiplyAmount(scaledReward(k,v,count),honeyMultiplier)])),energyRewards}}};
     if(updated.automation?.hunger&&count+1<REGION.defaultKillLimit&&compareAmount(c.currentHp,0)>0){
       // Reward applies before next encounter. Current HP carries over without healing.
       // A follow-up attack starts a fresh enemy and cooldown, not a new run.
@@ -110,13 +113,18 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       if(compareAmount(attackerStats[attack]??0,0)<=0)continue;
       const factor=rollDamagePercent(attackerStats.minDamagePercent??85,random,attackerStats.maxDamagePercent??100)/100;
       const raw=multiplyAmount(attackerStats[attack],factor);
-      const net=subtractAmount(raw,defenderStats[defense]??0);
+      const effectiveDefense=kind==='special'?Math.max(0,(defenderStats[defense]??0)-(attackerStats.sound??0)):(defenderStats[defense]??0);
+      const net=subtractAmount(raw,effectiveDefense);
       if(compareAmount(net,0)>0){
         damage=addAmount(damage,net);
         channels.push({kind,value:net});
       }
     }
     if(compareAmount(damage,0)>0){
+      if((attackerStats.criticalChance??0)>0&&random()<(attackerStats.criticalChance??0)/100){
+        damage=multiplyAmount(damage,(attackerStats.criticalMultiplier??150)/100);
+        for(const channel of channels)channel.value=multiplyAmount(channel.value,(attackerStats.criticalMultiplier??150)/100);
+      }
       const before=defenderHp();
       setDefenderHp(subtractAmount(before,damage));
       appendDamageEvents(visualEvents,target,channels,before,damage);
@@ -144,7 +152,9 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   const visualEvents=[];
   const withEffects=next=>({...next,combatVisualEvents:visualEvents});
   c.playerStatus??=freshStatus();c.enemyStatus??=freshStatus();
-  const playerStats=effectiveDittoStats(state),enemyStats=c.enemy.statistics??getWildPokemon(c.pokemonId);
+  const playerStats={...effectiveDittoStats(state)},enemyStats={...(c.enemy.statistics??getWildPokemon(c.pokemonId))};
+  playerStats.attack=multiplyAmount(playerStats.attack,1-(c.intimidationDebuffs?.player??0));
+  enemyStats.attack=multiplyAmount(enemyStats.attack,1-(c.intimidationDebuffs?.enemy??0));
   let remaining=Math.min(deltaMs,5000);
   c.regenerationElapsedMs??=0;
   // Shared second boundary: antidote -> poison damage -> regeneration.
