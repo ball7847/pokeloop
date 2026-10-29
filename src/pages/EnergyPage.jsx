@@ -172,8 +172,8 @@ export function EnergyPage(){
         <div className="energy-balance-item"><span>보유 스텔라에너지</span><strong>{formatAmount(game.stellar??0)}</strong></div>
         <div className="energy-balance-item"><span>행성 이동 횟수</span><strong>{game.planetMoves??0}</strong></div>
       </div>
-      <p>노말 입자가 성층권에 스텔라 입자를 생산합니다. 메타몽이 행성 이동 시 이를 흡수해 스텔라에너지를 획득합니다.</p>
-      <button type="button" disabled={game.combat.active||game.phase==='paused'||compareAmount(game.pendingStellar??0,0)<=0}
+      <p>노말 입자가 성층권에 스텔라 입자를 생산합니다. 대기 스텔라에너지 1 SE 이상일 때 행성 이동할 수 있으며, 이동 시 이를 흡수해 스텔라에너지를 획득합니다.</p>
+      <button type="button" disabled={game.combat.active||game.recoveryMs>0||game.phase!=='running'||compareAmount(game.pendingStellar??0,1)<0}
         onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 타입 에너지·입자·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
     </section>
     </aside>

@@ -1,4 +1,5 @@
 import {prepareNextPlanet} from './planetTransition.js';
+import {compareAmount} from './bigNumber.js';
 import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
@@ -53,7 +54,7 @@ export function transition(state, action) {
     case 'PURCHASE_WITH_ENERGY': return state.phase===PHASE.RUNNING&&!state.combat.active?purchaseWithEnergy(state,action.costs):state;
     case 'ECONOMY_TICK': return state.phase===PHASE.RUNNING?tickEconomy(state,action.deltaMs/1000):state;
     case 'MOVE_PLANET': {
-      if(state.combat.active||state.recoveryMs>0||state.phase===PHASE.PAUSED||state.phase===PHASE.FINISHED)return state;
+      if(state.combat.active||state.recoveryMs>0||state.phase===PHASE.PAUSED||state.phase===PHASE.FINISHED||compareAmount(state.pendingStellar??0,1)<0)return state;
       const random=typeof action.random==='function'?action.random:Math.random;
       return {...initialState(),...prepareNextPlanet(state,random),
         phase:PHASE.RUNNING,runId:state.runId+1,eventSerial:state.eventSerial+1};

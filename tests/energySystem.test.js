@@ -89,7 +89,7 @@ test('v4 saved energy and particles restore independently',()=>{
   assert.equal(restored.energyBalances['비행'],985);
   assert.equal(restored.particleBank['비행'],40);
   assert.equal(restored.pendingStellar,s.pendingStellar);
-  const moved=transition(restored,{type:'MOVE_PLANET'});
+  const moved=transition({...restored,pendingStellar:1},{type:'MOVE_PLANET'});
   assert.equal(moved.planetMoves,1);
 });
 
@@ -191,7 +191,7 @@ test('point circulation survives save, old saves default off, planet move clears
  raw.version=11;
  const missing=btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(raw))));
  assert.throws(()=>decodeSave(missing),/순환/);
- assert.equal(transition(restored,{type:'MOVE_PLANET'}).pointCirculationUnlocked,false);
+ assert.equal(transition({...restored,pendingStellar:1},{type:'MOVE_PLANET'}).pointCirculationUnlocked,false);
 });
 
 

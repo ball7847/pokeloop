@@ -40,7 +40,7 @@ test('legacy v16 R slots and all slot-scoped preferences migrate to W without re
 });
 test('W format moves and rerolls once per slot, preserving N of one',()=>{
  const start=transition(initialState(),{type:'START'});
- const moved=transition({...start,permanentUpgrades:{SU013:40}},{type:'MOVE_PLANET',random:()=>0});
+ const moved=transition({...start,permanentUpgrades:{SU013:40},pendingStellar:1},{type:'MOVE_PLANET',random:()=>0});
  assert.ok(moved.raritySlotResults);
  assert.equal(Object.keys(moved.raritySlotResults).length,ENCOUNTER_SLOTS.length);
  assert.equal(appearedInRegion(moved,REGION.id).filter(p=>STARTER_IDS.includes(p.id)).length,1);

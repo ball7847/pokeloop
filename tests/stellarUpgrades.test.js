@@ -34,7 +34,7 @@ test('SU011 Normal battle energy additive level growth and factor 100 costs',()=
  assert.equal(s.stellar,0);
 });
 test('SU013 uncommon chance additive and factor 22 costs',()=>{
- let s={...initialState(),phase:'running',stellar:23};
+ let s={...initialState(),phase:'running',stellar:23,pendingStellar:1};
  assert.equal(stellarUpgradeCost(s,'SU013'),1);
  s=transition(s,{type:'BUY_STELLAR_UPGRADE',id:'SU013'});
  assert.equal(stellarUpgradeCost(s,'SU013'),22);
@@ -47,7 +47,7 @@ test('SU013 uncommon chance additive and factor 22 costs',()=>{
  assert.equal(after.berryRareAppeared,true);
 });
 test('uncommon roll does not force rare encounters if random misses',()=>{
- const s={...initialState(),phase:'running',permanentUpgrades:{SU013:1}};
+ const s={...initialState(),phase:'running',pendingStellar:1,permanentUpgrades:{SU013:1}};
  const next=transition(s,{type:'MOVE_PLANET',random:()=>0.5});
  assert.equal(next.uncommonChance,0.01);
  assert.equal(next.uncommonStarterId,null);
