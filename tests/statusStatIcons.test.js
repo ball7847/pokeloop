@@ -79,3 +79,21 @@ test('critical chance uses transparent red burst SVG instead of text symbol',asy
   assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'criticalChance',label:'치명타확률'})),/criticalChance\.svg/);
  }finally{await vite.close();}
 });
+
+test('critical multiplier uses red burst/X SVG with transparent X separation',async()=>{
+ const svg=readFileSync(new URL('../public/assets/stats/criticalMultiplier.svg',import.meta.url),'utf8');
+ assert.match(svg,/viewBox="0 0 128 128"/);
+ assert.match(svg,/mask id="burst-cutout"/);
+ assert.match(svg,/stroke="black" stroke-width="21"/);
+ assert.match(svg,/stroke="#D00016" stroke-width="13"/);
+ assert.doesNotMatch(svg,/<rect|<image|background/i);
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+  assert.ok(homeStatIconUrl('criticalMultiplier').endsWith('assets/stats/criticalMultiplier.svg'));
+  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'criticalMultiplier'}));
+  assert.match(icon,/criticalMultiplier\.svg/);
+  assert.doesNotMatch(icon,/extra-stat-icon/);
+  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'criticalMultiplier',label:'치명타배율'})),/criticalMultiplier\.svg/);
+ }finally{await vite.close();}
+});
