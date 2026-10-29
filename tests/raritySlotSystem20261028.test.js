@@ -45,7 +45,8 @@ test('guarantee, exclusion and conditional transcendent appearance preserve slot
 });
 test('SU013 cap and long-term target probabilities',()=>{
  assert.deepEqual(RARITY_MAX_TARGETS,{uncommon:.60,rare:.30,legendary:.15,divine:.075});
- assert.equal(initialState().uncommonChance,0);\n assert.equal(STELLAR_UPGRADES.노말[4].maxLevel,35);
+ assert.equal(initialState().uncommonChance,0);
+ assert.equal(STELLAR_UPGRADES.노말[4].maxLevel,35);
  assert.equal(ENCOUNTER_SLOTS.find(s=>s.id==='W010802').candidates.length,3);
 });
 test('planet move locks starter candidate and Pikachu independently; save retains exact roll',()=>{
