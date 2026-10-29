@@ -30,10 +30,10 @@ export const UNCOMMON_STARTERS=Object.freeze([{id:'bulbasaur',number:1,name:'이
 export const PLAINS_UNCOMMON=Object.freeze([
  {id:'psyduck',number:54,name:'고라파덕',types:['물'],rarity:'uncommon',encounterCode:'W010302',hp:50,attack:5.2,speed:1400,energyReward:5.5,rewards:{hp:8,attack:2.6}},
  {id:'ponyta',number:77,name:'포니타',types:['불꽃'],rarity:'uncommon',encounterCode:'W010602',hp:77,attack:8.5,speed:800,energyReward:7.7,rewards:{attack:4.1,speed:-20}},
- {id:'ekans',number:23,name:'아보',types:['독'],rarity:'uncommon',encounterCode:'W011102',hp:88,attack:20,speed:2000,dodge:880,poison:20,antidote:100,energyReward:8,rewards:{dodge:20,poison:8}},
+ {id:'ekans',number:23,name:'아보',types:['독'],rarity:'uncommon',encounterCode:'W011102',hp:88,attack:20,speed:2000,dodge:88,poison:20,antidote:100,energyReward:8,rewards:{dodge:20,poison:8}},
  {id:'rookidee',number:821,name:'파라꼬',types:['비행'],rarity:'uncommon',encounterCode:'W011302',hp:176,attack:27,defense:15,specialDefense:15,speed:2300,accuracy:200,energyReward:8,rewards:{hp:8,defense:8,specialDefense:8,accuracy:4}},
- {id:'zigzagoon',number:263,name:'지그제구리',types:['노말'],rarity:'uncommon',encounterCode:'W011502-01',hp:138,attack:13,speed:1100,dodge:260,energyReward:13.4,rewards:{dodge:13}},
- {id:'zigzagoon-galar',number:263,spriteNumber:10174,name:'지그제구리(가라르의 모습)',types:['악','노말'],rarity:'uncommon',encounterCode:'W011502-02',hp:138,attack:26,speed:1100,dodge:130,energyReward:3.4,rewards:{attack:2.6,dodge:13}}
+ {id:'zigzagoon',number:263,name:'지그제구리',types:['노말'],rarity:'uncommon',encounterCode:'W011502-01',hp:138,attack:13,speed:1100,dodge:26,energyReward:13.4,rewards:{dodge:13}},
+ {id:'zigzagoon-galar',number:263,spriteNumber:10174,name:'지그제구리(가라르의 모습)',types:['악','노말'],rarity:'uncommon',encounterCode:'W011502-02',hp:138,attack:26,speed:1100,dodge:13,energyReward:3.4,rewards:{attack:2.6,dodge:13}}
 ].map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const STARTER_IDS=Object.freeze(UNCOMMON_STARTERS.map(p=>p.id));
 const berryEntries=[
@@ -64,11 +64,11 @@ const berryEncounterCodes=Object.freeze({
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
 const lakeEntries=[
 {id:'buizel',number:418,name:'브이젤',types:['물'],hp:550,attack:20,speed:850,multiStrike:2000,energyReward:33,rewards:{attack:3,multiStrike:33},encounterCode:'W030101'},
-{id:'magikarp',number:129,name:'잉어킹',types:['물'],hp:95,attack:12.5,speed:1290,dodge:1000,energyReward:20,rewards:{},encounterCode:'W030201'},
+{id:'magikarp',number:129,name:'잉어킹',types:['물'],hp:95,attack:12.5,speed:1290,dodge:100,energyReward:20,rewards:{},encounterCode:'W030201'},
 {id:'gyarados',number:130,name:'갸라도스',types:['물','비행'],rarity:'uncommon',evolvesFrom:'magikarp',hp:950,attack:125,speed:1300,intimidation:500,energyReward:130,rewards:{attack:20,intimidation:16},encounterCode:'W030201-E1'},
 {id:'popplio',number:728,name:'누리공',types:['물'],rarity:'uncommon',hp:1500,specialAttack:66,specialDefense:56,sound:40,speed:3000,energyReward:100,rewards:{specialAttack:30,specialDefense:30,sound:10},encounterCode:'W030302-01'},
 {id:'sobble',number:816,name:'울머기',types:['물'],rarity:'uncommon',hp:1500,specialAttack:70,specialDefense:40,criticalChance:50,criticalMultiplier:200,speed:3000,energyReward:100,rewards:{specialAttack:40,specialDefense:20,criticalChance:1},encounterCode:'W030302-02'},
-{id:'quaxly',number:912,name:'꾸왁스',types:['물'],rarity:'uncommon',hp:1550,attack:65,defense:45,specialDefense:45,dodge:300,multiStrike:300,speed:3000,energyReward:100,rewards:{attack:40,dodge:15,multiStrike:15},encounterCode:'W030302-03'},
+{id:'quaxly',number:912,name:'꾸왁스',types:['물'],rarity:'uncommon',hp:1550,attack:65,defense:45,specialDefense:45,dodge:30,multiStrike:300,speed:3000,energyReward:100,rewards:{attack:40,dodge:15,multiStrike:15},encounterCode:'W030302-03'},
 {id:'cutiefly',number:742,name:'에블리',types:['벌레','페어리'],hp:400,specialAttack:25,speed:620,energyReward:30.4,rewards:{specialAttack:7,speed:-42},encounterCode:'W030401'},
 {id:'ribombee',number:743,name:'에리본',types:['벌레','페어리'],rarity:'uncommon',evolvesFrom:'cutiefly',hp:1200,specialAttack:75,speed:420,energyReward:46.4,rewards:{specialAttack:14,honey:14},encounterCode:'W030401-E1'}
 ];
