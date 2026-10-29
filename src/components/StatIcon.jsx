@@ -9,8 +9,8 @@ export const DAMAGE_STAT_FILES=Object.freeze({minDamagePercent:'minDamagePercent
 // Icons traced from the player's transparent paralysis / poison artwork.
 export const STATUS_STAT_FILES=Object.freeze({paralysis:'paralysis.svg',poison:'poison.svg',antidote:'antidote.svg'});
 export const MULTISTRIKE_STAT_FILES=Object.freeze({multiStrike:'multiStrike.svg'});
-const ADDITIONAL_STAT_FILES=Object.freeze({accuracy:'accuracy.svg',dodge:'dodge.svg',regeneration:'regeneration.svg'});
-const EXTRA_ICONS=Object.freeze({intimidation:'↓',sound:'♪',criticalChance:'✦',criticalMultiplier:'×',honey:'✿'});
+const ADDITIONAL_STAT_FILES=Object.freeze({accuracy:'accuracy.svg',dodge:'dodge.svg',regeneration:'regeneration.svg',intimidation:'intimidation.svg'});
+const EXTRA_ICONS=Object.freeze({sound:'♪',criticalChance:'✦',criticalMultiplier:'×',honey:'✿'});
 const SHORT_LABELS=Object.freeze({
   hp:'HP',attack:'공격',defense:'방어',
   specialAttack:'특공',specialDefense:'특방',speed:'스피드'
