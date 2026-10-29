@@ -60,3 +60,30 @@ test('type energy and particles round-trip as separate 18-type ledgers',()=>{
  assert.equal(restored.particleBank.페어리,3);
  assert.equal(restored.energyBalances.비행,0);
 });
+
+test('all combat stats survive save round-trip; old saves default new stats',()=>{
+ const game=initialState();
+ Object.assign(game.dittoStats,{intimidation:16,sound:10,criticalChance:4.5,criticalMultiplier:225,honey:14});
+ const restored=decodeSave(encodeSave(game)).game;
+ for(const key of ['intimidation','sound','criticalChance','criticalMultiplier','honey']){
+  assert.equal(restored.dittoStats[key],game.dittoStats[key],key);
+ }
+ // Legacy v17 payloads did not serialize the five new stats. They must remain loadable.
+ const previous=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(game)),c=>c.charCodeAt(0))));
+ for(const key of ['intimidation','sound','criticalChance','criticalMultiplier','honey'])delete previous.game.dittoStats[key];
+ const oldBytes=new TextEncoder().encode(JSON.stringify(previous));
+ const oldEncoded=btoa(Array.from(oldBytes,c=>String.fromCharCode(c)).join(''));
+ const legacy=decodeSave(oldEncoded).game;
+ assert.equal(legacy.dittoStats.intimidation,0);
+ assert.equal(legacy.dittoStats.sound,0);
+ assert.equal(legacy.dittoStats.criticalChance,0);
+ assert.equal(legacy.dittoStats.criticalMultiplier,150);
+ assert.equal(legacy.dittoStats.honey,0);
+});
+test('invalid critical percentages in save cannot bypass validation',()=>{
+ const game=initialState();
+ const o=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(game)),c=>c.charCodeAt(0))));
+ o.game.dittoStats.criticalChance='invalid-number';
+ const bytes=new TextEncoder().encode(JSON.stringify(o));
+ assert.throws(()=>decodeSave(btoa(Array.from(bytes,c=>String.fromCharCode(c)).join(''))));
+});
