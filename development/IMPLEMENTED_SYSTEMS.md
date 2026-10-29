@@ -276,3 +276,7 @@
 ### 2026-10-29: 치명타확률 능력치 아이콘
 - 기존 `✦` 임시 기호를 빨간색 심플한 폭발형 치명타 아이콘으로 교체. `public/assets/stats/criticalChance.svg`는 투명 배경 벡터 파일이다.
 - 공용 `StatIcon`/`StatLabel` 매핑을 변경하여 관련 능력치 표시에 동일하게 적용한다.
+
+### 2026-10-29: 치명타배율 능력치 아이콘
+- 치명타확률의 빨간 폭발형 아이콘을 바탕으로 우측 아래 빨간 X 표시를 덧붙인 투명 SVG(`public/assets/stats/criticalMultiplier.svg`) 사용. X 주변은 SVG 마스크로 투명하게 분리함.
+- 기존 `×` 임시 문자 대신 공용 `StatIcon`/`StatLabel`에서 새 이미지 사용. 능력치·전투 규칙은 변경 없음.
