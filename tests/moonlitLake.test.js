@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {getWildPokemon} from '../src/core/wildData.js';
 import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
 import {LAKE_REGION,LAKE_POKEMON,appearedInRegion,isRegionUnlocked,ENCOUNTER_SLOTS} from '../src/core/wildData.js';
@@ -29,4 +30,14 @@ test('sound penetrates special defense, critical multiplies both damage channels
  playerStatus:{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0}};
  resolveAttack(c,'player',actor,enemy,()=>0);
  assert.equal(c.enemy.hp.current,740); // (85-20 + 85-(50-30)) * 2 = 260 
+});
+
+
+test('region 3 dodge rebalance retains all other enemy stats and rewards',()=>{
+ const magikarp=getWildPokemon('magikarp'),quaxly=getWildPokemon('quaxly');
+ assert.equal(magikarp.dodge,100);
+ assert.equal(quaxly.dodge,30);
+ assert.equal(magikarp.energyReward,20);
+ assert.deepEqual(magikarp.rewards,{});
+ assert.deepEqual(quaxly.rewards,{attack:40,dodge:15,multiStrike:15});
 });
