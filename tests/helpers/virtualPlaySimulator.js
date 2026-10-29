@@ -9,6 +9,8 @@ export const DEFAULT_SU_ORDER=Object.freeze(['SU012','SU013','SU011']);
 const balance=()=>Object.fromEntries(TYPES.map(type=>[type,0]));
 const MAX_SAME_CONDITION_FAILURES=3;
 const MAX_REPEAT_WAIT_PLANETS=2;
+// A simulation-only watchdog: two minutes without either HP bar decreasing.
+const MAX_NO_DAMAGE_TICKS=240;
 // Compare earned progress and combat outcomes, not the ever-growing lifetime SE.
 export function planetPattern(report){
   return JSON.stringify({
@@ -75,7 +77,7 @@ function identity(state){
 export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=6000,maxTicks=250000}={}){
   let state=start.phase==='ready'?transition(start,{type:'START'}):start;
   const startMoves=state.planetMoves,started={...state.killCounts};
-  const timeline=[],events=[],attempts={},defeats={},maxStreak={},firstChallenges={};
+  const timeline=[],events=[],attempts={},defeats={},maxStreak={},firstChallenges={},stalledBattles=[];
   const failedConditions=new Map();
   const gained=balance(),spent=balance(),production=balance();
   let ticks=0,battles=0,seconds=0,goal=5,safetyStop=null,firstPassDone=false;
@@ -159,7 +161,9 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     if(!act({type:'SELECT_WILD',pokemonId:id})||!state.combat.active)
       return {result:'unavailable',wins:0};
     battles++;attempts[id]=(attempts[id]??0)+1;
-    let wins=0,steps=0,previous=startingKills;
+    let wins=0,steps=0,previous=startingKills,noDamageTicks=0;
+    let lastPlayerHp=state.combat.currentHp,lastEnemyHp=state.combat.enemy?.hp.current;
+    let stallReason=null;
     while(state.combat.active&&steps++<2400&&ticks<maxTicks){
       if((state.killCounts[id]??0)>=target-1)toggleHunger(false);
       const before={...state.energyBalances};
@@ -175,11 +179,31 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
         note('victory',{id,kills:after,streak:wins});
       }
       // If the real event was not exposed, never backfill invented rewards.
+      const hpReduced=compareAmount(state.combat.currentHp,lastPlayerHp)<0||
+        (state.combat.enemy&&compareAmount(state.combat.enemy.hp.current,lastEnemyHp)<0);
+      noDamageTicks=hpReduced?0:noDamageTicks+1;
+      lastPlayerHp=state.combat.currentHp;
+      lastEnemyHp=state.combat.enemy?.hp.current;
       economy(500);
       ticks++;
+      if(state.combat.active&&noDamageTicks>=MAX_NO_DAMAGE_TICKS){stallReason='no-damage-120s';break;}
       if(state.combat.active&&wins>REGION.defaultKillLimit)throw Error('invalid streak');
     }
-    if(state.combat.active){safetyStop='combat-tick-budget';return {result:'limit',wins};}
+    if(state.combat.active){
+      const diagnostic={id,region,reason:stallReason??(ticks>=maxTicks?'planet-tick-budget':'battle-tick-budget'),
+        steps,planetTicks:ticks,playerHp:state.combat.currentHp,enemyHp:state.combat.enemy?.hp.current,
+        playerStats:effectiveDittoStats(state),enemyStats:state.combat.enemy?.stats??null,
+        kills:state.killCounts[id]??0};
+      stalledBattles.push(diagnostic);
+      note('combat-stalled',diagnostic);
+      // Only the overall planet budget is fatal; a stalled individual battle can be
+      // safely abandoned using the game's own FLEE transition and retried after growth.
+      if(ticks>=maxTicks){safetyStop='combat-tick-budget';return {result:'limit',wins};}
+      act({type:'FLEE'});
+      failedConditions.set(condition,failed+1);
+      maxStreak[id]=Math.max(maxStreak[id]??0,wins);
+      return {result:'stalled',wins};
+    }
     const result=state.combat.lastEvent?.type;
     if(result==='defeat'){
       defeats[id]=(defeats[id]??0)+1;
@@ -218,7 +242,7 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
         const result=battle(id,target);
         if(result.result==='limit'){break;}
         if(result.wins>0){failures=0;progressed=true;signature=identity(state);}
-        else if(result.result==='defeat'){
+        else if(result.result==='defeat'||result.result==='stalled'){
           failures++;
           // Follow the established policy: on the first defeat, farm earlier
           // accessible species to their real 10-kill cap before retrying.
@@ -235,7 +259,7 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
                 if((state.killCounts[previousId]??0)>prior){
                   gainedKills+=state.killCounts[previousId]-prior;
                   failed=0;
-                }else if(farm.result==='defeat')failed++;
+                }else if(farm.result==='defeat'||farm.result==='stalled')failed++;
                 else break;
               }
             }
@@ -276,7 +300,11 @@ export function playOnePlanet(start,{random=()=>0.5,logLimit=5000,maxBattles=600
     kills:{...state.killCounts},gained,spent,production,remaining:{...state.energyBalances},
     particles:{...state.particleBalances},pendingStellar:state.pendingStellar,
     stellar:state.stellar,totalStellarEarned:state.totalStellarEarned,
-    milestones:{...state.particleMilestones},firstChallenges,events,timeline,
+    milestones:{...state.particleMilestones},firstChallenges,stalledBattles,
+    unlockedRegions:REGIONS.filter(region=>isRegionUnlocked(state,region.id)).map(region=>region.id),
+    berryFirstKills:REGIONS.some(region=>region.id==='berry-forest')?
+      appearedInRegion(state,'berry-forest').filter(p=>!p.evolvesFrom&&p.rarity!=='uncommon'&&(state.killCounts[p.id]??0)>0).map(p=>p.id):[],
+    events,timeline,
     truncated:events.length>timeline.length};
   return {state,report};
 }
