@@ -1,4 +1,5 @@
 import {prepareNextPlanet} from './planetTransition.js';
+import {compareAmount} from './bigNumber.js';
 import {ALL_POKEMON,UNCOMMON_BASE_CHANCE,REGION,isRegionUnlocked,regionForPokemon} from './wildData.js';
 import {emptyCombat,startBattle,advanceBattle,fleeBattle} from './combatEngine.js';
 import { DEFAULT_DITTO_STATS } from './dittoStats.js';
