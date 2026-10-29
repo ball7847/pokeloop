@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createEncounterSlots,effectiveSlotChance,rollEncounterSlots,RARITY_MAX_TARGETS} from '../src/core/raritySystem.js';
 import {initialState,transition} from '../src/core/gameState.js';
+import {STELLAR_UPGRADES} from '../src/core/stellarUpgrades.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 import {appearedInRegion,ENCOUNTER_SLOTS,STARTER_IDS,REGION,BERRY_REGION} from '../src/core/wildData.js';
 
@@ -43,9 +44,10 @@ test('guarantee, exclusion and conditional transcendent appearance preserve slot
  const blocked=rollEncounterSlots(slots,{chances:{uncommon:0},guaranteed:['b'],banished:['W010102'],special:['f'],random:()=>.2});
  assert.equal(blocked.W010102,null);
 });
-test('existing SU013 level cap and configured target probabilities stay unchanged',()=>{
+test('SU013 cap and long-term target probabilities',()=>{
  assert.deepEqual(RARITY_MAX_TARGETS,{uncommon:.60,rare:.30,legendary:.15,divine:.075});
  assert.equal(initialState().uncommonChance,0);
+ assert.equal(STELLAR_UPGRADES.노말[4].maxLevel,35);
  assert.equal(ENCOUNTER_SLOTS.find(s=>s.id==='W010802').candidates.length,3);
 });
 test('planet move locks starter candidate and Pikachu independently; save retains exact roll',()=>{
@@ -58,7 +60,7 @@ test('planet move locks starter candidate and Pikachu independently; save retain
  const moved=transition(state,{type:'MOVE_PLANET',random:()=>sequence[count++]});
  assert.equal(moved.planetMoves,1);
  assert.ok(count>=3);
- assert.equal(moved.uncommonChance,.2);
+ assert.equal(moved.uncommonChance,.25);
  assert.ok(moved.uncommonStarterId===null||STARTER_IDS.includes(moved.uncommonStarterId));
  assert.equal(typeof moved.berryRareAppeared,'boolean');
  assert.equal(appearedInRegion(moved,REGION.id).filter(p=>STARTER_IDS.includes(p.id)).length,moved.uncommonStarterId?1:0);

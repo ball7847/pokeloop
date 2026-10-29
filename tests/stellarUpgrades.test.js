@@ -42,14 +42,14 @@ test('SU013 uncommon chance additive and factor 22 costs',()=>{
  assert.equal(stellarUncommonBonus(s),0.02);
  assert.equal(stellarUpgradeCost(s,'SU013'),484);
  const after=transition(s,{type:'MOVE_PLANET',random:()=>0});
- assert.equal(after.uncommonChance,0.02);
+ assert.equal(after.uncommonChance,0.07);
  assert.equal(after.uncommonStarterId,'bulbasaur');
  assert.equal(after.berryRareAppeared,true);
 });
 test('uncommon roll does not force rare encounters if random misses',()=>{
  const s={...initialState(),phase:'running',pendingStellar:1,permanentUpgrades:{SU013:1}};
  const next=transition(s,{type:'MOVE_PLANET',random:()=>0.5});
- assert.equal(next.uncommonChance,0.01);
+ assert.equal(next.uncommonChance,0.06);
  assert.equal(next.uncommonStarterId,null);
  assert.equal(next.berryRareAppeared,false);
 });
