@@ -35,12 +35,16 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
  const durationMs=Math.round(performance.now()-start);
  assert.equal(results.length,10);
  console.log('SEEDED_VIRTUAL_PLAY_REPORT '+JSON.stringify({durationMs,results:results.map(({seed,stop,moves,planets})=>({
-  seed,stop,moves:moves.length,moveSummaries:moves.map(m=>({from:m.from,to:m.to,gain:m.gain,afterStellar:m.afterStellar,bought:m.bought})),
-  planets:planets.map(p=>({planet:p.planet,reason:p.reason,fiveCleared:p.fiveCleared,
-    capped:p.capped.length,incomplete:p.incomplete,battles:p.battles,defeats:p.defeats,
-    appeared:p.appeared,pendingSE:p.pendingSE,stellar:p.stellar,
-    tropiusKills:p.kills.tropius,
-    ...(seed===7847?{timeline:p.timeline}:{}),
-  }))
+ seed,stop,moves:moves.length,
+ moveSummaries:seed===7847?moves.map(m=>({gain:+Number(m.gain).toFixed(2),bought:m.bought})):undefined,
+ planets:planets.map(p=>({
+  planet:p.planet,reason:p.reason,fiveCleared:p.fiveCleared,capped:p.capped.length,
+  incomplete:p.incomplete,battles:p.battles,defeats:p.defeats,
+  rare:p.appeared.filter(id=>!['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros','caterpie','metapod','weedle','kakuna','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit','tropius'].includes(id)),
+  pendingSE:+Number(p.pendingSE).toFixed(2),
+  tropiusKills:p.kills.tropius,
+  ...(seed===7847&&p.planet===1?{timeline:p.timeline.slice(0,120)}:{}),
+  ...(seed===7847&&p.planet===planets.length?{stats:p.stats,upgrades:p.upgrades,gained:p.gained,spent:p.spent,remaining:p.remaining}:{}),
+ }))
  }))}));
 });
