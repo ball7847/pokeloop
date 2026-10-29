@@ -63,3 +63,19 @@ test('sound uses the black transparent double-note SVG instead of a text glyph',
   assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'sound',label:'소리'})),/sound\.svg/);
  }finally{await vite.close();}
 });
+
+test('critical chance uses transparent red burst SVG instead of text symbol',async()=>{
+ const svg=readFileSync(new URL('../public/assets/stats/criticalChance.svg',import.meta.url),'utf8');
+ assert.match(svg,/viewBox="0 0 128 128"/);
+ assert.match(svg,/fill="#D00016"/);
+ assert.doesNotMatch(svg,/<rect|<image|background/i);
+ const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
+ try{
+  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
+  assert.ok(homeStatIconUrl('criticalChance').endsWith('assets/stats/criticalChance.svg'));
+  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'criticalChance'}));
+  assert.match(icon,/criticalChance\.svg/);
+  assert.doesNotMatch(icon,/extra-stat-icon/);
+  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'criticalChance',label:'치명타확률'})),/criticalChance\.svg/);
+ }finally{await vite.close();}
+});
