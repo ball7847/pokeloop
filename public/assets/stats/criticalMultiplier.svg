@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Transparent separation around the bottom-right X, preserving the original red burst. -->
+  <defs><mask id="burst-cutout" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+    <path fill="white" d="M0 0H128V128H0Z"/>
+    <path fill="none" stroke="black" stroke-width="21" stroke-linejoin="round" stroke-linecap="round" d="M83 82 117 116 M117 82 83 116"/>
+  </mask></defs>
+  <g mask="url(#burst-cutout)">
+    <path fill="#D00016" fill-rule="evenodd" d="M53 5 73 55 108 42 87 67 126 64 90 82 110 123 72 95 77 120 60 101 34 117 43 88 7 94 28 75 2 66 35 59 16 23 49 48Z M54 55 49 75 39 67 52 80 48 90 61 78 76 87 69 73 82 64 67 69Z"/>
+    <path fill="#D00016" d="M84 19 103 26 84 44Z M102 47 121 38 114 56Z M101 87 122 94 113 109Z"/>
+  </g>
+  <path fill="none" stroke="#D00016" stroke-width="13" stroke-linecap="square" stroke-linejoin="round" d="M83 82 117 116 M117 82 83 116"/>
+</svg>
