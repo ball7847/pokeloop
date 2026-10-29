@@ -10,10 +10,10 @@ import {stellarUncommonBonus} from './stellarUpgrades.js';
 export function prepareNextPlanet(state,random=Math.random){
  const preserved=movePlanet(state);
  const items=collectPendingItems(state);
- const uncommonChance=Math.min(1,UNCOMMON_BASE_CHANCE+stellarUncommonBonus(preserved));
+ const uncommonChance=Math.min(1,(preserved.planetMoves>=1?0.05:UNCOMMON_BASE_CHANCE)+stellarUncommonBonus(preserved));
  const raritySlotResults=rollEncounterSlots(ENCOUNTER_SLOTS,{
   chances:{uncommon:uncommonChance},lifetimeKills:state.dexLifetimeKills,
-  guaranteed:state.rarityGuarantees??[],banished:state.rarityBanishments??[],
+  guaranteed:preserved.planetMoves===1?[...(state.rarityGuarantees??[]),'psyduck']:(state.rarityGuarantees??[]),banished:state.rarityBanishments??[],
   special:state.raritySpecialUnlocks??[],random
  });
  return {...preserved,...items,uncommonChance,
