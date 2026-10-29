@@ -2,7 +2,8 @@ import {createEncounterSlots,baseSlotId} from './raritySystem.js';
 import {resolveStats} from './dittoStats.js';
 export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',defaultKillLimit:10,rewardDecay:1});
 export const BERRY_REGION=Object.freeze({id:'berry-forest',name:'베리숲',defaultKillLimit:10,rewardDecay:1});
-export const REGIONS=Object.freeze([REGION,BERRY_REGION]);
+export const LAKE_REGION=Object.freeze({id:'moonlit-lake',name:'달빛의 호수',defaultKillLimit:10,rewardDecay:1});
+export const REGIONS=Object.freeze([REGION,BERRY_REGION,LAKE_REGION]);
 const entries=[
 {id:'rattata',number:19,name:'꼬렛',types:['노말'],energyReward:1,hp:3,attack:2,speed:2100,rewards:{attack:1}},
 {id:'pidgey',number:16,name:'구구',types:['노말','비행'],energyReward:2,hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
@@ -54,7 +55,18 @@ const berryEncounterCodes=Object.freeze({
 });
 // Region 2 awards each configured energyReward to each of the Pokémon's types.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
-export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON]);
+const lakeEntries=[
+{id:'buizel',number:418,name:'브이젤',types:['물'],hp:550,attack:20,speed:850,multiStrike:2000,energyReward:33,rewards:{attack:3,multiStrike:33},encounterCode:'W030101'},
+{id:'magikarp',number:129,name:'잉어킹',types:['물'],hp:95,attack:12.5,speed:1290,dodge:1000,energyReward:20,rewards:{},encounterCode:'W030201'},
+{id:'gyarados',number:130,name:'갸라도스',types:['물','비행'],rarity:'uncommon',evolvesFrom:'magikarp',hp:950,attack:125,speed:1300,intimidation:500,energyReward:130,rewards:{attack:20,intimidation:16},encounterCode:'W030201-E1'},
+{id:'popplio',number:728,name:'누리공',types:['물'],rarity:'uncommon',hp:1500,specialAttack:66,specialDefense:56,sound:40,speed:3000,energyReward:100,rewards:{specialAttack:30,specialDefense:30,sound:10},encounterCode:'W030302-01'},
+{id:'sobble',number:816,name:'울머기',types:['물'],rarity:'uncommon',hp:1500,specialAttack:70,specialDefense:40,criticalChance:50,criticalMultiplier:200,speed:3000,energyReward:100,rewards:{specialAttack:40,specialDefense:20,criticalChance:1},encounterCode:'W030302-02'},
+{id:'quaxly',number:912,name:'꾸왁스',types:['물'],rarity:'uncommon',hp:1550,attack:65,defense:45,specialDefense:45,dodge:300,multiStrike:300,speed:3000,energyReward:100,rewards:{attack:40,dodge:15,multiStrike:15},encounterCode:'W030302-03'},
+{id:'cutiefly',number:742,name:'에블리',types:['벌레','페어리'],hp:400,specialAttack:25,speed:620,energyReward:30.4,rewards:{specialAttack:7,speed:-42},encounterCode:'W030401'},
+{id:'ribombee',number:743,name:'에리본',types:['벌레','페어리'],rarity:'uncommon',evolvesFrom:'cutiefly',hp:1200,specialAttack:75,speed:420,energyReward:46.4,rewards:{specialAttack:14,honey:14},encounterCode:'W030401-E1'}
+];
+export const LAKE_POKEMON=Object.freeze(lakeEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
+export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON,...LAKE_POKEMON]);
 export const ENCOUNTER_SLOTS=Object.freeze(createEncounterSlots(ALL_POKEMON));
 export const ENCOUNTER_SLOT_BY_ID=Object.freeze(Object.fromEntries(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot])));
 // Evolution children are stored separately from the 24 regular-rarity lineup.
@@ -70,7 +82,8 @@ export function evolutionChance(pokemon,state){
   return 0;
 }
 const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
-export const regionForPokemon=id=>berryIds.has(id)?BERRY_REGION.id:REGION.id;
+const lakeIds=new Set(LAKE_POKEMON.map(p=>p.id));
+export const regionForPokemon=id=>lakeIds.has(id)?LAKE_REGION.id:berryIds.has(id)?BERRY_REGION.id:REGION.id;
 const selectedInSlot=(state,p)=>state?.raritySlotResults==null?
  (!p.rarity||p.rarity==='common'?true:
    (p.id==='pikachu'?state?.berryRareAppeared===true:state?.uncommonStarterId===p.id)):
@@ -81,6 +94,7 @@ const region1Lineup=state=>[...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOM
 
 const baseLineup=(state,regionId)=>regionId===BERRY_REGION.id?
  BERRY_POKEMON.filter(p=>!p.evolvesFrom&&selectedInSlot(state,p)):
+ regionId===LAKE_REGION.id?LAKE_POKEMON.filter(p=>!p.evolvesFrom&&selectedInSlot(state,p)):
  region1Lineup(state);
 // Recursive insertion also supports later second and third evolutionary stages.
 export function appearedInRegion(state,regionId){
@@ -98,7 +112,9 @@ export function appearedInRegion(state,regionId){
 export const regionUnlockRequirement=()=>Math.ceil(WILD_POKEMON.length*.7);
 export const isRegionUnlocked=(state,regionId)=>regionId===REGION.id||
  (regionId===BERRY_REGION.id&&baseLineup(state,REGION.id)
-  .filter(p=>(state.killCounts?.[p.id]??0)>0).length>=regionUnlockRequirement(state));
+  .filter(p=>(state.killCounts?.[p.id]??0)>0).length>=regionUnlockRequirement(state))||
+ (regionId===LAKE_REGION.id&&isRegionUnlocked(state,BERRY_REGION.id)&&
+  BERRY_POKEMON.filter(p=>!p.evolvesFrom&&p.rarity!=='uncommon'&&(state.killCounts?.[p.id]??0)>0).length>=Math.ceil(BERRY_POKEMON.filter(p=>!p.evolvesFrom&&p.rarity!=='uncommon').length*.7));
 export function unlockedCountInRegion(state,regionId){
  const lineup=baseLineup(state,regionId);
  const distinct=lineup.filter(p=>(state.killCounts?.[p.id]??0)>0).length;
