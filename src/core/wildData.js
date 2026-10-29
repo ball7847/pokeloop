@@ -12,7 +12,10 @@ export function evolutionChance(pokemon,state){
   if(!pokemon)return 0;
   if(!pokemon.rarity||pokemon.rarity==='common')return 1;
   if(pokemon.rarity==='uncommon')return state.uncommonChance??UNCOMMON_BASE_CHANCE;
-  // Future rarities require an explicitly configured probability; no invented defaults.
+  // No natural rare chance has been designed yet. Allow explicit future state
+  // configuration without inventing a rate for rare evolutions.
+  if(pokemon.rarity==='rare')return Math.max(0,Math.min(1,state.rareChance??0));
+  // Other future rarities require an explicitly configured probability; no invented defaults.
   return 0;
 }
 const berryIds=new Set(BERRY_POKEMON.map(p=>p.id));
