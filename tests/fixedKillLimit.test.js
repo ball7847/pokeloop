@@ -31,7 +31,7 @@ test('only configured species have immutable kill limit; normal limit is extenda
 test('Magikarp and Feebas pay rewards only once; normal automatic chaining cannot restart them',()=>{
  for(const id of ['magikarp','feebas']){
   let s=prepared(id);
-  s={...s,automation:{...s.automation,hunger:true}};
+  s={...s,qolUnlocks:[...s.qolUnlocks,'hunger'],automation:{...s.automation,hunger:true}};
   s=startBattle(s,id);
   assert.equal(s.combat.active,true,'initial battle starts: '+id);
   s=advanceBattle(s,100,()=>0);
