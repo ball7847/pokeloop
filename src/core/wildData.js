@@ -1,6 +1,16 @@
 import {createEncounterSlots,baseSlotId} from './raritySystem.js';
 import {REGION,BERRY_REGION,LAKE_REGION,REGIONS,WILD_POKEMON,PLAINS_EVOLUTIONS,UNCOMMON_BASE_CHANCE,UNCOMMON_STARTERS,PLAINS_UNCOMMON,STARTER_IDS,BERRY_POKEMON,LAKE_POKEMON,ALL_POKEMON} from './wildCatalog.js';
 export {REGION,BERRY_REGION,LAKE_REGION,REGIONS,WILD_POKEMON,PLAINS_EVOLUTIONS,UNCOMMON_BASE_CHANCE,UNCOMMON_STARTERS,PLAINS_UNCOMMON,STARTER_IDS,BERRY_POKEMON,LAKE_POKEMON,ALL_POKEMON} from './wildCatalog.js';
+// A configured per-species limit is fixed: future general kill-limit upgrades
+// can extend only species that use the normal default.
+export function getKillLimit(pokemon, extraGeneralKills=0){
+  if(pokemon?.maxKillsPerPlanet!==undefined){
+    const fixed=pokemon.maxKillsPerPlanet;
+    if(!Number.isSafeInteger(fixed)||fixed<1)throw new Error('Invalid fixed Pokémon kill limit: '+pokemon?.id);
+    return fixed;
+  }
+  return REGION.defaultKillLimit+Math.max(0,Math.floor(Number(extraGeneralKills)||0));
+}
 export const ENCOUNTER_SLOTS=Object.freeze(createEncounterSlots(ALL_POKEMON));
 export const ENCOUNTER_SLOT_BY_ID=Object.freeze(Object.fromEntries(ENCOUNTER_SLOTS.map(slot=>[slot.id,slot])));
 // Evolution children are stored separately from the 24 regular-rarity lineup.
