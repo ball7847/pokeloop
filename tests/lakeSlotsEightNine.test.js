@@ -10,7 +10,7 @@ test('lake slots 8 and 9 have correct canonical species, single electric Tadbulb
  assert.deepEqual(battleEnergyRewards(tadbulb),{전기:27.2});
  assert.deepEqual({number:lotad.number,code:lotad.encounterCode,types:lotad.types,hp:lotad.hp,specialAttack:lotad.specialAttack,speed:lotad.speed,regeneration:lotad.regeneration,rewards:lotad.rewards},{number:270,code:'W030901',types:['물','풀'],hp:1400,specialAttack:80,speed:2200,regeneration:112,rewards:{specialAttack:16,regeneration:16}});
  assert.deepEqual(battleEnergyRewards(lotad),{물:56,풀:56});
- assert.equal(LAKE_POKEMON.filter(p=>!p.evolvesFrom&&!p.rarity).length,8);
+ assert.equal(LAKE_POKEMON.filter(p=>!p.evolvesFrom&&!p.rarity).length,9);
 });
 test('Wingull loses regeneration and gains 33 dodge with 3 dodge reward',()=>{
  const p=getWildPokemon('wingull');
@@ -22,7 +22,7 @@ test('Wingull loses regeneration and gains 33 dodge with 3 dodge reward',()=>{
 test('new base slots appear after former seventh slot in region encounter sequence',()=>{
  const state=initialState();
  const ids=appearedInRegion(state,'moonlit-lake').map(x=>x.id);
- assert.deepEqual(ids.slice(-2),['tadbulb','lotad']);
+ assert.deepEqual(ids.slice(-3,-1),['tadbulb','lotad']);
 });
 
 test('legacy saved slot outcomes still expose newly added common slots without rerolling old slots',()=>{
@@ -32,6 +32,6 @@ test('legacy saved slot outcomes still expose newly added common slots without r
   W030501:'azurill',W030601:'wingull',W030701:'feebas'
  }};
  const ids=appearedInRegion(saved,'moonlit-lake').map(p=>p.id);
- assert.deepEqual(ids.slice(-2),['tadbulb','lotad']);
+ assert.deepEqual(ids.slice(-3,-1),['tadbulb','lotad']);
  assert.equal(ids.includes('popplio'),false);
 });
