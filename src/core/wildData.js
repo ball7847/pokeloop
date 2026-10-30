@@ -24,7 +24,9 @@ export const regionForPokemon=id=>lakeIds.has(id)?LAKE_REGION.id:berryIds.has(id
 const selectedInSlot=(state,p)=>state?.raritySlotResults==null?
  (!p.rarity||p.rarity==='common'?true:
    (p.id==='pikachu'?state?.berryRareAppeared===true:state?.uncommonStarterId===p.id)):
- state.raritySlotResults[baseSlotId(p)]===p.id;
+ (state.raritySlotResults[baseSlotId(p)]===p.id ||
+   // New common slots added after a save was created must remain accessible.
+   (!Object.hasOwn(state.raritySlotResults,baseSlotId(p))&&(!p.rarity||p.rarity==='common')));
 const region1Lineup=state=>[...WILD_POKEMON,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON]
  .filter(p=>selectedInSlot(state,p))
  .sort((a,b)=>Number(a.encounterCode.slice(3,5))-Number(b.encounterCode.slice(3,5)));
