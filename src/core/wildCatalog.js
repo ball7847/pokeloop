@@ -80,7 +80,7 @@ const lakeEntries=[
 {id:'tadbulb',number:938,name:'빈나두',types:['전기'],hp:1611,attack:31,defense:41,specialAttack:59,speed:9380,counter:30,paralysis:300,energyReward:27.2,rewards:{hp:27.2,counter:2.7,paralysis:2.7},encounterCode:'W030801'},
 {id:'lotad',number:270,name:'연꽃몬',types:['물','풀'],hp:1400,specialAttack:80,speed:2200,regeneration:112,energyReward:56,rewards:{specialAttack:16,regeneration:16},encounterCode:'W030901'},
 {id:'wishiwashi',number:746,name:'약어리',types:['물'],hp:225,attack:2,defense:2,specialAttack:2,specialDefense:2.5,speed:400,energyReward:20,rewards:{},encounterCode:'W031001'},
-{id:'wishiwashi-school',number:746,spriteNumber:746,name:'약어리(군집의 모습)',types:['물'],rarity:'common',evolvesFrom:'wishiwashi',maxKillsPerPlanet:1,hp:4500,attack:40,defense:40,specialAttack:40,specialDefense:50,speed:4000,multiStrike:9000,energyReward:620,rewards:{hp:174,multiStrike:60},encounterCode:'W031001-E1'}
+{id:'wishiwashi-school',number:746,spriteNumber:10127,name:'약어리(군집의 모습)',types:['물'],rarity:'common',evolvesFrom:'wishiwashi',maxKillsPerPlanet:1,hp:4500,attack:40,defense:40,specialAttack:40,specialDefense:50,speed:4000,multiStrike:9000,energyReward:620,rewards:{hp:174,multiStrike:60},encounterCode:'W031001-E1'}
 ];
 export const LAKE_POKEMON=Object.freeze(lakeEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...PLAINS_EVOLUTIONS,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON,...LAKE_POKEMON]);
