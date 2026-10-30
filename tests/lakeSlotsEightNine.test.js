@@ -24,3 +24,14 @@ test('new base slots appear after former seventh slot in region encounter sequen
  const ids=appearedInRegion(state,'moonlit-lake').map(x=>x.id);
  assert.deepEqual(ids.slice(-2),['tadbulb','lotad']);
 });
+
+test('legacy saved slot outcomes still expose newly added common slots without rerolling old slots',()=>{
+ const state=initialState();
+ const saved={...state,raritySlotResults:{
+  W030101:'buizel',W030201:'magikarp',W030302:null,W030401:'cutiefly',
+  W030501:'azurill',W030601:'wingull',W030701:'feebas'
+ }};
+ const ids=appearedInRegion(saved,'moonlit-lake').map(p=>p.id);
+ assert.deepEqual(ids.slice(-2),['tadbulb','lotad']);
+ assert.equal(ids.includes('popplio'),false);
+});
