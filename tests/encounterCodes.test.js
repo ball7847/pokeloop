@@ -4,7 +4,7 @@ import {ALL_POKEMON,WILD_POKEMON,UNCOMMON_STARTERS,BERRY_POKEMON,appearedInRegio
 import {initialState} from '../src/core/gameState.js';
 
 test('every registered Pokémon has a unique stable regional encounter code',()=>{
- assert.equal(ALL_POKEMON.length,50);
+ assert.equal(ALL_POKEMON.length,52);
  const codes=ALL_POKEMON.map(p=>p.encounterCode);
  assert.ok(codes.every(code=>typeof code==='string'&&/^W\d{2}\d{2}\d{2}(?:-\d{2}|-E\d+)?$/.test(code)));
  assert.equal(new Set(codes).size,codes.length);
