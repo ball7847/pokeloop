@@ -74,9 +74,11 @@ const lakeEntries=[
 {id:'azurill',number:298,name:'루리리',types:['노말','페어리'],hp:1000,attack:100,speed:4000,minDamagePercent:100,maxDamagePercent:200,energyReward:50,rewards:{hp:30,attack:10,minDamagePercent:1,maxDamagePercent:2},encounterCode:'W030501'},
 {id:'marill',number:183,name:'마릴',types:['물','페어리'],rarity:'uncommon',evolvesFrom:'azurill',hp:1830,attack:100,speed:3000,minDamagePercent:150,maxDamagePercent:200,energyReward:75,rewards:{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3},encounterCode:'W030501-E1'},
 {id:'azumarill',number:184,name:'마릴리',types:['물','페어리'],rarity:'uncommon',evolvesFrom:'marill',hp:1840,attack:250,speed:2800,minDamagePercent:200,maxDamagePercent:200,energyReward:200,rewards:{hp:100,attack:50,minDamagePercent:5,maxDamagePercent:5},encounterCode:'W030501-E2'},
-{id:'wingull',number:278,name:'갈모매',types:['물','비행'],hp:1333,specialAttack:70,speed:1533,accuracy:333,regeneration:70,energyReward:55.6,rewards:{specialAttack:13,accuracy:13},encounterCode:'W030601'},
+{id:'wingull',number:278,name:'갈모매',types:['물','비행'],hp:1333,specialAttack:70,speed:1533,accuracy:333,dodge:33,energyReward:55.6,rewards:{specialAttack:13,accuracy:13,dodge:3},encounterCode:'W030601'},
 {id:'feebas',number:349,name:'빈티나',types:['물'],hp:95,specialAttack:10,defense:1250,specialDefense:79,regeneration:95,speed:3500,energyReward:20,rewards:{},encounterCode:'W030701'},
-{id:'milotic',number:350,name:'밀로틱',types:['물'],rarity:'rare',evolvesFrom:'feebas',hp:3950,specialAttack:100,defense:118.5,specialDefense:125,regeneration:35,speed:1750,energyReward:350,rewards:{hp:100,specialDefense:40},encounterCode:'W030701-E1'}
+{id:'milotic',number:350,name:'밀로틱',types:['물'],rarity:'rare',evolvesFrom:'feebas',hp:3950,specialAttack:100,defense:118.5,specialDefense:125,regeneration:35,speed:1750,energyReward:350,rewards:{hp:100,specialDefense:40},encounterCode:'W030701-E1'},
+{id:'tadbulb',number:938,name:'빈나두',types:['전기'],hp:1611,attack:31,defense:41,specialAttack:59,speed:9380,counter:30,paralysis:300,energyReward:27.2,rewards:{hp:27.2,counter:2.7,paralysis:2.7},encounterCode:'W030801'},
+{id:'lotad',number:270,name:'연꽃몬',types:['물','풀'],hp:1400,specialAttack:80,speed:2200,regeneration:112,energyReward:56,rewards:{specialAttack:16,regeneration:16},encounterCode:'W030901'}
 ];
 export const LAKE_POKEMON=Object.freeze(lakeEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...PLAINS_EVOLUTIONS,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON,...LAKE_POKEMON]);
