@@ -145,3 +145,7 @@ PokeLoop 개발을 이어가자. GitHub ball7847/pokeloop의 development/DEVELOP
 
 ### 2026-10-30: 신규 일반 강화 꿀 증폭
 - 사용자 승인: `honeyMultiplier` 꿀 증폭, 벌레 에너지 최초 40, 다음 가격 ×1.5, 레벨당 기존 꿀 능력치 +5% (합연산). 기본 꿀 보상과 에너지 공식은 유지하고 실효 꿀만 배율 적용. 미시체계 강화/자동 구매에 포함, 행성이동 초기화, 저장 호환성 유지.
+
+### 2026-10-30: 반격 추가
+- 원작 `Counter`의 '피격 시 즉시 반격 확률, 받는 피해 차단 없음, 공격 대기시간 초기화 없음' 규칙을 기준으로 반격(%) 능력치 구현. 원작 번역: `rejected-draft-reference/steam/source/dist/assets/locale-ko-5kB6xPwy.js`의 `STAT_COUNTER_DESC`. 현재 PokeLoop는 실제 HP 피해를 주는 공격을 맞고 생존했을 때 1회 즉시 반격 판정, 반격에 대한 반격 연쇄는 제한함.
+- 전투 피해 공식·기존 능력치 보상·포켓몬 수치 유지. 추후 새 포켓몬의 반격 수치는 따로 확정.
