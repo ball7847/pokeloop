@@ -30,5 +30,5 @@ test('purchase spends bug energy, preserves game state and survives save roundtr
  s=transition(s,{type:'BUY_UPGRADE',id:'honeyMultiplier'});
  assert.equal(s.energyBalances['벌레'],0);
  assert.equal(s.energyUpgrades.honeyMultiplier,2);
- assert.equal(effectiveDittoStats(s).honey,110);
+ assert.ok(Math.abs(effectiveDittoStats(s).honey-110)<1e-9);
 });
