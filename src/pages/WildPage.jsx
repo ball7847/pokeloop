@@ -3,7 +3,7 @@ import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
 import React,{useMemo} from 'react';
 import {useGameStore} from '../store/useGameStore.js';
-import {REGION,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
+import {REGION,getKillLimit,REGIONS,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,spriteUrl,scaledReward,battleEnergyRewards} from '../core/wildData.js';
 import {formatBasicStat,formatStatValue,isDefaultStat,resolveStats,BASIC_STAT_KEYS,SPECIAL_STAT_KEYS,statLabel} from '../core/dittoStats.js';
 
 // Row-major positions in a 2-column, 4-row grid: six core stats and damage range.
@@ -66,7 +66,7 @@ function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
          <span className="wild-reward" key={'energy-'+type} title={type+' 에너지 +'+formatAmount(amount)} aria-label={type+' 에너지 +'+formatAmount(amount)}><EnergyTypeIcon type={type}/>+{formatAmount(amount)}</span>)}
     </div>
     <div className="wild-card-footer">
-      <span className="wild-kills">{count} / {REGION.defaultKillLimit}회</span>
+      <span className="wild-kills">{count} / {getKillLimit(pokemon)}회</span>
       <span className="wild-state">{fighting?'전투 중':capped?'완료':!unlocked?'잠김':'전투 시작'}</span>
     </div>
   </button>;
@@ -99,7 +99,7 @@ export function WildPage(){
   const regionFilter=storedFilter??activeRegionId;
   const allRegions=regionFilter==='all';
   const allPokemon=visiblePokemonForRegion(game,regionFilter);
-  const pokemon=hideCompleted?allPokemon.filter(p=>(killCounts[p.id]??0)<REGION.defaultKillLimit):allPokemon;
+  const pokemon=hideCompleted?allPokemon.filter(p=>(killCounts[p.id]??0)<getKillLimit(p)):allPokemon;
   const selectPokemon=p=>{
     if(allRegions){
       const home=REGIONS.find(r=>appearedInRegion(game,r.id).some(x=>x.id===p.id));
@@ -117,13 +117,13 @@ export function WildPage(){
         disabled={!isRegionUnlocked(game,r.id)||combatActive} onClick={()=>{setRegionFilter(r.id);dispatch({type:'SELECT_REGION',regionId:r.id});}}>
         {r.name}</button>)}
     </div>
-    <div className="wild-region-summary"><span className="wild-progress">{total} / {allPokemon.length*REGION.defaultKillLimit}회 처치</span></div>
+    <div className="wild-region-summary"><span className="wild-progress">{total} / {allPokemon.reduce((sum,p)=>sum+getKillLimit(p),0)}회 처치</span></div>
     {recoveryMs>0&&<p className="wild-recovery" role="status">메타몽 회복 중 · {(recoveryMs/1000).toFixed(1)}초</p>}
     <div className="wild-grid">
       {pokemon.map(p=>{
         const count=killCounts[p.id]||0;
         const unlocked=isPokemonUnlockedInState(game,p.id);
-        const capped=count>=REGION.defaultKillLimit;
+        const capped=count>=getKillLimit(p);
         const fighting=combatActive&&fightingId===p.id;
         const disabled=!unlocked||capped||combatActive||recoveryMs>0||phase==='paused'||phase==='finished';
         return <WildCard key={p.id} pokemon={p} count={count} unlocked={unlocked} capped={capped}
