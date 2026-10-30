@@ -17,6 +17,7 @@ export const DEFAULT_STATS = Object.freeze({
   intimidation:0,
   sound:0,
   criticalChance:0,
+  counter:0,
   criticalMultiplier:150,
   honey:0,
   accuracy:100,
@@ -51,6 +52,7 @@ export const BASIC_STAT_FIELDS = Object.freeze([
   { key:'intimidation',label:'위협',description:'전투 시작 시 상대의 공격을 위협 × 0.1%만큼 감소시킵니다.' },
   { key:'sound',label:'소리',description:'특수공격 시 상대 특수방어를 소리 수치만큼 관통합니다.' },
   { key:'criticalChance',label:'치명타확률',description:'물리·특수 공격 타격에 치명타가 발생할 확률(%)입니다.' },
+  { key:'counter',label:'반격',description:'피격 시 반격 확률(%)에 따라 즉시 반격합니다. 받은 피해를 막거나 공격 대기시간을 초기화하지 않습니다.' },
   { key:'criticalMultiplier',label:'치명타배율',description:'치명타 시 피해량 배율(%)이며 기본값은 150%입니다.' },
   { key:'honey',label:'꿀',description:'획득 능력치 및 타입 에너지 보상을 꿀 × 0.1%만큼 증가시킵니다.' },
   { key:'accuracy',label:'명중',description:'명중 확률(%)입니다. 100% 초과분은 상대의 회피를 감소시킵니다.' },
@@ -86,7 +88,7 @@ export function formatStatValue(key,value) {
   const formatted=formatAmount(value);
   if(formatted==='—')return formatted;
   const suffix=key==='speed'?'ms':
-    ['accuracy','dodge','criticalChance','criticalMultiplier','minDamagePercent','maxDamagePercent'].includes(key)?'%':'';
+    ['accuracy','dodge','criticalChance','counter','criticalMultiplier','minDamagePercent','maxDamagePercent'].includes(key)?'%':'';
   return formatted+suffix;
 }
 export const formatBasicStat=formatStatValue;

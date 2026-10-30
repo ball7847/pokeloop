@@ -87,7 +87,7 @@ export function hitChance(attacker,defender){
   return Math.max(0,Math.min(1,(Math.min(accuracy,100)-scaledDodge)/100));
 }
 const freshStatus=()=>({paralysis:0,poison:0});
-export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math.random,visualEvents=[]){
+export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math.random,visualEvents=[],allowCounter=true){
   const player=attacker==='player';
   const actingStatus=player?c.playerStatus:c.enemyStatus;
   const targetStatus=player?c.enemyStatus:c.playerStatus;
@@ -105,6 +105,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   const target=player?'enemy':'player';
   const strike=()=>{
   const hit=random()<hitChance(attackerStats,defenderStats);
+  let dealtDamage=false;
   if(hit){
     // Physical and special damage are separate channels within the same action.
     let damage=0;
@@ -127,10 +128,17 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       }
       const before=defenderHp();
       setDefenderHp(subtractAmount(before,damage));
+      dealtDamage=true;
       appendDamageEvents(visualEvents,target,channels,before,damage);
     }else visualEvents.push({target,kind:'blocked',value:0});
     targetStatus.paralysis=addAmount(targetStatus.paralysis??0,attackerStats.paralysis??0);
     targetStatus.poison=addAmount(targetStatus.poison,attackerStats.poison??0);
+    // A counter is a free immediate attack: it neither mitigates damage nor
+    // moves either fighter's normal attack timer. Suppress reaction chains.
+    if(allowCounter&&dealtDamage&&compareAmount(defenderHp(),0)>0&&
+       (defenderStats.counter??0)>0&&random()<Math.min(1,Number(defenderStats.counter)/100)){
+      resolveAttack(c,player?'enemy':'player',defenderStats,attackerStats,random,visualEvents,false);
+    }
   }else visualEvents.push({target,kind:'miss',value:'MISS'});
   return hit;
   };
@@ -138,7 +146,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   // An additional hit is immediate; do not recurse or pay poison per hit.
   // A value of 1000 guarantees one bonus hit; fractional remainder is rolled once.
   const multi=decimal(attackerStats.multiStrike??0);
-  if(multi.gt(0)&&compareAmount(defenderHp(),0)>0){
+  if(multi.gt(0)&&compareAmount(defenderHp(),0)>0&&compareAmount(player?c.currentHp:c.enemy.hp.current,0)>0){
     const guaranteed=Math.min(1000,Math.floor(multi.div(1000).toNumber()));
     for(let i=0;i<guaranteed&&compareAmount(defenderHp(),0)>0;i++)strike();
     if(compareAmount(defenderHp(),0)>0&&random()<multi.mod(1000).div(1000).toNumber())strike();
