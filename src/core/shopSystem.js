@@ -20,7 +20,8 @@ export const UPGRADES=Object.freeze([
   {id:'antidote',name:'해독 증가',type:'독',base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
   {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'},
   {id:'regeneration',name:'회복 증가',types:['풀','페어리'],base:10,growth:1.5,bonus:1,unit:'flat',stat:'회복'},
-  {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'}
+  {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'},
+  {id:'honeyMultiplier',name:'꿀 증폭',type:'벌레',base:40,growth:1.5,bonus:0.05,unit:'percent',stat:'꿀'}
 ]);
 // Immutable catalog for constant-time ID lookup (same costs and ordering).
 export const UPGRADE_BY_ID=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,item])));
@@ -61,6 +62,7 @@ export function effectiveDittoStats(state){
     attack:storedAmount(decimal(stats.attack).add(attackFlat).add(suAttack).mul(attackMultiplier).mul(decimal(1).add(decimal(state.permanentUpgrades?.SU015??0).mul(0.08)))),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
     poison:storedAmount(decimal(stats.poison??0).mul(decimal(1).add(decimal(levels.poisonMultiplier??0).mul(0.03)))),
+    honey:storedAmount(decimal(stats.honey??0).mul(decimal(1).add(decimal(levels.honeyMultiplier??0).mul('0.05')))),
     speed:Math.max(100,(stats.speed-(levels.speedFlat??0)*10)/speed)};
 }
 export function buyUpgrade(state,id){
