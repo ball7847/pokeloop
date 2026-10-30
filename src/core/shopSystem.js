@@ -62,7 +62,7 @@ export function effectiveDittoStats(state){
     attack:storedAmount(decimal(stats.attack).add(attackFlat).add(suAttack).mul(attackMultiplier).mul(decimal(1).add(decimal(state.permanentUpgrades?.SU015??0).mul(0.08)))),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
     poison:storedAmount(decimal(stats.poison??0).mul(decimal(1).add(decimal(levels.poisonMultiplier??0).mul(0.03)))),
-    honey:storedAmount(decimal(stats.honey??0).mul(decimal(1).add(decimal(levels.honeyMultiplier??0).mul(0.05)))),
+    honey:storedAmount(decimal(stats.honey??0).mul(decimal(1).add(decimal(levels.honeyMultiplier??0).mul('0.05')))),
     speed:Math.max(100,(stats.speed-(levels.speedFlat??0)*10)/speed)};
 }
 export function buyUpgrade(state,id){
