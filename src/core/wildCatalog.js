@@ -64,7 +64,7 @@ const berryEncounterCodes=Object.freeze({
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
 const lakeEntries=[
 {id:'buizel',number:418,name:'브이젤',types:['물'],hp:550,attack:20,speed:850,multiStrike:2000,energyReward:33,rewards:{attack:3,multiStrike:33},encounterCode:'W030101'},
-{id:'magikarp',number:129,name:'잉어킹',types:['물'],hp:95,attack:12.5,speed:1290,dodge:100,energyReward:20,rewards:{},encounterCode:'W030201'},
+{id:'magikarp',maxKillsPerPlanet:1,number:129,name:'잉어킹',types:['물'],hp:95,attack:12.5,speed:1290,dodge:100,energyReward:20,rewards:{},encounterCode:'W030201'},
 {id:'gyarados',number:130,name:'갸라도스',types:['물','비행'],rarity:'common',evolvesFrom:'magikarp',hp:950,attack:125,speed:1300,intimidation:500,energyReward:130,rewards:{attack:20,intimidation:16},encounterCode:'W030201-E1'},
 {id:'popplio',number:728,name:'누리공',types:['물'],rarity:'uncommon',hp:1500,specialAttack:66,specialDefense:56,sound:40,speed:3000,energyReward:100,rewards:{specialAttack:30,specialDefense:30,sound:10},encounterCode:'W030302-01'},
 {id:'sobble',number:816,name:'울머기',types:['물'],rarity:'uncommon',hp:1500,specialAttack:70,specialDefense:40,criticalChance:50,criticalMultiplier:200,speed:3000,energyReward:100,rewards:{specialAttack:40,specialDefense:20,criticalChance:1},encounterCode:'W030302-02'},
@@ -75,7 +75,7 @@ const lakeEntries=[
 {id:'marill',number:183,name:'마릴',types:['물','페어리'],rarity:'uncommon',evolvesFrom:'azurill',hp:1830,attack:100,speed:3000,minDamagePercent:150,maxDamagePercent:200,energyReward:75,rewards:{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3},encounterCode:'W030501-E1'},
 {id:'azumarill',number:184,name:'마릴리',types:['물','페어리'],rarity:'uncommon',evolvesFrom:'marill',hp:1840,attack:250,speed:2800,minDamagePercent:200,maxDamagePercent:200,energyReward:200,rewards:{hp:100,attack:50,minDamagePercent:5,maxDamagePercent:5},encounterCode:'W030501-E2'},
 {id:'wingull',number:278,name:'갈모매',types:['물','비행'],hp:1333,specialAttack:70,speed:1533,accuracy:333,dodge:33,energyReward:55.6,rewards:{specialAttack:13,accuracy:13,dodge:3},encounterCode:'W030601'},
-{id:'feebas',number:349,name:'빈티나',types:['물'],hp:95,specialAttack:10,defense:1250,specialDefense:79,regeneration:95,speed:3500,energyReward:20,rewards:{},encounterCode:'W030701'},
+{id:'feebas',maxKillsPerPlanet:1,number:349,name:'빈티나',types:['물'],hp:95,specialAttack:10,defense:1250,specialDefense:79,regeneration:95,speed:3500,energyReward:20,rewards:{},encounterCode:'W030701'},
 {id:'milotic',number:350,name:'밀로틱',types:['물'],rarity:'rare',evolvesFrom:'feebas',hp:3950,specialAttack:100,defense:118.5,specialDefense:125,regeneration:35,speed:1750,energyReward:350,rewards:{hp:100,specialDefense:40},encounterCode:'W030701-E1'},
 {id:'tadbulb',number:938,name:'빈나두',types:['전기'],hp:1611,attack:31,defense:41,specialAttack:59,speed:9380,counter:30,paralysis:300,energyReward:27.2,rewards:{hp:27.2,counter:2.7,paralysis:2.7},encounterCode:'W030801'},
 {id:'lotad',number:270,name:'연꽃몬',types:['물','풀'],hp:1400,specialAttack:80,speed:2200,regeneration:112,energyReward:56,rewards:{specialAttack:16,regeneration:16},encounterCode:'W030901'}

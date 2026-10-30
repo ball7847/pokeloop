@@ -1,4 +1,4 @@
-import {REGION,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,evolutionFor,evolutionChance} from './wildData.js';
+import {REGION,getKillLimit,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,evolutionFor,evolutionChance} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
 import {recordItemProgress} from './itemSystem.js';
@@ -15,7 +15,7 @@ export const emptyCombat = hp=>({
 export function startBattle(state,id,carryHp=null,carryStatus=null) {
   const p=getWildPokemon(id);
   if(!p || state.combat.active || (state.recoveryMs??0)>0 || state.phase==='paused'||state.phase==='finished' ||
-    (state.killCounts[id]||0)>=REGION.defaultKillLimit || !isPokemonUnlockedInState(state,id))return state;
+    (state.killCounts[id]||0)>=getKillLimit(p) || !isPokemonUnlockedInState(state,id))return state;
   const effective=effectiveDittoStats(state);
   const hp=effective.hp;
   const currentHp=carryHp===null?hp:carryHp;
@@ -43,7 +43,7 @@ function finish(state,c,type,random=Math.random) {
   const p=getWildPokemon(c.pokemonId);
   if(type==='victory') {
     const count=state.killCounts[p.id]||0;
-    if(count>=REGION.defaultKillLimit)return {...state,combat:{...c,active:false,enemy:null}};
+    if(count>=getKillLimit(p))return {...state,combat:{...c,active:false,enemy:null}};
     const stats={...state.dittoStats};
     const honeyMultiplier=1+(effectiveDittoStats(state).honey??0)*.001;
     for(const [key,base] of Object.entries(p.rewards)){
@@ -64,7 +64,7 @@ function finish(state,c,type,random=Math.random) {
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
       combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type:'victory',pokemonId:p.id,name:p.name,
         count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,honeyMultiplier===1?scaledReward(k,v,count):k==='speed'?-Number(multiplyAmount(Math.abs(scaledReward(k,v,count)),honeyMultiplier)):multiplyAmount(scaledReward(k,v,count),honeyMultiplier)])),energyRewards}}};
-    if(updated.automation?.hunger&&count+1<REGION.defaultKillLimit&&compareAmount(c.currentHp,0)>0){
+    if(updated.automation?.hunger&&count+1<getKillLimit(p)&&compareAmount(c.currentHp,0)>0){
       // Reward applies before next encounter. Current HP carries over without healing.
       // A follow-up attack starts a fresh enemy and cooldown, not a new run.
       const continued=startBattle(updated,p.id,c.currentHp,c.playerStatus);
