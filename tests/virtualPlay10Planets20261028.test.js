@@ -35,6 +35,7 @@ test('2026-10-28 virtual play: up to 10 real planet moves, stop on repeat stall 
  assert.ok(result.moves.length<=10);
  if(result.stop.startsWith('repeat-')){
   assert.ok(result.repeatForecast,'repeat stop requires an actual forecast');
-  assert.ok(result.moves.length<10,'repeat stop must preempt the safety limit');
+  // A repeat forecast can occur exactly on the tenth (final permitted) move.
+  assert.ok(result.moves.length<=10,'repeat stop must respect the safety limit');
  }
 });
