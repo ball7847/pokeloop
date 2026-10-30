@@ -1,7 +1,7 @@
 import {estimateExpectedBattle} from './expectedCombat.js';
 import {settleExpectedBattle} from './fastBattleSettlement.js';
 import {initialState,transition} from '../../src/core/gameState.js';
-import {REGIONS,REGION,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon} from '../../src/core/wildData.js';
+import {REGIONS,REGION,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon,getWildPokemon,getKillLimit} from '../../src/core/wildData.js';
 import {UPGRADES,AUTOMATIONS,effectiveDittoStats} from '../../src/core/shopSystem.js';
 import {STELLAR_UPGRADE_BY_ID,stellarUpgradeCost,stellarUpgradeMaxed} from '../../src/core/stellarUpgrades.js';
 import {TYPES} from '../../src/core/energySystem.js';
@@ -11,6 +11,8 @@ export const DEFAULT_SU_ORDER=Object.freeze(['SU012','SU013','SU011']);
 const balance=()=>Object.fromEntries(TYPES.map(type=>[type,0]));
 const MAX_SAME_CONDITION_FAILURES=3;
 const MAX_REPEAT_WAIT_PLANETS=2;
+const capForId=id=>getKillLimit(getWildPokemon(id));
+const phaseGoal=(id,goal)=>Math.min(goal,capForId(id));
 // Compare earned progress and combat outcomes, not the ever-growing lifetime SE.
 export function planetPattern(report){
   return JSON.stringify({
@@ -49,7 +51,7 @@ export function availableTargets(state){
 export function decidePlanetExit(state,attemptsExhausted=false){
   const ids=availableTargets(state);
   if(ids.length===0)return {status:'STALLED',reason:'no-accessible-targets'};
-  if(ids.every(id=>(state.killCounts[id]??0)>=REGION.defaultKillLimit))
+  if(ids.every(id=>(state.killCounts[id]??0)>=capForId(id)))
     return {status:'COMPLETE',reason:'all-appeared-targets-capped'};
   return attemptsExhausted?{status:'STALLED',reason:'retry-budget-and-growth-exhausted'}:
     {status:'CONTINUE',reason:'remaining-kills'};
@@ -165,7 +167,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     battles++;attempts[id]=(attempts[id]??0)+1;
     let wins=0,steps=0,previous=startingKills,uncertain=false;
     if(mode==='fast'){
-      while(state.combat.active&&(state.killCounts[id]??0)<target&&steps++<REGION.defaultKillLimit){
+      while(state.combat.active&&(state.killCounts[id]??0)<target&&steps++<capForId(id)){
         if((state.killCounts[id]??0)>=target-1)toggleHunger(false);
         const estimate=estimateExpectedBattle(state,id);
         note('expected-combat',{id,seconds:estimate.seconds,outcome:estimate.result,
@@ -228,7 +230,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
       // If the real event was not exposed, never backfill invented rewards.
       economy(500);
       ticks++;
-      if(state.combat.active&&wins>REGION.defaultKillLimit)throw Error('invalid streak');
+      if(state.combat.active&&wins>capForId(id))throw Error('invalid streak');
     }
     }
     if(state.combat.active){safetyStop='combat-tick-budget';return {result:'limit',wins};}
@@ -247,16 +249,17 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
   for(let pass=0;pass<200&&!safetyStop;pass++){
     shop();
     const ids=availableTargets(state);
-    const allFive=ids.length>0&&ids.every(id=>(state.killCounts[id]??0)>=5);
+    const allFive=ids.length>0&&ids.every(id=>(state.killCounts[id]??0)>=phaseGoal(id,5));
     if(allFive&&!firstPassDone){
       firstPassDone=true;note('five-phase-completed');
     }
-    const target=allFive?10:goal;
+    const phaseTarget=allFive?10:goal;
     if(allFive)goal=10;
     let progressed=false;
     const beginning=identity(state);
     for(const id of ids){
       if(safetyStop)break;
+      const target=phaseGoal(id,phaseTarget);
       if((state.killCounts[id]??0)>=target)continue;
       const before=state.killCounts[id]??0;
       let failures=0;
@@ -280,9 +283,9 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
             let gainedKills=0;
             for(const previousId of earlier){
               let failed=0;
-              while((state.killCounts[previousId]??0)<10&&failed<MAX_SAME_CONDITION_FAILURES&&!safetyStop){
+              while((state.killCounts[previousId]??0)<capForId(previousId)&&failed<MAX_SAME_CONDITION_FAILURES&&!safetyStop){
                 const prior=state.killCounts[previousId]??0;
-                const farm= battle(previousId,10);
+                const farm=battle(previousId,capForId(previousId));
                 if(farm.result==='limit')break;
                 if((state.killCounts[previousId]??0)>prior){
                   gainedKills+=state.killCounts[previousId]-prior;
@@ -318,10 +321,10 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
   recover();
   shop();
   const exit=decidePlanetExit(state,true);
-  const finalFiveCleared=availableTargets(state).length>0&&availableTargets(state).every(id=>(state.killCounts[id]??0)>=5);
+  const finalFiveCleared=availableTargets(state).length>0&&availableTargets(state).every(id=>(state.killCounts[id]??0)>=phaseGoal(id,5));
   if(finalFiveCleared&&!firstPassDone){firstPassDone=true;note('five-phase-completed-after-farming');}
-  const capped=availableTargets(state).filter(id=>(state.killCounts[id]??0)>=10);
-  const incomplete=availableTargets(state).filter(id=>(state.killCounts[id]??0)<10);
+  const capped=availableTargets(state).filter(id=>(state.killCounts[id]??0)>=capForId(id));
+  const incomplete=availableTargets(state).filter(id=>(state.killCounts[id]??0)<capForId(id));
   // A model-indeterminate encounter is not evidence of true gameplay impossibility.
   const approximateUnresolved=uncertainties.some(x=>!x.estimatedOutcome);
   const report={planet:startMoves+1,reason:safetyStop??(exit.status==='STALLED'&&approximateUnresolved?'UNCERTAIN':exit.status),exitReason:exit.reason,
