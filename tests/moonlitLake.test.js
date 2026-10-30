@@ -9,14 +9,14 @@ import {resolveStats} from '../src/core/dittoStats.js';
 const prepared=()=>{const s=initialState();return {...s,phase:'running',activeRegionId:LAKE_REGION.id,
  killCounts:{...s.killCounts,...Object.fromEntries(['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela'].map(id=>[id,1]))}}};
 test('moonlit lake roster and 3-to-1 uncommon slot are registered',()=>{
- assert.equal(LAKE_POKEMON.length,14);
+ assert.equal(LAKE_POKEMON.length,16);
  const slot=ENCOUNTER_SLOTS.find(s=>s.id==='W030302');
  assert.deepEqual(slot.candidates,['popplio','sobble','quaxly']);
  assert.equal(ENCOUNTER_SLOTS.find(s=>s.id==='W030201').candidates.length,1);
  const s=prepared();assert.ok(isRegionUnlocked(s,LAKE_REGION.id));
- assert.deepEqual(appearedInRegion(s,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','cutiefly','azurill','wingull','feebas']);
+ assert.deepEqual(appearedInRegion(s,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','cutiefly','azurill','wingull','feebas','tadbulb','lotad']);
  const rare={...s,raritySlotResults:{W030302:'sobble',W030101:'buizel',W030201:'magikarp',W030401:'cutiefly',W030501:'azurill',W030601:'wingull',W030701:'feebas'}};
- assert.deepEqual(appearedInRegion(rare,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','sobble','cutiefly','azurill','wingull','feebas']);
+ assert.deepEqual(appearedInRegion(rare,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','sobble','cutiefly','azurill','wingull','feebas','tadbulb','lotad']);
 });
 test('enemy intimidation halves player physical attack at battle start',()=>{
  const s=prepared();const unlocked={...s,evolutionResults:{gyarados:true},killCounts:{...s.killCounts,buizel:1,magikarp:1}};
@@ -52,7 +52,7 @@ test('Gyarados is common and guaranteed after Magikarp first defeat, regardless 
  const appeared={...state,evolutionResults:{...state.evolutionResults,gyarados:true},
   killCounts:{...state.killCounts,buizel:1,magikarp:1}};
  assert.deepEqual(appearedInRegion(appeared,LAKE_REGION.id).map(p=>p.id),
-  ['buizel','magikarp','gyarados','cutiefly','azurill','wingull','feebas']);
+  ['buizel','magikarp','gyarados','cutiefly','azurill','wingull','feebas','tadbulb','lotad']);
  assert.deepEqual(gyarados.rewards,{attack:20,intimidation:16});
  assert.equal(gyarados.energyReward,130);
 });
@@ -63,15 +63,16 @@ test('new Lake base slots, exact stats and type energy rewards',()=>{
  assert.deepEqual(azurill.rewards,{hp:30,attack:10,minDamagePercent:1,maxDamagePercent:2});
  assert.deepEqual(battleEnergyRewards(azurill,0),{노말:50,페어리:50});
  assert.deepEqual([wingull.hp,wingull.specialAttack,wingull.speed,wingull.accuracy,wingull.regeneration],
-   [1333,70,1533,333,70]);
- assert.deepEqual(wingull.rewards,{specialAttack:13,accuracy:13});
+   [1333,70,1533,333,0]);
+ assert.equal(wingull.dodge,33);
+ assert.deepEqual(wingull.rewards,{specialAttack:13,accuracy:13,dodge:3});
  assert.deepEqual(battleEnergyRewards(wingull,0),{물:55.6,비행:55.6});
  assert.deepEqual([feebas.hp,feebas.specialAttack,feebas.defense,feebas.specialDefense,feebas.regeneration,feebas.speed],
    [95,10,1250,79,95,3500]);
  assert.deepEqual(feebas.rewards,{});
  assert.deepEqual(battleEnergyRewards(feebas,0),{물:20});
  assert.deepEqual(ENCOUNTER_SLOTS.filter(slot=>slot.id.startsWith('W030')).map(slot=>slot.id),
-   ['W030101','W030201','W030302','W030401','W030501','W030601','W030701']);
+   ['W030101','W030201','W030302','W030401','W030501','W030601','W030701','W030801','W030901']);
 });
 test('Azurill evolves through two independently rolled uncommon stages on first victories',()=>{
  const marill=getWildPokemon('marill'),azumarill=getWildPokemon('azumarill');
@@ -89,7 +90,7 @@ test('Azurill evolves through two independently rolled uncommon stages on first 
  const state=prepared(), kills={...state.killCounts,buizel:1,magikarp:1,cutiefly:1,azurill:1,marill:1};
  const linked={...state,killCounts:kills,evolutionResults:{marill:true,azumarill:true}};
  assert.deepEqual(appearedInRegion(linked,LAKE_REGION.id).map(p=>p.id),
-   ['buizel','magikarp','cutiefly','azurill','marill','azumarill','wingull','feebas']);
+   ['buizel','magikarp','cutiefly','azurill','marill','azumarill','wingull','feebas','tadbulb','lotad']);
  assert.equal(isPokemonUnlockedInState(linked,'azumarill'),true);
  const blocked={...linked,evolutionResults:{...linked.evolutionResults,marill:false}};
  assert.equal(isPokemonUnlockedInState(blocked,'azumarill'),false);
