@@ -16,7 +16,7 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
     ['defenseMultiplier',undefined,10,1.5,.04],['specialDefenseMultiplier',undefined,10,1.5,.04],
     ['attackMultiplier',undefined,10,1.5,.04],['speedFlat','전기',10,100,10],['speed',undefined,10,100,.01],
     ['antidote','독',10,1.5,1],['poisonMultiplier','독',10,1.5,.03],
-    ['regeneration',undefined,10,1.5,1],['regenerationMultiplier','풀',10,1.5,.03]
+    ['regeneration',undefined,10,1.5,1],['regenerationMultiplier','풀',10,1.5,.03],['honeyMultiplier','벌레',40,1.5,.05]
   ]);
   assert.equal(upgradeCost('hp',1),1.5);
   assert.equal(upgradeCost('attack',2),2.25);
