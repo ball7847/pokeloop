@@ -22,9 +22,9 @@ export const UPGRADES=Object.freeze([
   {id:'regeneration',name:'회복 증가',types:['풀','페어리'],base:10,growth:1.5,bonus:1,unit:'flat',stat:'회복'},
   {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'},
   {id:'honeyMultiplier',name:'꿀 증폭',type:'벌레',base:40,growth:1.5,bonus:0.05,unit:'percent',stat:'꿀'},
-  {id:'iceSlow',name:'냉기 압박',type:'얼음',base:80,growth:1.7,bonus:0.01,unit:'percent',stat:'적 공격 주기'},
-  {id:'ghostDodge',name:'그림자 회피',type:'고스트',base:100,growth:1.7,bonus:1,unit:'percentPoint',stat:'회피'},
-  {id:'dragonPower',name:'용의 힘',type:'드래곤',base:400,growth:1.8,bonus:0.02,unit:'percent',stat:'공격·특수공격'}
+  {id:'iceSlow',name:'냉기 압박',type:'얼음',unlockLayer:8,base:80,growth:1.7,bonus:0.01,unit:'percent',stat:'적 공격 주기'},
+  {id:'ghostDodge',name:'그림자 회피',type:'고스트',unlockLayer:8,base:100,growth:1.7,bonus:1,unit:'percentPoint',stat:'회피'},
+  {id:'dragonPower',name:'용의 힘',type:'드래곤',unlockLayer:9,base:400,growth:1.8,bonus:0.02,unit:'percent',stat:'공격·특수공격'}
 ]);
 // Immutable catalog for constant-time ID lookup (same costs and ordering).
 export const UPGRADE_BY_ID=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,item])));
@@ -77,7 +77,7 @@ export function effectiveDittoStats(state){
 }
 export function buyUpgrade(state,id){
   const item=UPGRADE_BY_ID[id];
-  if(!item)return state;
+  if(!item||(item.unlockLayer&&state.unlockedLayer<item.unlockLayer))return state;
   const current=state.energyUpgrades?.[id]??0,costs=upgradeCosts(id,current);
   if(costs===null||Object.entries(costs).some(([type,cost])=>compareAmount(state.energyBalances[type]??0,cost)<0))return state;
   const spent=purchaseWithEnergy(state,costs);
