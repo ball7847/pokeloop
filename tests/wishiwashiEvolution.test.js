@@ -19,7 +19,7 @@ test('Wishiwashi is common slot 10 and School Form is its guaranteed common evol
  assert.equal(getKillLimit(solo),10);
  assert.equal(getKillLimit(school),1);
  assert.equal(getKillLimit(school,200),1);
- assert.equal(LAKE_POKEMON.filter(p=>!p.evolvesFrom&&!p.rarity).length,9);
+ assert.equal(LAKE_POKEMON.filter(p=>!p.evolvesFrom&&!p.rarity).length,10);
 });
 test('School Form appears after first solo victory without rarity roll, then can only be killed once',()=>{
  const base=initialState();
