@@ -21,7 +21,10 @@ export const UPGRADES=Object.freeze([
   {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'},
   {id:'regeneration',name:'회복 증가',types:['풀','페어리'],base:10,growth:1.5,bonus:1,unit:'flat',stat:'회복'},
   {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'},
-  {id:'honeyMultiplier',name:'꿀 증폭',type:'벌레',base:40,growth:1.5,bonus:0.05,unit:'percent',stat:'꿀'}
+  {id:'honeyMultiplier',name:'꿀 증폭',type:'벌레',base:40,growth:1.5,bonus:0.05,unit:'percent',stat:'꿀'},
+  {id:'iceSlow',name:'냉기 압박',type:'얼음',base:80,growth:1.7,bonus:0.01,unit:'percent',stat:'적 공격 주기'},
+  {id:'ghostDodge',name:'그림자 회피',type:'고스트',base:100,growth:1.7,bonus:1,unit:'percentPoint',stat:'회피'},
+  {id:'dragonPower',name:'용의 힘',type:'드래곤',base:400,growth:1.8,bonus:0.02,unit:'percent',stat:'공격·특수공격'}
 ]);
 // Immutable catalog for constant-time ID lookup (same costs and ordering).
 export const UPGRADE_BY_ID=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,item])));
@@ -48,18 +51,25 @@ export function upgradeCosts(id,level){
   if(!item||cost===null)return null;
   return Object.fromEntries((item.types??[item.type]).map(type=>[type,cost]));
 }
+// Ice is a future-layer sink: enemy attacks slow, capped at 2x interval.
+export function effectiveEnemySpeed(state,speed){
+  const level=state.energyUpgrades?.iceSlow??0;
+  return Math.max(100,Math.min(Number.MAX_VALUE,Number(speed)*(1+Math.min(100,level)*0.01)));
+}
 export function effectiveDittoStats(state){
   const stats=state.dittoStats;
   const {hp:suHp,attack:suAttack}=stellarChildBonus(state);
   const levels=state.energyUpgrades??{};
   const hpFlat=decimal(levels.hp??0).mul(4),attackFlat=decimal(levels.attack??0);
+  const dragonMultiplier=1+(levels.dragonPower??0)*0.02;
   const attackMultiplier=1+(levels.attackMultiplier??0)*0.04,hpMultiplier=1+(levels.hpMultiplier??0)*0.04,speed=1+(levels.speed??0)*0.01;
   return {...stats,hp:storedAmount(decimal(stats.hp).add(hpFlat).add(suHp).mul(hpMultiplier).mul(decimal(1).add(decimal(state.permanentUpgrades?.SU014??0).mul(0.10)))),
-    specialAttack:storedAmount(decimal(stats.specialAttack??0).add(levels.specialAttack??0).mul(1+(levels.specialAttackMultiplier??0)*0.04)),
+    specialAttack:storedAmount(decimal(stats.specialAttack??0).add(levels.specialAttack??0).mul(1+(levels.specialAttackMultiplier??0)*0.04).mul(dragonMultiplier)),
     defense:storedAmount(decimal(stats.defense??0).add(levels.defense??0).mul(1+(levels.defenseMultiplier??0)*0.04)),
     specialDefense:storedAmount(decimal(stats.specialDefense??0).add(levels.specialDefense??0).mul(1+(levels.specialDefenseMultiplier??0)*0.04)),
     regeneration:storedAmount(decimal(stats.regeneration??0).add(levels.regeneration??0).mul(decimal(1).add(decimal(levels.regenerationMultiplier??0).mul(0.03)))),
-    attack:storedAmount(decimal(stats.attack).add(attackFlat).add(suAttack).mul(attackMultiplier).mul(decimal(1).add(decimal(state.permanentUpgrades?.SU015??0).mul(0.08)))),
+    attack:storedAmount(decimal(stats.attack).add(attackFlat).add(suAttack).mul(attackMultiplier).mul(dragonMultiplier).mul(decimal(1).add(decimal(state.permanentUpgrades?.SU015??0).mul(0.08)))),
+    dodge:Math.max(Number(stats.dodge??0),Math.min(80,Number(stats.dodge??0)+(levels.ghostDodge??0))),
     antidote:storedAmount(decimal(stats.antidote??0).add(levels.antidote??0)),
     poison:storedAmount(decimal(stats.poison??0).mul(decimal(1).add(decimal(levels.poisonMultiplier??0).mul(0.03)))),
     honey:storedAmount(decimal(stats.honey??0).mul(decimal(1).add(decimal(levels.honeyMultiplier??0).mul('0.05')))),
