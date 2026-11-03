@@ -3,7 +3,7 @@ import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy} from './energySystem.js';
 import {recordItemProgress} from './itemSystem.js';
 import {stellarBattleEnergyReward} from './stellarUpgrades.js';
-import {effectiveDittoStats,effectiveEnemySpeed} from './shopSystem.js';
+import {effectiveDittoStats} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
 import {appendDamageEvents,appendStatusDamageEvent,appendHealingEvent} from './combatVisualEvents.js';
 export const emptyCombat = hp=>({
@@ -31,7 +31,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
       minDamagePercent:p.minDamagePercent,maxDamagePercent:p.maxDamagePercent,
       rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,scaledReward(key,value,state.killCounts[id]||0)])),
       energyRewards:Object.fromEntries(Object.entries(battleEnergyRewards(p,state.killCounts[id]||0)).map(([type,amount])=>[type,stellarBattleEnergyReward(state,type,amount)])),
-      attackCooldown:{elapsed:0,duration:effectiveEnemySpeed(state,p.speed)},
+      attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack,statistics:p
     },
     intimidationDebuffs:{player:Math.min(1,(p.intimidation??0)*.001),enemy:Math.min(1,(effective.intimidation??0)*.001)},
@@ -161,7 +161,6 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
   const withEffects=next=>({...next,combatVisualEvents:visualEvents});
   c.playerStatus??=freshStatus();c.enemyStatus??=freshStatus();
   const playerStats={...effectiveDittoStats(state)},enemyStats={...(c.enemy.statistics??getWildPokemon(c.pokemonId))};
-  enemyStats.speed=effectiveEnemySpeed(state,enemyStats.speed);
   playerStats.attack=multiplyAmount(playerStats.attack,1-(c.intimidationDebuffs?.player??0));
   enemyStats.attack=multiplyAmount(enemyStats.attack,1-(c.intimidationDebuffs?.enemy??0));
   let remaining=Math.min(deltaMs,5000);

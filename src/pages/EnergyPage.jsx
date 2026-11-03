@@ -182,12 +182,11 @@ export function EnergyPage(){
         {energyTab==='stats'&&UPGRADES.map(item=>{
           const level=game.energyUpgrades?.[item.id]??0;
           const costs=upgradeCosts(item.id,level);
-          const locked=!!item.unlockLayer&&game.unlockedLayer<item.unlockLayer;
-          const affordable=!locked&&costs!==null&&Object.entries(costs).every(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)>=0);
+          const affordable=costs!==null&&Object.entries(costs).every(([type,cost])=>compareAmount(game.energyBalances[type]??0,cost)>=0);
           return <div className="energy-shop-item" key={item.id}>
-            <div><strong>{item.name} Lv. {level} ({item.stat} {item.unit==='ms'?'-':'+'}{formatAmount(level*item.bonus*(item.unit==='flat'||item.unit==='ms'?1:100))}{item.unit==='flat'?'':item.unit==='ms'?'ms':item.unit==='percentPoint'?'%p':'%'})</strong></div>
+            <div><strong>{item.name} Lv. {level} ({item.stat} {item.unit==='ms'?'-':'+'}{formatAmount(level*item.bonus*(item.unit==='flat'||item.unit==='ms'?1:100))}{item.unit==='flat'?'':item.unit==='ms'?'ms':'%'})</strong></div>
             <button type="button" disabled={!affordable||game.phase!=='running'}
-              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{locked?item.unlockLayer+'계층 해금 필요':costs===null?'최대 레벨':<>{Object.entries(costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</>}</button>
+              onClick={()=>dispatch({type:'BUY_UPGRADE',id:item.id})}>{costs===null?'최대 레벨':<>{Object.entries(costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</>}</button>
           </div>;
         })}
         {energyTab==='abilities'&&<>

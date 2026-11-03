@@ -1,5 +1,5 @@
 import {hitChance} from '../../src/core/combatEngine.js';
-import {effectiveDittoStats,effectiveEnemySpeed} from '../../src/core/shopSystem.js';
+import {effectiveDittoStats} from '../../src/core/shopSystem.js';
 import {getWildPokemon} from '../../src/core/wildData.js';
 
 // An approximation, NOT a combat transition. Never interpreted as an observed win rate.
@@ -35,7 +35,7 @@ function effectivePeriod(attacker,paralysisPerSecond){
 export function estimateExpectedBattle(state,id,{maxSeconds=300,uncertaintyMargin=0.18}={}){
  const pokemon=getWildPokemon(id);
  if(!pokemon)throw new Error('Unknown Pokémon: '+id);
- const player={...effectiveDittoStats(state)},enemy={...pokemon,speed:effectiveEnemySpeed(state,pokemon.speed)};
+ const player={...effectiveDittoStats(state)},enemy={...pokemon};
  player.attack=number(player.attack)*(1-Math.min(1,number(pokemon.intimidation??0)*0.001));
  enemy.attack=number(enemy.attack)*(1-Math.min(1,number(player.intimidation??0)*0.001));
  const playerMax=number(player.hp),enemyMax=number(enemy.hp);

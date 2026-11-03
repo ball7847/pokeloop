@@ -9,7 +9,7 @@ export function autoBuyTick(state,maxPurchases=3){
  for(let purchase=0;purchase<maxPurchases;purchase++){
   let candidate=null;
   for(const item of UPGRADES){
-   if(current.autoBuySelection?.[item.id]===false||(item.unlockLayer&&current.unlockedLayer<item.unlockLayer))continue;
+   if(current.autoBuySelection?.[item.id]===false)continue;
    const costs=upgradeCosts(item.id,current.energyUpgrades?.[item.id]??0);
    if(!costs||Object.entries(costs).some(([type,cost])=>compareAmount(current.energyBalances[type]??0,cost)<0))continue;
    const total=Object.values(costs).reduce((sum,cost)=>addAmount(sum,cost),0);
