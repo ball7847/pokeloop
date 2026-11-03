@@ -9,7 +9,7 @@ test('Bombirdier is the ninth common lake encounter, preserving Wishiwashi codes
  const p=getWildPokemon('bombirdier');
  assert.deepEqual({id:p.id,number:p.number,types:p.types,hp:p.hp,attack:p.attack,speed:p.speed,piercing:p.piercing,accuracy:p.accuracy,code:p.encounterCode,rewards:p.rewards},
  {id:'bombirdier',number:962,types:['비행','악'],hp:962,attack:103,speed:1500,piercing:50,accuracy:200,code:'W031101',rewards:{attack:10.3,piercing:10.3,accuracy:9.62}});
- assert.deepEqual(battleEnergyRewards(p),{비행:0,악:0});
+ assert.deepEqual(battleEnergyRewards(p),{});
  assert.equal(getKillLimit(p),10);
  const initial=initialState();
  const ids=appearedInRegion(initial,LAKE_REGION.id).map(p=>p.id);
