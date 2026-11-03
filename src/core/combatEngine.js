@@ -114,7 +114,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
       if(compareAmount(attackerStats[attack]??0,0)<=0)continue;
       const factor=rollDamagePercent(attackerStats.minDamagePercent??85,random,attackerStats.maxDamagePercent??100)/100;
       const raw=multiplyAmount(attackerStats[attack],factor);
-      const effectiveDefense=kind==='special'?Math.max(0,(defenderStats[defense]??0)-(attackerStats.sound??0)):(defenderStats[defense]??0);
+      const effectiveDefense=kind==='special'?Math.max(0,(defenderStats[defense]??0)-(attackerStats.sound??0)):Math.max(0,(defenderStats[defense]??0)-(attackerStats.piercing??0));
       const net=subtractAmount(raw,effectiveDefense);
       if(compareAmount(net,0)>0){
         damage=addAmount(damage,net);
