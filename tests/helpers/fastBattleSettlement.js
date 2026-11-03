@@ -44,7 +44,7 @@ export function settleExpectedBattle(state,id,estimate,encounterRandom=Math.rand
       dittoHp:{...c.dittoHp,current:estimate.playerHp},
       playerStatus:estimate.playerStatus??c.playerStatus,lastEvent:event}};
   // Match hunger's chained start and carry remaining HP/poison across wins.
-  if(updated.automation?.hunger&&count+1<REGION.defaultKillLimit&&estimate.playerHp>0){
+  if(updated.automation?.hunger&&count+1<getKillLimit(p)&&estimate.playerHp>0){
     const continued=startBattle(updated,id,estimate.playerHp,updated.combat.playerStatus);
     return {...continued,combat:{...continued.combat,lastEvent:{...event,id:continued.eventSerial}}};
   }
