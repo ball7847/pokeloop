@@ -1,5 +1,5 @@
 import {startBattle,emptyCombat} from '../../src/core/combatEngine.js';
-import {getWildPokemon,evolutionFor,evolutionChance,REGION,scaledReward,battleEnergyRewards} from '../../src/core/wildData.js';
+import {getWildPokemon,evolutionFor,evolutionChance,getKillLimit,scaledReward,battleEnergyRewards} from '../../src/core/wildData.js';
 import {effectiveDittoStats} from '../../src/core/shopSystem.js';
 import {stellarBattleEnergyReward} from '../../src/core/stellarUpgrades.js';
 import {recordItemProgress} from '../../src/core/itemSystem.js';
@@ -13,7 +13,7 @@ export function settleExpectedBattle(state,id,estimate,encounterRandom=Math.rand
  if(!c?.active||c.pokemonId!==id)throw new Error('Expected settlement requires an active matching battle');
  if(estimate.result==='victory'){
   const count=state.killCounts[id]??0;
-  if(count>=REGION.defaultKillLimit)throw new Error('Kill cap exceeded');
+  if(count>=getKillLimit(p))throw new Error('Kill cap exceeded');
   const honey=1+(effectiveDittoStats(state).honey??0)*0.001;
   const stats={...state.dittoStats};
   const rewards={};
