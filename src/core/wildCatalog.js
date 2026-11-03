@@ -79,7 +79,7 @@ const lakeEntries=[
 {id:'milotic',number:350,name:'밀로틱',types:['물'],rarity:'rare',evolvesFrom:'feebas',hp:3950,specialAttack:100,defense:118.5,specialDefense:125,regeneration:35,speed:1750,energyReward:350,rewards:{hp:100,specialDefense:40},encounterCode:'W030701-E1'},
 {id:'tadbulb',number:938,name:'빈나두',types:['전기'],hp:1611,attack:31,defense:41,specialAttack:59,speed:9380,counter:30,paralysis:300,energyReward:27.2,rewards:{hp:27.2,counter:2.7,paralysis:2.7},encounterCode:'W030801'},
 {id:'lotad',number:270,name:'연꽃몬',types:['물','풀'],hp:1400,specialAttack:80,speed:2200,regeneration:112,energyReward:56,rewards:{specialAttack:16,regeneration:16},encounterCode:'W030901'},
-{id:'bombirdier',number:962,name:'떨구새',types:['비행','악'],hp:962,attack:103,speed:1500,piercing:50,accuracy:200,energyReward:0,rewards:{attack:10.3,piercing:10.3,accuracy:9.62},encounterCode:'W031101'},
+{id:'bombirdier',number:962,name:'떨구새',types:['비행','악'],hp:962,attack:103,speed:1500,piercing:50,accuracy:200,rewards:{attack:10.3,piercing:10.3,accuracy:9.62},encounterCode:'W031101'},
 {id:'wishiwashi',number:746,name:'약어리',types:['물'],hp:225,attack:2,defense:2,specialAttack:2,specialDefense:2.5,speed:400,energyReward:20,rewards:{},encounterCode:'W031001'},
 {id:'wishiwashi-school',number:746,spriteNumber:10127,name:'약어리(군집의 모습)',types:['물'],rarity:'common',evolvesFrom:'wishiwashi',maxKillsPerPlanet:1,hp:4500,attack:40,defense:40,specialAttack:40,specialDefense:50,speed:4000,multiStrike:9000,energyReward:620,rewards:{hp:174,multiStrike:60},encounterCode:'W031001-E1'}
 ];
