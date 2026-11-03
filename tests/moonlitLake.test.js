@@ -72,7 +72,7 @@ test('new Lake base slots, exact stats and type energy rewards',()=>{
  assert.deepEqual(feebas.rewards,{});
  assert.deepEqual(battleEnergyRewards(feebas,0),{물:20});
  assert.deepEqual(ENCOUNTER_SLOTS.filter(slot=>slot.id.startsWith('W03')).map(slot=>slot.id),
-   ['W030101','W030201','W030302','W030401','W030501','W030601','W030701','W030801','W030901','W031001','W031101']);
+   ['W030101','W030201','W030302','W030401','W030501','W030601','W030701','W030801','W030901','W031101','W031001']);
 });
 test('Azurill evolves through two independently rolled uncommon stages on first victories',()=>{
  const marill=getWildPokemon('marill'),azumarill=getWildPokemon('azumarill');
