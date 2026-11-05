@@ -9,7 +9,7 @@ test('Tropius speed and regeneration change without changing the other stats or 
  assert.equal(p.attack,68);
  assert.equal(p.specialAttack,72);
  assert.equal(p.regeneration,46);
- assert.equal(p.speed,5100);
+ assert.equal(p.speed,4570);
  assert.equal(p.energyReward,100);
  assert.deepEqual(p.rewards,{hp:50,attack:10,specialAttack:10,regeneration:10});
 });

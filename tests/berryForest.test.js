@@ -22,7 +22,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['tangela',195,0,15.5,0,1600,0,0,100,100],
  ['bidoof',390,25,15,0,2900,0,0,100,100],
  ['surskit',40,30,50,32,990,0,0,100,100],
- ['tropius',990,68,72,0,5100,0,0,100,100]
+ ['tropius',990,68,72,0,4570,0,0,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
