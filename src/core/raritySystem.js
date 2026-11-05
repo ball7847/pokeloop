@@ -39,7 +39,7 @@ export function effectiveSlotChance(slot,baseChance,slotIndex,lastUnlockedIndex)
  const distance=slotIndex-lastUnlockedIndex;
  return chance/Math.pow(decay,Math.max(0,distance-1));
 }
-export function rollEncounterSlots(slots,{chances={},lifetimeKills={},guaranteed=[],banished=[],special=[],random=Math.random}={}){
+export function rollEncounterSlots(slots,{chances={},lifetimeKills={},guaranteed=[],banished=[],special=[],bonuses={},random=Math.random}={}){
  const guaranteedSet=new Set(guaranteed),banishedSet=new Set(banished),specialSet=new Set(special);
  const byRarity=new Map();
  for(const slot of slots){
@@ -71,7 +71,13 @@ export function rollEncounterSlots(slots,{chances={},lifetimeKills={},guaranteed
   const rate=rarityProgress.get(slot.rarity).get(slot.id);
   const natural=slot.rarity!=='transcendent'&&
    (slot.rarity==='common'||(rate>0&&(rate>=1||random()<rate)));
-  if(allBanned||(!natural&&!forced&&!selectedGuaranteed.length)){result[slot.id]=null;continue;}
+  // Like Rejected Draft, a missed natural roll permits one additional bonus
+  // roll; never reroll an already successful natural appearance.
+  const multiplier=bonuses[slot.id]??0;
+  const bonus=!natural&&!forced&&!selectedGuaranteed.length&&
+   slot.rarity!=='transcendent'&&rate>0&&multiplier>0&&
+   (rate*multiplier>=1||random()<rate*multiplier);
+  if(allBanned||(!natural&&!bonus&&!forced&&!selectedGuaranteed.length)){result[slot.id]=null;continue;}
   const pool=selectedGuaranteed.length?selectedGuaranteed:
    explicitlySpecial.length?explicitlySpecial:eligible;
   result[slot.id]=pool.length===1?pool[0]:pool[Math.min(pool.length-1,Math.floor(random()*pool.length))]??null;

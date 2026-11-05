@@ -6,7 +6,7 @@ import {appearedInRegion,REGION} from '../src/core/wildData.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 const move=(s,random=()=>.99)=>transition({...s,pendingStellar:1,phase:'running'}, {type:'MOVE_PLANET',random});
-test('first planet remains at zero; second planet unlocks 5% and guarantees Psyduck',()=>{
+test('first planet remains at zero; second planet 5% x20 bonus yields Psyduck',()=>{
  const start=initialState();
  assert.equal(start.uncommonChance,0);
  assert.equal(start.planetMoves,0);
@@ -22,15 +22,18 @@ test('first planet remains at zero; second planet unlocks 5% and guarantees Psyd
  assert.equal(restored.raritySlotResults.W010302,'psyduck');
  assert.equal(restored.uncommonChance,.05);
 });
-test('third planet and onward Psyduck is random again, with permanent 5% base',()=>{
+test('Psyduck bonus persists until discovery, then only natural probability remains',()=>{
  const second=move(initialState());
  const third=move(second);
  assert.equal(third.planetMoves,2);
  assert.equal(third.uncommonChance,.05);
- assert.equal(third.raritySlotResults.W010302,null);
- const fourth=move(third,()=>0);
+ assert.equal(third.raritySlotResults.W010302,'psyduck');
+ const discovered={...third,dexDiscovered:['psyduck']};
+ const fourth=move(discovered,()=>.99);
  assert.equal(fourth.planetMoves,3);
- assert.equal(fourth.raritySlotResults.W010302,'psyduck');
+ assert.equal(fourth.raritySlotResults.W010302,null);
+ const fifth=move(fourth,()=>0);
+ assert.equal(fifth.raritySlotResults.W010302,'psyduck');
 });
 test('SU013 adds 1 percentage point per level, maximum 35 gives 40% total',()=>{
  assert.equal(STELLAR_UPGRADES.노말[4].maxLevel,35);
@@ -43,11 +46,14 @@ test('SU013 adds 1 percentage point per level, maximum 35 gives 40% total',()=>{
  assert.equal(stellarUpgradeCost(maxed,'SU013'),null);
  assert.equal(transition({...maxed,phase:'running',stellar:100},{type:'BUY_STELLAR_UPGRADE',id:'SU013'}).permanentUpgrades.SU013,35);
 });
-test('second-planet forced Psyduck does not persist as a permanent guarantee',()=>{
+test('Psyduck bonus is not inserted into manual permanent guarantee list',()=>{
  const second=move(initialState());
  assert.deepEqual(second.rarityGuarantees,[]);
  assert.equal(second.raritySlotResults.W010302,'psyduck');
  const third=move(second,()=>.99);
  assert.deepEqual(third.rarityGuarantees,[]);
- assert.equal(third.raritySlotResults.W010302,null);
+ assert.equal(third.raritySlotResults.W010302,'psyduck');
+ const discovered=move({...third,dexDiscovered:['psyduck']},()=>.99);
+ assert.deepEqual(discovered.rarityGuarantees,[]);
+ assert.equal(discovered.raritySlotResults.W010302,null);
 });
