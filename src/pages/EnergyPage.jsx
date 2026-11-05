@@ -18,7 +18,7 @@ export function EnergyPage(){
   // Combat state updates are frequent; production rates depend only on the
   // balances, milestones and unlocked layer, not combat events or shop UI.
   const rates=React.useMemo(()=>game?particleRates(game):null,
-    [game.particleBalances,game.particleMilestones,game.unlockedLayer]);
+    [game?.particleBalances,game?.particleMilestones,game?.unlockedLayer]);
   return <div className="energy-overview">
     <div className="ditto-info-tabs energy-system-tabs" role="tablist" aria-label="에너지 체계">
       {[['micro','미시체계'],['middle','중간체계'],['outer','외체계']].map(([id,label])=><button key={id} type="button" role="tab"
