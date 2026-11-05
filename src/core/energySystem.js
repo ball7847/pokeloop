@@ -127,6 +127,9 @@ function originalSoftcapMultiplier(pending,total,planetMoves){
   const threshold=planetMoves===0?decimal(100):decimal(total);
   if(threshold.lte(0)||decimal(pending).lt(threshold))return 1;
   const ratio=decimal(pending).div(threshold).toNumber();
+  // Larger-than-Number ratios make the original tier penalty effectively zero.
+  // Do not let Infinity produce an unbounded softcap loop.
+  if(!Number.isFinite(ratio))return 0;
   const tier=Math.max(0,Math.floor(Math.log2(ratio))+1);
   let penalty=Math.pow(2,-tier);
   for(let i=1;i<=Math.floor(tier/10);i++)penalty/=Math.max(2,i*10);

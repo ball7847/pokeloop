@@ -13,7 +13,8 @@ export function StatsPanel(){
   // Combat ticks replace game/combat, but these inputs only change on rewards or purchases.
   const dittoStats=useGameStore(s=>s.game.dittoStats);
   const energyUpgrades=useGameStore(s=>s.game.energyUpgrades);
-  const stats=useMemo(()=>effectiveDittoStats({dittoStats,energyUpgrades}),[dittoStats,energyUpgrades]);
+  const permanentUpgrades=useGameStore(s=>s.game.permanentUpgrades);
+  const stats=useMemo(()=>effectiveDittoStats({dittoStats,energyUpgrades,permanentUpgrades}),[dittoStats,energyUpgrades,permanentUpgrades]);
   const visible=new Set(visibleBasicStats(stats).map(x=>x.key));
   return <div className="top-stats" aria-label="메타몽 기본 능력치">
     <div className="ditto-avatar"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png" alt="메타몽" width="64" height="64"/></div>
