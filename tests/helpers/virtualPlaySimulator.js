@@ -77,7 +77,7 @@ function identity(state){
   return JSON.stringify([state.killCounts,state.energyUpgrades,state.qolUnlocks,
     state.pointCirculationUnlocked,state.permanentUpgrades]);
 }
-export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode='fast',logLimit=5000,maxBattles=6000,maxTicks=250000}={}){
+export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode='fast',logLimit=5000,maxBattles=6000,maxTicks=250000,stopOnVictoryId=null}={}){
   if(!['fast','exact'].includes(mode))throw new RangeError('Invalid combat mode');
   let state=start.phase==='ready'?transition(start,{type:'START'}):start;
   const startMoves=state.planetMoves,started={...state.killCounts};
@@ -242,6 +242,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     }
     maxStreak[id]=Math.max(maxStreak[id]??0,wins);
     note('battle-end',{id,result,wins,kills:state.killCounts[id]??0});
+    if(stopOnVictoryId===id&&(state.killCounts[id]??0)>=1)safetyStop='target-clear';
     return {result,wins};
   }
   // Existing policy: first 5 per species, then up to 10. After blocking,
@@ -318,8 +319,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     }
     if(!progressed&&identity(state)===beginning)break;
   }
-  recover();
-  shop();
+  if(safetyStop!=='target-clear'){recover();shop();}
   const exit=decidePlanetExit(state,true);
   const finalFiveCleared=availableTargets(state).length>0&&availableTargets(state).every(id=>(state.killCounts[id]??0)>=phaseGoal(id,5));
   if(finalFiveCleared&&!firstPassDone){firstPassDone=true;note('five-phase-completed-after-farming');}
