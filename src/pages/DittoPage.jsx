@@ -16,9 +16,10 @@ const PENDING={
 export function DittoPage({infoTab,setInfoTab}){
   const dittoStats=useGameStore(s=>s.game.dittoStats);
   const energyUpgrades=useGameStore(s=>s.game.energyUpgrades);
+  const permanentUpgrades=useGameStore(s=>s.game.permanentUpgrades);
   const qolUnlocks=useGameStore(s=>s.game.qolUnlocks);
   const automation=useGameStore(s=>s.game.automation);
-  const stats=useMemo(()=>effectiveDittoStats({dittoStats,energyUpgrades}),[dittoStats,energyUpgrades]);
+  const stats=useMemo(()=>effectiveDittoStats({dittoStats,energyUpgrades,permanentUpgrades}),[dittoStats,energyUpgrades,permanentUpgrades]);
   const dispatch=useGameStore(s=>s.dispatch);
   return <div className="ditto-page">
     <section className="ditto-info-region" aria-label="메타몽 정보 영역">
