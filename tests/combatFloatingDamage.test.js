@@ -131,7 +131,7 @@ test('victory keeps the combat page mounted for the last damage popup lifetime',
  assert.match(source,/clearTimeout\(timeout\)/);
 });
 test('maxed upgrades disable purchases without comparing null as an amount',()=>{
- const source=readFileSync(new URL('../src/pages/EnergyPage.jsx',import.meta.url),'utf8');
+ const source=readFileSync(new URL('../src/components/energy/EnergyShop.jsx',import.meta.url),'utf8');
  assert.match(source,/costs!==null&&Object\.entries\(costs\)\.every\(/);
  assert.match(source,/costs===null\?'최대 레벨'/);
 });
