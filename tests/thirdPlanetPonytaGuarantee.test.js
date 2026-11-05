@@ -29,9 +29,14 @@ test('discovered target disables only that bonus, including either Zigzagoon var
  assert.deepEqual(bonus(6,['psyduck','ponyta','zigzagoon']),{});
 });
 
-test('no planet automatically guarantees a target when bonus fails',()=>{
+test('bonus probability caps at 100 percent but Ponyta and Zigzagoon remain fallible',()=>{
  let state=transition(initialState(),{type:'START'});
- for(let planet=2;planet<=7;planet++){
+ state=move(state,()=>.99);
+ assert.equal(state.planetMoves,1);
+ // First uncommon slot: 5% natural ×20 = 100% additional roll.
+ assert.equal(ids(state).includes('psyduck'),true);
+ state={...state,dexDiscovered:['psyduck']};
+ for(let planet=3;planet<=7;planet++){
   state=move(state,()=>.99);
   assert.equal(state.planetMoves,planet-1);
   assert.equal(ids(state).includes('psyduck'),false);
