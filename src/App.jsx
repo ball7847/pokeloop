@@ -18,6 +18,7 @@ export function App(){
   const [activeTab,setActiveTab]=useState('ditto');
   const [infoTab,setInfoTab]=useState('basic');
   const combatActive=useGameStore(s=>s.game.combat.active);
+  const fast=useGameStore(s=>s.simulationSpeed===10);
   const lastCombat=useRef(false);
   useEffect(()=>{
     if(combatActive&&!lastCombat.current)setActiveTab('ditto');
@@ -25,9 +26,9 @@ export function App(){
     const finished=!combatActive&&lastCombat.current;
     lastCombat.current=combatActive;
     if(!finished)return;
-    const timeout=setTimeout(()=>setActiveTab(tab=>tab==='ditto'?'wild':tab),1200);
+    const timeout=setTimeout(()=>setActiveTab(tab=>tab==='ditto'?'wild':tab),fast?0:1200);
     return ()=>clearTimeout(timeout);
-  },[combatActive]);
+  },[combatActive,fast]);
   return <div className="shell"><CombatClock/><CombatBarAnimator/><AutoSaveClock/><TopBar/>
     <div className="workspace">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab}/>

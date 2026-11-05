@@ -34,6 +34,10 @@ export function eventMessage(event) {
 export const useGameStore=create((set,get)=>({
   ...initialPersistence(),
   logs:[],
+  simulationSpeed:1,
+  setSimulationSpeed:(speed)=>set({simulationSpeed:speed===10?10:1,damagePopups:[]}),
+  grantOfflineHour:()=>set(previous=>previous.game.phase==='running'
+    ?{offlineRemainingSeconds:previous.offlineRemainingSeconds+3600}:previous),
   // Non-persistent visual effects. The engine supplies actual values once per attack.
   damagePopups:[],
   nextDamagePopupId:0,
@@ -82,7 +86,7 @@ export const useGameStore=create((set,get)=>({
   resetSavedGame:()=>{
     clearLocalSave();
     set({game:initialState(),logs:[],damagePopups:[],lastSavedAt:null,autoSaveEnabled:true,saveError:null,
-      offlineRemainingSeconds:0,wildRegionFilter:REGION.id,energySystemTab:'micro',energySectionTab:'stats'});
+      offlineRemainingSeconds:0,simulationSpeed:1,wildRegionFilter:REGION.id,energySystemTab:'micro',energySectionTab:'stats'});
   },
   dispatch:(action)=>set(previous=>{
     const game=transition(previous.game,action);
@@ -98,7 +102,7 @@ export const useGameStore=create((set,get)=>({
     })[action.type];
     const resetVisuals=['RESET','MOVE_PLANET'].includes(action.type);
     const now=Date.now();
-    const incoming=action.type==='COMBAT_TICK'?(game.combatVisualEvents??[]):[];
+    const incoming=previous.simulationSpeed===10?[]:action.type==='COMBAT_TICK'?(game.combatVisualEvents??[]):[];
     const retained=resetVisuals?[]:previous.damagePopups.filter(effect=>now-effect.timestamp<1200);
     const damagePopups=[...retained,...incoming.map((effect,index)=>({
       ...effect,id:previous.nextDamagePopupId+index+1,timestamp:now

@@ -34,7 +34,7 @@ export function CombatBarAnimator(){
     let sampledAt=performance.now();
     const render=(now)=>{
       frame=null;
-      if(!snapshot.combat.active)return;
+      if(!snapshot.combat.active||useGameStore.getState().simulationSpeed===10)return;
       paintCooldownBars(document,snapshot.combat,now-sampledAt,snapshot.phase==='running');
       frame=requestAnimationFrame(render);
     };
@@ -43,8 +43,8 @@ export function CombatBarAnimator(){
         snapshot=state.game;
         sampledAt=performance.now();
       }
-      if(snapshot.combat.active&&frame===null)frame=requestAnimationFrame(render);
-      if(!snapshot.combat.active&&frame!==null){
+      if(snapshot.combat.active&&state.simulationSpeed!==10&&frame===null)frame=requestAnimationFrame(render);
+      if((!snapshot.combat.active||state.simulationSpeed===10)&&frame!==null){
         cancelAnimationFrame(frame);
         frame=null;
       }

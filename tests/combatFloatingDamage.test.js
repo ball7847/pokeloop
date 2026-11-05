@@ -127,7 +127,7 @@ test('damage popup colors are category-based instead of target-based',()=>{
 test('victory keeps the combat page mounted for the last damage popup lifetime',()=>{
  const source=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
  assert.match(source,/setTimeout\(\(\)=>setActiveTab\(/);
- assert.match(source,/\),1200\)/);
+ assert.match(source,/fast\?0:1200/); // Standard speed keeps 1.2s; fast mode skips the animation delay.
  assert.match(source,/clearTimeout\(timeout\)/);
 });
 test('maxed upgrades disable purchases without comparing null as an amount',()=>{

@@ -70,7 +70,8 @@ export function DamagePopupLayer({active=false}){
 export function DittoBattle(){
   const combat=useGameStore(s=>s.game.combat);
   const dispatch=useGameStore(s=>s.dispatch);
-  if(!combat.active||!combat.enemy)return <section className="ditto-battle-region" aria-label="전투 영역"><DamagePopupLayer/></section>;
+  const fast=useGameStore(s=>s.simulationSpeed===10);
+  if(!combat.active||!combat.enemy)return <section className="ditto-battle-region" aria-label="전투 영역">{!fast&&<DamagePopupLayer/>}</section>;
   const enemy=combat.enemy;
   return <section className="ditto-battle-region" aria-label="전투 영역">
     <div className="battle-opponent">
@@ -94,11 +95,11 @@ export function DittoBattle(){
       <span>메타몽: 마비 {fmt(combat.playerStatus?.paralysis??0)} · 독 {fmt(combat.playerStatus?.poison??0)}</span>
     </div>
     <div className="battle-vitals">
-      <Cooldown name="적 공격" value={enemy.attackCooldown} kind="enemy"/>
+      {!fast&&<Cooldown name="적 공격" value={enemy.attackCooldown} kind="enemy"/>}
       <div className="battle-health enemy"><HealthBar name={enemy.name} hp={enemy.hp}/></div>
       <div className="battle-health ditto" id="battle-player-hit-anchor"><HealthBar name="메타몽" hp={combat.dittoHp}/></div>
-      <Cooldown name="메타몽 공격" value={combat.dittoAttackCooldown} kind="ditto"/>
+      {!fast&&<Cooldown name="메타몽 공격" value={combat.dittoAttackCooldown} kind="ditto"/>}
     </div>
-    <DamagePopupLayer active/>
+    {!fast&&<DamagePopupLayer active/>}
   </section>;
 }
