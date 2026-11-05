@@ -13,7 +13,7 @@ export function prepareNextPlanet(state,random=Math.random){
  const uncommonChance=Math.min(1,Math.round(((preserved.planetMoves>=1?0.05:UNCOMMON_BASE_CHANCE)+stellarUncommonBonus(preserved))*100)/100);
  const raritySlotResults=rollEncounterSlots(ENCOUNTER_SLOTS,{
   chances:{uncommon:uncommonChance},lifetimeKills:state.dexLifetimeKills,
-  guaranteed:preserved.planetMoves===1?[...(state.rarityGuarantees??[]),'psyduck']:(state.rarityGuarantees??[]),banished:state.rarityBanishments??[],
+  guaranteed:[...(state.rarityGuarantees??[]),...(preserved.planetMoves===1?['psyduck']:preserved.planetMoves===2?['ponyta']:[])],banished:state.rarityBanishments??[],
   special:state.raritySpecialUnlocks??[],random
  });
  return {...preserved,...items,uncommonChance,
