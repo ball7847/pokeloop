@@ -120,3 +120,15 @@ test('combat-clock speed is not a global timer override; autosave remains 30s',(
   const text=readFileSync(new URL('../src/components/GameClocks.jsx',import.meta.url),'utf8');
   assert.match(text,/\},AUTOSAVE_INTERVAL_MS\)/);
 });
+
+test('very long foreground stall carries delayed combat to the next interval',()=>{
+  const h=harness(10);
+  h.step(5000); // 50s of game time; capped to eight 5s combat chunks.
+  near(total(h.seen,'COMBAT_TICK'),40000);
+  near(total(h.seen,'QUEUE','seconds'),50);
+  h.step(100); // Outstanding 10s + 1s new game time.
+  near(total(h.seen,'COMBAT_TICK'),51000);
+  near(total(h.seen,'ECONOMY_TICK'),1000);
+  near(total(h.seen,'CONSUME','seconds'),50);
+  h.cleanup();
+});
