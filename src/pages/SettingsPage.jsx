@@ -3,8 +3,28 @@ import {encodeSave,decodeSave} from '../core/saveSystem.js';
 import {useGameStore} from '../store/useGameStore.js';
 export function SettingsPage(){
   return <><div className="intro"><span>OPTIONS</span><h2>설정</h2><p>저장 데이터를 관리합니다.</p></div>
+    <SimulationSettings/>
     <SaveSettings/>
   </>;
+}
+function SimulationSettings(){
+  const speed=useGameStore(s=>s.simulationSpeed);
+  const remaining=useGameStore(s=>s.offlineRemainingSeconds);
+  const running=useGameStore(s=>s.game.phase==='running');
+  return <section className="panel save-panel" aria-label="개발 테스트">
+    <h3>개발 테스트 (임시)</h3>
+    <div className="save-toggle"><span>게임 10배속 <small>전투·회복·생산·자동화 가속. 고속 전투 애니메이션 생략</small></span>
+      <button type="button" aria-pressed={speed===10}
+        onClick={()=>useGameStore.getState().setSimulationSpeed(speed===10?1:10)}>
+        {speed===10?'10배속 ON':'10배속 OFF'}
+      </button>
+    </div>
+    <div className="save-actions"><button type="button" disabled={!running} onClick={()=>useGameStore.getState().grantOfflineHour()}>
+      오프라인 1시간 보상 즉시 받기
+    </button></div>
+    <p className="save-feedback" role="status">매 클릭마다 생산 시간 3600초를 추가 정산합니다. 전투에는 적용하지 않고 10배속 중에도 중복 가속되지 않습니다.
+      {remaining>0?' · 정산 대기: '+Math.ceil(remaining).toLocaleString('ko-KR')+'초':''}</p>
+  </section>;
 }
 function SaveSettings(){
   const autoSaveEnabled=useGameStore(s=>s.autoSaveEnabled);
