@@ -1,6 +1,6 @@
 import {UPGRADES,upgradeCosts,buyUpgrade} from './shopSystem.js';
 import {addAmount,compareAmount} from './bigNumber.js';
-import {REGIONS,REGION,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
+import {REGIONS,REGION,getKillLimit,getWildPokemon,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
 import {startBattle} from './combatEngine.js';
 
 export function autoBuyTick(state,maxPurchases=3){
@@ -28,11 +28,11 @@ export function autoChallengeTick(state){
    state.combat.active||state.recoveryMs>0||state.retryPokemonId)return state;
  const event=state.combat.lastEvent;
  if(event&&(event.type==='flee'||event.type==='defeat'||event.type==='start'))return state;
- if(event?.type==='victory'&&(state.killCounts[event.pokemonId]??0)<REGION.defaultKillLimit)return state;
+ if(event?.type==='victory'&&(state.killCounts[event.pokemonId]??0)<getKillLimit(getWildPokemon(event.pokemonId)))return state;
  for(const region of REGIONS){
   if(!isRegionUnlocked(state,region.id))continue;
   for(const pokemon of appearedInRegion(state,region.id)){
-   if((state.killCounts[pokemon.id]??0)>=REGION.defaultKillLimit||!isPokemonUnlockedInState(state,pokemon.id))continue;
+   if((state.killCounts[pokemon.id]??0)>=getKillLimit(pokemon)||!isPokemonUnlockedInState(state,pokemon.id))continue;
    return startBattle({...state,activeRegionId:region.id},pokemon.id);
   }
  }
