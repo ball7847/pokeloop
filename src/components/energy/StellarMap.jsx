@@ -1,4 +1,5 @@
 import React from 'react';
+import {useShallow} from 'zustand/react/shallow';
 import {createPortal} from 'react-dom';
 import {useGameStore} from '../../store/useGameStore.js';
 import {LAYERS} from '../../core/energySystem.js';
@@ -62,7 +63,12 @@ export function OuterStellarWorld(){
     document.addEventListener('keydown',onEscape);
     return ()=>document.removeEventListener('keydown',onEscape);
   },[selected]);
-  const game=useGameStore(state=>state.game);
+  // The stellar grid only depends on permanent upgrades, SE and running state.
+  const game=useGameStore(useShallow(state=>({
+    permanentUpgrades:state.game.permanentUpgrades,
+    stellar:state.game.stellar,
+    phase:state.game.phase
+  })));
   const dispatch=useGameStore(state=>state.dispatch);
   const layers=stellarUpgradeRows();
   const nodes=layers.flatMap(layer=>layer.rows.flatMap(row=>row.slots.filter(slot=>slot.node)));
