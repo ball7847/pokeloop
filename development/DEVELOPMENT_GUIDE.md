@@ -1,6 +1,6 @@
 # PokeLoop 개발 가이드
 
-> 문서 최초 작성: 2026-10-26 | 마지막 인수인계 업데이트: **2026-10-29** | 검토한 main 병합 기준: **`ca7a666cd95c6d1d71431fe7a02a6099c064b430`** (PR #165 병합). 새 대화 시작 시 GitHub 최신 상태 재확인.
+> 문서 최초 작성: 2026-10-26 | 마지막 인수인계 업데이트: **2026-11-05** | 검토한 main 병합 기준: **`5ae149811cc71f61da64e91de5beeadef4e83af9`** (PR #179 병합). 새 대화 시작 시 GitHub 최신 상태 재확인.
 > 이 문서는 프로젝트 규칙과 개요를 기술한다. 상세한 **현재 구현**은 [IMPLEMENTED_SYSTEMS.md](./IMPLEMENTED_SYSTEMS.md), **개발 예정**은 [PLANNED_SYSTEMS.md](./PLANNED_SYSTEMS.md), **가상 플레이 규칙**은 [VIRTUAL_PLAY_RULES.md](./VIRTUAL_PLAY_RULES.md) 참고.
 
 ## 1. 프로젝트
@@ -169,3 +169,11 @@ PokeLoop 개발을 이어가자. GitHub ball7847/pokeloop의 development/DEVELOP
 - 달빛의 호수 흔한 순서에서 기존 약어리 직전으로 떨구새(Bombirdier, 전국도감 #962, 비행/악) 추가. HP 962, 공격 103, 스피드 1500ms, 관통 50, 명중 200%; 보상 공격 +10.3, 관통 +10.3, 명중 +9.62%p. 타입 에너지 보상은 사용자 미지정으로 설정하지 않음(임의 책정 안 함).
 - 기존 약어리 `W031001` 및 군집 `W031001-E1`의 안정적 도감 코드는 보존. 신규 포켓몬에는 충돌 없는 `W031101` 코드 사용. 표시 순서는 떨구새→약어리이며, 흔한 엔트리는 총 10종.
 - 새 관통(`piercing`) 능력치: 물리 공격의 상대 방어를 관통 값만큼 감소(최저 0)시키며 특수공격의 특수방어 관통(`sound`)은 그대로 별개 처리. 공용 능력치 메타데이터·UI 아이콘·보상·저장 적용.
+
+
+### 2026-11-05: 전체 코드 점검 및 유지보수 인수인계
+- PR #178: 영구강화 실제 수치가 UI에도 표시되도록 상단·메타몽 탭의 실효 능력치 입력에 `permanentUpgrades` 추가. `abilityAutomation.js`의 자기과신은 고정 1회 제한 종을 포함해 `getKillLimit(pokemon)` 사용. `energySystem.js`의 SE 소프트캡 비율이 일반 Number 범위를 초과하면 무한 반복하지 않도록 안전 종료. 저장 형식/전투 공식/재화 획득 규칙 변화 없음.
+- PR #179: 에너지 화면의 외체계는 `src/components/energy/StellarMap.jsx`, 강화·특성 상점은 `src/components/energy/EnergyShop.jsx`로 분리. 기존 `EnergyPage.jsx`의 공개 헬퍼는 재수출해 호환 유지. 외체계·상점의 Zustand 구독을 필요한 필드로 제한. 기존 마크업·CSS 레이아웃 유지.
+- CSS는 겹치는 선언을 정적 점검했으나 안정성 테스트에서 전체 CSS 캐스케이드의 원본 동일성을 강제하고 있어, 중복 제거 시도는 되돌렸다. 별도 승인 및 시각 검증 없이 CSS 구조 변경하지 말 것.
+- 4지역 개발 시에만 `wildCatalog.js`의 지역별 파일 분리와 `wildData.js` 지역 해금 하드코딩 일반화를 검토. 분기 진화 관계 구조, 전투·경제 수치 계산 최적화, `saveCodec.js` 분리는 미래 요구가 명확해졌을 때 검토. 현재 임의 변경 금지.
+- 확인: PR 검증은 GitHub Actions의 `npm test`와 `npm run build`이며, 실제 기기 브라우저의 PC/모바일 시각 검증 및 배포 반영 여부는 별개다.

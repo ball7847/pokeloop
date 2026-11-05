@@ -298,3 +298,13 @@
 - 설정의 **오프라인 1시간 보상** 버튼은 클릭할 때마다 기존 오프라인 생산 대기열에 3600초를 추가한다. **전투/처치·자동 강화 구매는 수행하지 않고**, 기존 `tickEconomy`에 따라 경제 생산만 소규모 구간으로 순차 정산한다. 배속과 무관하게 클릭당 고정 3600초. 게임 실행 중에만 사용 가능.
 - 변경 코드: `src/components/GameClocks.jsx`, `src/store/useGameStore.js`, `src/pages/SettingsPage.jsx`, `src/components/CombatPanel.jsx`, `src/components/CombatBarAnimator.jsx`, `src/App.jsx`; 회귀 테스트: `tests/developerSimulation.test.js`.
 - **개발용 임시 기능**으로 정식 출시 전 제거 대상. 테스트·브라우저 성능 검증과 PR 병합 상태는 CI 결과를 별도로 확인한다.
+
+
+### 2026-11-05: 코드 전반 점검 및 보수적 정리
+- 기존 전투·재화 생산·희귀도 추첨·저장 형식은 유지한다.
+- 표시 오류: `TopBar.jsx` 및 `DittoPage.jsx`에 스텔라 영구 강화 상태를 전달하여 유효 메타몽 능력치 표시를 보정했다 (PR #178).
+- 자동화: `abilityAutomation.js`의 자기과신 다음 대상 탐색/승리 후 대기를 포켓몬별 `getKillLimit()`으로 판정하여 고정 1회 처치 대상을 지원한다 (PR #178).
+- 경제 안전: `energySystem.js`의 SE 소프트캡 비율이 일반 JS 숫자 범위를 초과하면 실효 0 배율로 안전 종료하여 무한 루프를 방지한다. 정상 범위 계산식은 유지한다 (PR #178).
+- UI 모듈: `EnergyPage.jsx`에서 `components/energy/StellarMap.jsx`, `components/energy/EnergyShop.jsx`를 분리했다. 외체계와 상점은 전투에만 영향을 받는 상태 갱신을 구독하지 않는다 (PR #179).
+- CSS: 중복 선언 후보를 점검했으나 기존 CSS의 동일 바이트 검사(회귀 테스트)를 유지하기 위해 스타일 파일을 그대로 보존했다 (PR #180). 화면 배치와 반응형 조건은 변경하지 않았다.
+- 보류: 4지역 추가 시 `wildCatalog.js` 지역별 데이터 분리와 지역 해금 분기 일반화 재검토. 분기 진화 도입 시 진화 관계 자료구조 검토. 성능 문제 실측 전 전투 엔진, 생산 공식, 저장 코덱을 대규모 개편하지 않는다.
