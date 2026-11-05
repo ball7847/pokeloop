@@ -23,9 +23,10 @@ export function CombatClock(){
     let wasHidden=typeof document!=='undefined'&&document.hidden;
     let combatDebtMs=0;
     const run=()=>{
-      const now=performance.now(),deltaMs=Math.max(0,now-last);
+      const now=performance.now(),realDeltaMs=Math.max(0,now-last);
       last=now;
       const store=useGameStore.getState();
+      const deltaMs=realDeltaMs*store.simulationSpeed;
       if(store.game.phase!=='running'){
         combatDebtMs=0;
         return;
@@ -70,7 +71,7 @@ export function CombatClock(){
       const now=performance.now();
       const delta=Math.max(0,now-last);
       if(wasHidden&&delta>0&&useGameStore.getState().game.phase==='running')
-        useGameStore.getState().queueOfflineProduction(delta/1000);
+        useGameStore.getState().queueOfflineProduction(delta*useGameStore.getState().simulationSpeed/1000);
       last=now;
       wasHidden=typeof document!=='undefined'&&document.hidden;
     };
