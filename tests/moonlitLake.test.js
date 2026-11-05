@@ -59,11 +59,11 @@ test('Gyarados is common and guaranteed after Magikarp first defeat, regardless 
 
 test('new Lake base slots, exact stats and type energy rewards',()=>{
  const azurill=getWildPokemon('azurill'),wingull=getWildPokemon('wingull'),feebas=getWildPokemon('feebas');
- assert.deepEqual([azurill.hp,azurill.attack,azurill.speed,azurill.minDamagePercent,azurill.maxDamagePercent],[1000,100,4000,100,200]);
+ assert.deepEqual([azurill.hp,azurill.attack,azurill.speed,azurill.minDamagePercent,azurill.maxDamagePercent],[2000,100,4000,100,200]);
  assert.deepEqual(azurill.rewards,{hp:30,attack:10,minDamagePercent:1,maxDamagePercent:2});
  assert.deepEqual(battleEnergyRewards(azurill,0),{노말:50,페어리:50});
  assert.deepEqual([wingull.hp,wingull.specialAttack,wingull.speed,wingull.accuracy,wingull.regeneration],
-   [1333,70,1533,333,0]);
+   [2333,70,1533,333,0]);
  assert.equal(wingull.dodge,33);
  assert.deepEqual(wingull.rewards,{specialAttack:13,accuracy:13,dodge:3});
  assert.deepEqual(battleEnergyRewards(wingull,0),{물:55.6,비행:55.6});
@@ -81,9 +81,9 @@ test('Azurill evolves through two independently rolled uncommon stages on first 
  assert.equal(evolutionChance(marill,{uncommonChance:0}),0);
  assert.equal(evolutionChance(marill,{uncommonChance:.5}),.5);
  assert.equal(evolutionChance(azumarill,{uncommonChance:.5}),.5);
- assert.deepEqual([marill.hp,marill.attack,marill.speed,marill.minDamagePercent,marill.maxDamagePercent],[1830,100,3000,150,200]);
+ assert.deepEqual([marill.hp,marill.attack,marill.speed,marill.minDamagePercent,marill.maxDamagePercent],[2830,100,3000,150,200]);
  assert.deepEqual(marill.rewards,{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3});
- assert.deepEqual([azumarill.hp,azumarill.attack,azumarill.speed,azumarill.minDamagePercent,azumarill.maxDamagePercent],[1840,250,2800,200,200]);
+ assert.deepEqual([azumarill.hp,azumarill.attack,azumarill.speed,azumarill.minDamagePercent,azumarill.maxDamagePercent],[2830,250,2800,200,200]);
  assert.deepEqual(azumarill.rewards,{hp:100,attack:50,minDamagePercent:5,maxDamagePercent:5});
  assert.deepEqual(battleEnergyRewards(marill,0),{물:75,페어리:75});
  assert.deepEqual(battleEnergyRewards(azumarill,0),{물:200,페어리:200});
@@ -102,7 +102,7 @@ test('rare Milotic is registered but cannot roll naturally until rare odds are c
  assert.equal(evolutionChance(milotic,prepared()),0);
  assert.equal(evolutionChance(milotic,{rareChance:0.12}),0.12);
  assert.deepEqual([milotic.hp,milotic.specialAttack,milotic.defense,milotic.specialDefense,milotic.regeneration,milotic.speed],
-   [3950,100,118.5,125,35,1750]);
- assert.deepEqual(milotic.rewards,{hp:100,specialDefense:40});
- assert.deepEqual(battleEnergyRewards(milotic,0),{물:350});
+   [4950,100,118.5,125,35,1750]);
+ assert.deepEqual(milotic.rewards,{hp:350,specialDefense:62});
+ assert.deepEqual(battleEnergyRewards(milotic,0),{물:740});
 });
