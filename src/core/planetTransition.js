@@ -3,6 +3,7 @@ import {collectPendingItems} from './itemSystem.js';
 import {rollEncounterSlots} from './raritySystem.js';
 import {ENCOUNTER_SLOTS,UNCOMMON_BASE_CHANCE} from './wildData.js';
 import {stellarUncommonBonus} from './stellarUpgrades.js';
+import {activePlanetEncounterBonuses} from './planetEncounterBonuses.js';
 
 // All preservation and reroll decisions for a planet transition are kept in one
 // place. The caller supplies fresh initial state so no gameplay system is reset
@@ -13,7 +14,8 @@ export function prepareNextPlanet(state,random=Math.random){
  const uncommonChance=Math.min(1,Math.round(((preserved.planetMoves>=1?0.05:UNCOMMON_BASE_CHANCE)+stellarUncommonBonus(preserved))*100)/100);
  const raritySlotResults=rollEncounterSlots(ENCOUNTER_SLOTS,{
   chances:{uncommon:uncommonChance},lifetimeKills:state.dexLifetimeKills,
-  guaranteed:[...(state.rarityGuarantees??[]),...(preserved.planetMoves===1?['psyduck']:preserved.planetMoves===2?['ponyta']:[])],banished:state.rarityBanishments??[],
+  guaranteed:state.rarityGuarantees??[],banished:state.rarityBanishments??[],
+  bonuses:activePlanetEncounterBonuses(preserved.planetMoves+1,state.dexDiscovered,ENCOUNTER_SLOTS),
   special:state.raritySpecialUnlocks??[],random
  });
  return {...preserved,...items,uncommonChance,
