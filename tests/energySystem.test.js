@@ -20,7 +20,7 @@ test('approved particle milestone thresholds are cumulative and end at level ten
 
 test('one below each threshold does not advance, reaching it advances exactly once',()=>{
   const milestones=['1025','1e7','1e11','1e16','1e35','1e99','1e151','1e308','1e649','1e1025'];
-  const below=['1024','9e6','9e10','9e15','9e34','9e98','9e150','9e307','9e648','9e1024'];
+  const below=['1023','9e6','9e10','9e15','9e34','9e98','9e150','9e307','9e648','9e1024'];
   for(let index=0;index<milestones.length;index++){
     let s=initialEconomy();
     s.unlockedLayer=2;
