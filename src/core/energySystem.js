@@ -38,7 +38,7 @@ const PARTICLE_MILESTONE_THRESHOLDS=Object.freeze([
 ]);
 export function particleMilestoneThreshold(level){
   if(level<=0)return PARTICLE_MILESTONE_THRESHOLDS[0];
-  return PARTICLE_MILESTONE_THRESHOLDS[Math.min(9,Math.floor(level))];
+  if(level>=10)return null; // No eleventh milestone.\n  return PARTICLE_MILESTONE_THRESHOLDS[Math.floor(level)];
 }
 // Milestones are bounded to 0..10; cache their immutable production factors
 // rather than recomputing Decimal powers on every economy substep.
