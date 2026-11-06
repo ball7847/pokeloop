@@ -1,9 +1,45 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialEconomy,grantBattleEnergy,purchaseWithEnergy,tickEconomy,movePlanet,
-  LAYERS,TYPES,particleRates} from '../src/core/energySystem.js';
+  LAYERS,TYPES,particleRates,particleMilestoneThreshold,productionMultiplier} from '../src/core/energySystem.js';
 import {initialState,transition} from '../src/core/gameState.js';
+import {compareAmount} from '../src/core/bigNumber.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
+
+test('approved particle milestone thresholds are cumulative and end at level ten',()=>{
+  const targets=['1025','1e7','1e11','1e16','1e35','1e99','1e151','1e308','1e649','1e1025'];
+  targets.forEach((expected,index)=>{
+    assert.equal(compareAmount(particleMilestoneThreshold(index),expected),0,`threshold ${index+1}`);
+  });
+  assert.equal(particleMilestoneThreshold(10),null);
+  assert.equal(particleMilestoneThreshold(11),null);
+  assert.equal(particleMilestoneThreshold(0),1025);
+  assert.equal(compareAmount(productionMultiplier(2),'1000'),0);
+  assert.equal(compareAmount(productionMultiplier(10),'1e54'),0);
+});
+
+test('one below each threshold does not advance, reaching it advances exactly once',()=>{
+  const milestones=['1025','1e7','1e11','1e16','1e35','1e99','1e151','1e308','1e649','1e1025'];
+  const below=['1024','9e6','9e10','9e15','9e34','9e98','9e150','9e307','9e648','9e1024'];
+  for(let index=0;index<milestones.length;index++){
+    let s=initialEconomy();
+    s.unlockedLayer=2;
+    s.particleMilestones.물=index;
+    s.particleEarned.물=below[index];
+    s.energyBalances.물=milestones[index];
+    s=purchaseWithEnergy(s,{물:'1'});
+    assert.equal(s.particleMilestones.물,index,`must not advance before ${milestones[index]}`);
+    s={...s,particleEarned:{...s.particleEarned,물:milestones[index]},energyBalances:{...s.energyBalances,물:1}};
+    s=purchaseWithEnergy(s,{물:1});
+    assert.equal(s.particleMilestones.물,index+1,`must advance at ${milestones[index]}`);
+  }
+  let maxed=initialEconomy();
+  maxed.unlockedLayer=2;
+  maxed.particleMilestones.물=10;
+  maxed.particleEarned.물='1e1026';
+  maxed.energyBalances.물=1;
+  assert.equal(purchaseWithEnergy(maxed,{물:1}).particleMilestones.물,10);
+});
 
 test('18 types are assigned once across the 10 fixed layers',()=>{
   assert.equal(LAYERS.length,10);
