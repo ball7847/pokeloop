@@ -90,7 +90,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     events.push(event);
     if(timeline.length<logLimit)timeline.push(event);
   };
-  const act=action=>{const previous=state;const next=transition(state,action);const changed=next!==state;state=next;if(changed&&observe)observe({action:action.type,before:previous,after:state,battles,seconds,events:events.length});return changed;};
+  const act=action=>{const previous=state;const next=transition(state,action);const changed=next!==state;state=next;if(changed&&observe)observe({action:action.type,deltaMs:action.deltaMs??null,before:previous,after:state,battles,seconds,events:events.length});return changed;};
   function shop(){
     let changed=false;
     // Actions are attempted with real balances; failed attempts do not mutate state.
