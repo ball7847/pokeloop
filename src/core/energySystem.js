@@ -30,10 +30,16 @@ export function initialEconomy(){
     unlockedLayer:1,normalFirstMilestonePermanent:false,pendingStellar:0,stellar:0,totalStellarEarned:0,planetMoves:0,
     energyUpgrades:{},qolUnlocks:[],permanentUpgrades:{},pointCirculationUnlocked:false};
 }
+// Thresholds are cumulative earned particles, shared by every type and layer.
+// String notation preserves exponents beyond JavaScript Number's finite range.
+const PARTICLE_MILESTONE_THRESHOLDS=Object.freeze([
+  FIRST_MILESTONE,'1e7','1e11','1e16','1e35',
+  '1e99','1e151','1e308','1e649','1e1025'
+]);
 export function particleMilestoneThreshold(level){
-  if(level<=0)return FIRST_MILESTONE;
-  // First particle milestone is 1025; later thresholds currently use the provisional existing progression.
-  return storedAmount(decimal(FIRST_MILESTONE).mul(decimal(1e3).pow(level)));
+  if(level<=0)return PARTICLE_MILESTONE_THRESHOLDS[0];
+  if(level>=10)return null; // No eleventh milestone.
+  return PARTICLE_MILESTONE_THRESHOLDS[Math.floor(level)];
 }
 // Milestones are bounded to 0..10; cache their immutable production factors
 // rather than recomputing Decimal powers on every economy substep.
