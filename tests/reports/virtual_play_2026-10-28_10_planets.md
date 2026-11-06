@@ -1,5 +1,7 @@
 # PokeLoop 다회차 가상 플레이 상세 보고서 (2026-10-28)
 
+> **최신 2계층 입자 분석 (2026-11-06):** [2026-11-06 최신 10시드 가상 플레이·입자 생산 보고서](./virtual_play_2026-11-06_layer2.md) 참고. 본 문서는 2026-10-28의 역사적 실행 결과로 보존되며 최신 코드의 결과가 아닙니다.
+
 - 원본: GitHub main 최신 코드 + `development/VIRTUAL_PLAY_RULES.md`
 - 실행: `tests/virtualPlay10Planets20261028.test.js`, 실전 `transition` 함수와 전투/경제/이동/구매 액션
 - 난수: 모든 `random()` 호출에 `0.5` 고정. 확률 분포/실제 평균 승률 검증이 아님.
