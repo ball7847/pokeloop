@@ -77,7 +77,7 @@ function identity(state){
   return JSON.stringify([state.killCounts,state.energyUpgrades,state.qolUnlocks,
     state.pointCirculationUnlocked,state.permanentUpgrades]);
 }
-export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode='fast',logLimit=5000,maxBattles=6000,maxTicks=250000}={}){
+export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode='fast',logLimit=5000,maxBattles=6000,maxTicks=250000,observe=null}={}){
   if(!['fast','exact'].includes(mode))throw new RangeError('Invalid combat mode');
   let state=start.phase==='ready'?transition(start,{type:'START'}):start;
   const startMoves=state.planetMoves,started={...state.killCounts};
@@ -90,7 +90,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     events.push(event);
     if(timeline.length<logLimit)timeline.push(event);
   };
-  const act=action=>{const next=transition(state,action);const changed=next!==state;state=next;return changed;};
+  const act=action=>{const previous=state;const next=transition(state,action);const changed=next!==state;state=next;if(changed&&observe)observe({action:action.type,before:previous,after:state,battles,seconds,events:events.length});return changed;};
   function shop(){
     let changed=false;
     // Actions are attempted with real balances; failed attempts do not mutate state.
@@ -338,13 +338,13 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
   return {state,report};
 }
 export function runMultiPlanet({maxMoves=10,random=()=>0.5,encounterRandom=random,combatRandom=random,mode='fast',logLimit=5000,
-  maxBattles=6000,maxTicks=250000}={}){
+  maxBattles=6000,maxTicks=250000,observe=null}={}){
   if(!Number.isInteger(maxMoves)||maxMoves<0||maxMoves>10)throw RangeError('maxMoves must be 0..10');
   let state=transition(initialState(),{type:'START'});
   const planets=[],moves=[];
   let stop='move-budget',repeatForecast=null;
   for(let cycle=0;cycle<=maxMoves;cycle++){
-    const {state:finished,report}=playOnePlanet(state,{random:combatRandom,encounterRandom,mode,logLimit,maxBattles,maxTicks});
+    const {state:finished,report}=playOnePlanet(state,{random:combatRandom,encounterRandom,mode,logLimit,maxBattles,maxTicks,observe});
     state=finished;planets.push(report);
     if(report.reason==='battle-budget'||report.reason==='combat-tick-budget'){
       stop=report.reason;break;
