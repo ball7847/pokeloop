@@ -161,6 +161,11 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
       return {result:'blocked',wins:0};
     }
     if(!firstChallenges[id])firstChallenges[id]=statsSnapshot(state);
+    if(id==='tropius')note('tropius-prebattle',{
+      attempt:(attempts[id]??0)+1,stats:statsSnapshot(state),
+      otherKills:{buizel:state.killCounts.buizel??0,cutiefly:state.killCounts.cutiefly??0,azurill:state.killCounts.azurill??0},
+      hp:state.combat.currentHp,upgrades:{...state.energyUpgrades}
+    });
     toggleHunger(startingKills<target-1);
     if(!act({type:'SELECT_WILD',pokemonId:id})||!state.combat.active)
       return {result:'unavailable',wins:0};
@@ -170,6 +175,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
       while(state.combat.active&&(state.killCounts[id]??0)<target&&steps++<capForId(id)){
         if((state.killCounts[id]??0)>=target-1)toggleHunger(false);
         const estimate=estimateExpectedBattle(state,id);
+        if(id==='tropius')note('tropius-estimate',{attempt:attempts[id],estimate});
         note('expected-combat',{id,seconds:estimate.seconds,outcome:estimate.result,
           uncertain:estimate.uncertain,reason:estimate.reason});
         // Ambiguous model outputs must not create fictitious victories or defeats.
