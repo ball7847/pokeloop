@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {BERRY_REGION,BERRY_POKEMON,ENCOUNTER_SLOTS,appearedInRegion,battleEnergyRewards,evolutionFor,evolutionChance,getKillLimit,getWildPokemon,isRegionUnlocked} from '../src/core/wildData.js';
+import {migrateEncounterSave} from '../src/core/encounterSave.js';
+import {rollEncounterSlots} from '../src/core/raritySystem.js';
+
+test('Berry Forest Shroomish and Breloom preserve existing slots and use approved stats',()=>{
+ const shroomish=getWildPokemon('shroomish'),breloom=getWildPokemon('breloom');
+ assert.equal(shroomish.encounterCode,'W020202');
+ assert.equal(breloom.encounterCode,'W020202-E1');
+ assert.equal(shroomish.rarity,'uncommon');
+ assert.equal(breloom.rarity,'uncommon');
+ assert.deepEqual([shroomish.hp,shroomish.attack,shroomish.multiStrike,shroomish.antidote,shroomish.regeneration,shroomish.poison,shroomish.speed],[285,40,50,40,40,40,2500]);
+ assert.deepEqual([breloom.hp,breloom.attack,breloom.multiStrike,breloom.antidote,breloom.regeneration,breloom.poison,breloom.speed],[1286,130,250,60,0,60,1300]);
+ assert.deepEqual(shroomish.rewards,{antidote:28,poison:15});
+ assert.deepEqual(breloom.rewards,{attack:30,multiStrike:30,antidote:33,poison:15});
+ assert.deepEqual(battleEnergyRewards(shroomish),{'풀':50});
+ assert.deepEqual(battleEnergyRewards(breloom),{'풀':186,'격투':186});
+ assert.equal(getKillLimit(shroomish),10);
+ assert.equal(getKillLimit(breloom),10);
+ assert.equal(evolutionFor('shroomish'),breloom);
+ assert.equal(evolutionChance(breloom,{uncommonChance:0.05}),0.05);
+ assert.equal(getWildPokemon('weedle').encounterCode,'W020201');
+ assert.equal(getWildPokemon('taillow').encounterCode,'W020301');
+ assert.equal(getWildPokemon('pikachu').encounterCode,'W020502');
+ assert.equal(BERRY_POKEMON.filter(p=>!p.evolvesFrom&&p.rarity==='uncommon').length,2);
+ assert.equal(ENCOUNTER_SLOTS.filter(s=>s.candidates.includes('breloom')).length,0);
+});
+test('Berry Forest new encounter is conditional, ordered and safe for existing saves',()=>{
+ const oldSlots=ENCOUNTER_SLOTS.filter(s=>s.id!=='W020202');
+ const oldResults=rollEncounterSlots(oldSlots,{chances:{uncommon:0}});
+ const migrated=migrateEncounterSave({raritySlotResults:oldResults},17);
+ assert.equal(migrated.raritySlotResults.W020202,null);
+ for(const [id,result] of Object.entries(oldResults))assert.equal(migrated.raritySlotResults[id],result);
+ assert.equal(appearedInRegion(migrated,BERRY_REGION.id).some(p=>p.id==='shroomish'),false);
+ const selected={...migrated,raritySlotResults:{...migrated.raritySlotResults,W020202:'shroomish'}};
+ assert.deepEqual(appearedInRegion(selected,BERRY_REGION.id).slice(0,4).map(p=>p.id),['caterpie','weedle','shroomish','taillow']);
+ assert.deepEqual(appearedInRegion({...selected,evolutionResults:{breloom:true}},BERRY_REGION.id).slice(0,5).map(p=>p.id),['caterpie','weedle','shroomish','breloom','taillow']);
+ const kills=Object.fromEntries(['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela'].map(id=>[id,1]));
+ assert.equal(isRegionUnlocked({...selected,killCounts:kills},'moonlit-lake'),true);
+ const rolled=rollEncounterSlots(ENCOUNTER_SLOTS,{chances:{uncommon:0.05},random:()=>0});
+ assert.equal(rolled.W020202,'shroomish');
+});
