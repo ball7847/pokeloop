@@ -41,6 +41,8 @@ const berryEntries=[
 {id:'metapod',evolvesFrom:'caterpie',rarity:'common',number:11,name:'단데기',types:['벌레'],energyReward:5,hp:150,attack:20,defense:11,speed:4500,rewards:{hp:10,defense:1}},
 {id:'weedle',number:13,name:'뿔충이',types:['벌레','독'],energyReward:3,hp:80,attack:14,speed:3500,rewards:{hp:7}},
 {id:'kakuna',evolvesFrom:'weedle',rarity:'common',number:14,name:'딱충이',types:['벌레','독'],energyReward:5,hp:160,attack:20,defense:10,speed:5000,rewards:{hp:10,defense:1}},
+{id:'shroomish',number:285,name:'버섯꼬',types:['풀'],rarity:'uncommon',hp:285,attack:40,multiStrike:50,antidote:40,regeneration:40,poison:40,speed:2500,energyReward:50,rewards:{antidote:28,poison:15}},
+{id:'breloom',number:286,name:'버섯모',types:['풀','격투'],rarity:'uncommon',evolvesFrom:'shroomish',hp:1286,attack:130,multiStrike:250,antidote:60,poison:60,speed:1300,energyReward:186,rewards:{attack:30,multiStrike:30,antidote:33,poison:15}},
 {id:'taillow',number:276,name:'테일로',types:['노말','비행'],energyReward:27.6,hp:80,attack:11,speed:1100,rewards:{attack:2.76,speed:-20}},
 {id:'swellow',evolvesFrom:'taillow',rarity:'uncommon',number:277,name:'스왈로',types:['노말','비행'],hp:600,attack:15,specialAttack:15,speed:825,accuracy:277,energyReward:30,rewards:{accuracy:14}},
 {id:'igglybuff',number:174,name:'푸푸린',types:['노말','페어리'],energyReward:39,hp:180,attack:6,specialAttack:20,specialDefense:4,speed:2000,rewards:{hp:18,specialAttack:5}},
@@ -57,6 +59,7 @@ const berryEntries=[
 const berryEncounterCodes=Object.freeze({
   caterpie:'W020101',metapod:'W020101-E1',
   weedle:'W020201',kakuna:'W020201-E1',
+  shroomish:'W020202',breloom:'W020202-E1',
   taillow:'W020301',swellow:'W020301-E1',pikachu:'W020502',
   igglybuff:'W020401','nidoran-m':'W020601','nidoran-f':'W020701',tangela:'W020801',bidoof:'W020901',surskit:'W021001',tropius:'W021101'
 });
