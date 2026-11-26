@@ -120,7 +120,7 @@ Lv는 구매 전 레벨. 외체계 노말 5개 노드만 구현. 기타 타입 �
 |geodude|6|
 |exeggcute|8|
 |sentret|10|
-|tauros|20|
+|tauros|50|
 |fearow|25|
 |bulbasaur|100|
 |charmander|100|
