@@ -8,7 +8,7 @@ import {encodeSave,decodeSave,SAVE_VERSION} from '../src/core/saveCodec.js';
 test('normal reward always and conditional ten percent extras, no duplicate normal',()=>{
  const fire=getWildPokemon('charmander'),pika=getWildPokemon('pikachu'),bird=getWildPokemon('pidgey'),lotad=getWildPokemon('lotad');
  assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:1}),{노말:28});
- assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:2}),{노말:28,불꽃:2.8});
+ assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:2}),{노말:28,불꽃:28*0.1});
  assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:2}),{노말:35});
  assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:3}),{노말:35,전기:3.5});
  assert.deepEqual(battleEnergyRewards(bird,0,{unlockedLayer:4}),{노말:2,비행:0.2});
