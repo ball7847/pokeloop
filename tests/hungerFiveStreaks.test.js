@@ -232,7 +232,7 @@ test('two real playthroughs separated by planet move; all victories and currency
  // Once all accessible earlier species have reached their real caps, wait for the
  // installed circulation to generate *real* normal energy and buy available upgrades.
  // No currency/particles/stats are injected directly.
- while(!(Number(s.pendingStellar)>0)&&interludeSeconds<maximumWaitSeconds){
+ while((Number(s.pendingStellar)<1||s.recoveryMs>0)&&interludeSeconds<maximumWaitSeconds){
   if(s.recoveryMs>0)s=transition(s,{type:'RECOVERY_TICK',deltaMs:Math.min(5000,s.recoveryMs)});
   s=transition(s,{type:'ECONOMY_TICK',deltaMs:5000});interludeSeconds+=5;
   if(interludeSeconds%30===0){

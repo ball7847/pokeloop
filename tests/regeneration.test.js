@@ -10,7 +10,7 @@ test('Tangela occupies an ordinary Berry Forest slot with its specified stats an
   assert.equal(p.encounterCode,'W020801');
   assert.deepEqual(p.types,['풀']);
   assert.equal(p.hp,195);
-  assert.equal(p.energyReward,11.4);
+  assert.equal(p.energyReward,228);
   assert.equal(p.specialAttack,15.5);
   assert.equal(p.regeneration,5);
   assert.equal(p.speed,1600);
