@@ -15,11 +15,11 @@ export const LAYERS=Object.freeze([
   {name:'초월',types:['페어리']}
 ].map((layer,index)=>Object.freeze({...layer,level:index+1,types:Object.freeze(layer.types)})));
 export const FIRST_MILESTONE=1025;
-export const POINT_CIRCULATION=Object.freeze({id:'point',abilityId:'AB03',name:'슬로스타트',costs:Object.freeze({노말:10,벌레:10,비행:10}),production:Object.freeze({노말:0.5})});
+export const POINT_CIRCULATION=Object.freeze({id:'point',abilityId:'AB03',name:'슬로스타트',costs:Object.freeze({노말:100}),production:Object.freeze({노말:1})});
 export function buyPointCirculation(state){
   if(state.pointCirculationUnlocked)return state;
   const purchased=purchaseWithEnergy(state,POINT_CIRCULATION.costs);
-  return purchased===state?state:{...purchased,pointCirculationUnlocked:true};
+  return purchased===state?state:{...purchased,pointCirculationUnlocked:true,automation:{...purchased.automation,point:true}};
 }
 
 const layerByType=new Map(LAYERS.flatMap(layer=>layer.types.map(type=>[type,layer.level])));
@@ -163,7 +163,7 @@ export function tickEconomy(state,seconds){
       }
     }
   }
-  const energy=state.pointCirculationUnlocked?
+  const energy=state.pointCirculationUnlocked&&state.automation?.point!==false?
     {...state.energyBalances,노말:addAmount(state.energyBalances['노말']??0,multiplyAmount(POINT_CIRCULATION.production['노말'],seconds))}:
     state.energyBalances;
   return processMilestones({...state,energyBalances:energy,particleBalances:particles,particleEarned:earned,pendingStellar:pending});

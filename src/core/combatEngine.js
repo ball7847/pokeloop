@@ -3,7 +3,7 @@ import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy,unlockLayerForVictory} from './energySystem.js';
 import {recordItemProgress} from './itemSystem.js';
 import {stellarBattleEnergyReward} from './stellarUpgrades.js';
-import {effectiveDittoStats} from './shopSystem.js';
+import {effectiveDittoStats,grantVictoryAbility} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
 import {appendDamageEvents,appendStatusDamageEvent,appendHealingEvent} from './combatVisualEvents.js';
 export const emptyCombat = hp=>({
@@ -56,7 +56,7 @@ function finish(state,c,type,random=Math.random) {
       stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
     const energyRewards=calculateBattleEnergyRewards(state,p,count);
-    let rewarded=unlockLayerForVictory(state,p.id,count);
+    let rewarded=grantVictoryAbility(unlockLayerForVictory(state,p.id,count),p.id,count);
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
     const evolution=count===0?evolutionFor(p.id):null;

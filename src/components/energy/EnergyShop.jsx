@@ -30,8 +30,8 @@ export function EnergyShop({energyTab}){
         })}
         {energyTab==='abilities'&&<>
           <div className="energy-shop-item">
-            <div><strong>{POINT_CIRCULATION.abilityId} · {POINT_CIRCULATION.name}</strong><small>노말 에너지 +0.5/초</small></div>
-            {game.pointCirculationUnlocked?<button type="button" disabled>구매 완료</button>:
+            <div><strong>{POINT_CIRCULATION.abilityId} · {POINT_CIRCULATION.name}</strong><small>노말 에너지 +1/초</small></div>
+            {game.pointCirculationUnlocked?<button type="button" aria-pressed={game.automation?.point!==false} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:'point'})}>{game.automation?.point!==false?'활성화 · 끄기':'비활성화 · 켜기'}</button>:
               <button type="button" disabled={game.phase!=='running'||Object.entries(POINT_CIRCULATION.costs).some(([type,cost])=>typeLayer(type)>game.unlockedLayer||compareAmount(game.energyBalances[type]??0,cost)<0)}
                 onClick={()=>dispatch({type:'BUY_CIRCULATION',id:POINT_CIRCULATION.id})}>{Object.entries(POINT_CIRCULATION.costs).map(([type,cost],index)=><React.Fragment key={type}>{index>0?' + ':''}<EnergyTypeIcon type={type}/>{type} 에너지 {formatAmount(cost)}</React.Fragment>)} 구매</button>}
           </div>
@@ -42,6 +42,7 @@ export function EnergyShop({energyTab}){
               <div><strong>{item.abilityId} · {item.name}</strong><small>{item.description}</small></div>
               {owned?<button type="button" aria-pressed={active} onClick={()=>dispatch({type:'TOGGLE_AUTOMATION',id:item.id})}>
                 {active?'활성화 · 끄기':'비활성화 · 켜기'}</button>:
+                item.victoryPokemonId?<button type="button" disabled>갸라도스 첫 처치 시 획득</button>:
                 <button type="button" disabled={typeLayer(item.type)>game.unlockedLayer||compareAmount(game.energyBalances[item.type]??0,item.cost)<0||game.phase==='paused'}
                   onClick={()=>dispatch({type:'BUY_AUTOMATION',id:item.id})}><EnergyTypeIcon type={item.type}/>{item.type} 에너지 {item.cost} 해금</button>}
               {item.id==='download'&&owned&&<div className="energy-auto-buy-options" aria-label="다운로드 자동 구매 항목 설정">

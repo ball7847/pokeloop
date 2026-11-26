@@ -29,10 +29,10 @@ export const AUTOMATIONS=Object.freeze([
   {id:'hunger',abilityId:'AB01',name:'먹보',type:'노말',cost:1,description:'승리 후 현재 HP를 유지하며 같은 적에게 즉시 재도전'},
   {id:'resolve',abilityId:'AB02',name:'불굴의마음',type:'노말',cost:5,description:'패배 후 10초 회복을 마치면 같은 적에게 자동 재도전'},
   {id:'download',abilityId:'AB04',name:'다운로드',type:'노말',cost:200,description:'선택한 일반 강화를 현재 구매 비용이 낮은 순서로 자동 구매'},
-  {id:'moxie',abilityId:'AB05',name:'자기과신',type:'악',cost:10,description:'10회 처치 후 다음 대상 및 해금 지역으로 자동 도전'},
-  {id:'intimidate',abilityId:'AB06',name:'위협',type:'악',cost:25,description:'10회 처치한 포켓몬 카드를 자동으로 숨김'}
+  {id:'moxie',abilityId:'AB05',name:'자기과신',type:'노말',cost:1000,description:'10회 처치 후 다음 대상 및 해금 지역으로 자동 도전'},
+  {id:'intimidate',abilityId:'AB06',name:'위협',victoryPokemonId:'gyarados',description:'10회 처치한 포켓몬 카드를 자동으로 숨김'}
 ]);
-export const DEFAULT_AUTOMATION=Object.freeze({hunger:false,resolve:false,download:false,moxie:false,intimidate:false});
+export const DEFAULT_AUTOMATION=Object.freeze({hunger:false,resolve:false,download:false,moxie:false,intimidate:false,point:false});
 export const DEFAULT_AUTO_BUY_SELECTION=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,true])));
 export function upgradeCost(id,level){
   const item=UPGRADE_BY_ID[id];
@@ -84,13 +84,20 @@ export function buyUpgrade(state,id){
 }
 export function buyAutomation(state,id){
   const item=AUTOMATIONS.find(x=>x.id===id);
-  if(!item||state.qolUnlocks.includes(id))return state;
+  if(!item||item.victoryPokemonId||state.qolUnlocks.includes(id))return state;
   const spent=purchaseWithEnergy(state,{[item.type]:item.cost});
   if(spent===state)return state;
   return {...spent,qolUnlocks:[...state.qolUnlocks,id],
     automation:{...state.automation,[id]:true}};
 }
+export function grantVictoryAbility(state,id,count){
+ if(count!==0)return state;
+ const item=AUTOMATIONS.find(x=>x.victoryPokemonId===id);
+ if(!item||state.qolUnlocks.includes(item.id))return state;
+ return {...state,qolUnlocks:[...state.qolUnlocks,item.id],automation:{...state.automation,[item.id]:true}};
+}
 export function toggleAutomation(state,id){
+ if(id==='point')return state.pointCirculationUnlocked?{...state,automation:{...state.automation,point:state.automation?.point===false}}:state;
   if(!AUTOMATIONS.some(x=>x.id===id)||!state.qolUnlocks.includes(id))return state;
   return {...state,automation:{...state.automation,[id]:!state.automation[id]},
     retryPokemonId:id==='resolve'&&state.automation.resolve?null:state.retryPokemonId};
