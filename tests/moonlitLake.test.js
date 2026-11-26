@@ -61,16 +61,16 @@ test('new Lake base slots, exact stats and type energy rewards',()=>{
  const azurill=getWildPokemon('azurill'),wingull=getWildPokemon('wingull'),feebas=getWildPokemon('feebas');
  assert.deepEqual([azurill.hp,azurill.attack,azurill.speed,azurill.minDamagePercent,azurill.maxDamagePercent],[2000,100,4000,100,200]);
  assert.deepEqual(azurill.rewards,{hp:30,attack:10,minDamagePercent:1,maxDamagePercent:2});
- assert.deepEqual(battleEnergyRewards(azurill,0),{노말:50,페어리:50});
+ assert.deepEqual(battleEnergyRewards(azurill,0),{노말:50});
  assert.deepEqual([wingull.hp,wingull.specialAttack,wingull.speed,wingull.accuracy,wingull.regeneration],
    [2333,70,1533,333,0]);
  assert.equal(wingull.dodge,33);
  assert.deepEqual(wingull.rewards,{specialAttack:13,accuracy:13,dodge:3});
- assert.deepEqual(battleEnergyRewards(wingull,0),{물:55.6,비행:55.6});
+ assert.deepEqual(battleEnergyRewards(wingull,0),{노말:55.6});
  assert.deepEqual([feebas.hp,feebas.specialAttack,feebas.defense,feebas.specialDefense,feebas.regeneration,feebas.speed],
    [95,10,1250,79,95,3500]);
  assert.deepEqual(feebas.rewards,{});
- assert.deepEqual(battleEnergyRewards(feebas,0),{물:20});
+ assert.deepEqual(battleEnergyRewards(feebas,0),{노말:20});
  assert.deepEqual(ENCOUNTER_SLOTS.filter(slot=>slot.id.startsWith('W03')).map(slot=>slot.id),
    ['W030101','W030201','W030302','W030401','W030501','W030601','W030701','W030801','W030901','W031101','W031001']);
 });
@@ -85,8 +85,8 @@ test('Azurill evolves through two independently rolled uncommon stages on first 
  assert.deepEqual(marill.rewards,{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3});
  assert.deepEqual([azumarill.hp,azumarill.attack,azumarill.speed,azumarill.minDamagePercent,azumarill.maxDamagePercent],[2830,250,2800,200,200]);
  assert.deepEqual(azumarill.rewards,{hp:100,attack:50,minDamagePercent:5,maxDamagePercent:5});
- assert.deepEqual(battleEnergyRewards(marill,0),{물:75,페어리:75});
- assert.deepEqual(battleEnergyRewards(azumarill,0),{물:200,페어리:200});
+ assert.deepEqual(battleEnergyRewards(marill,0),{노말:75});
+ assert.deepEqual(battleEnergyRewards(azumarill,0),{노말:200});
  const state=prepared(), kills={...state.killCounts,buizel:1,magikarp:1,cutiefly:1,azurill:1,marill:1};
  const linked={...state,killCounts:kills,evolutionResults:{marill:true,azumarill:true}};
  assert.deepEqual(appearedInRegion(linked,LAKE_REGION.id).map(p=>p.id),
@@ -104,5 +104,5 @@ test('rare Milotic is registered but cannot roll naturally until rare odds are c
  assert.deepEqual([milotic.hp,milotic.specialAttack,milotic.defense,milotic.specialDefense,milotic.regeneration,milotic.speed],
    [4950,100,118.5,125,35,1750]);
  assert.deepEqual(milotic.rewards,{hp:350,specialDefense:62});
- assert.deepEqual(battleEnergyRewards(milotic,0),{물:740});
+ assert.deepEqual(battleEnergyRewards(milotic,0),{노말:740});
 });

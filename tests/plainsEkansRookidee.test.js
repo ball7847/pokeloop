@@ -10,8 +10,8 @@ test('Ekans and Rookidee preserve exact stats and decaying poison/flying rewards
  assert.deepEqual(a.rewards,{dodge:20,poison:8});
  assert.deepEqual([b.hp,b.attack,b.defense,b.specialDefense,b.speed,b.accuracy,b.energyReward],[176,27,15,15,2300,200,8]);
  assert.deepEqual(b.rewards,{hp:8,defense:8,specialDefense:8,accuracy:4});
- assert.deepEqual(battleEnergyRewards(a,0),{독:8});
- assert.deepEqual(battleEnergyRewards(b,1),{비행:4});
+ assert.deepEqual(battleEnergyRewards(a,0),{노말:8});
+ assert.deepEqual(battleEnergyRewards(b,1),{노말:4});
  assert.equal(a.encounterCode,'W011102');assert.equal(b.encounterCode,'W011302');
 });
 test('all uncommon candidates only appear in correct 16-position order',()=>{

@@ -10,8 +10,8 @@ test('region 1 extends to 10 common species with configured stats, energy and fi
  assert.deepEqual(WILD_POKEMON.map(p=>p.id),ids);
  const expected=[
  ['meowth',20,1.8,1100,1000,{attack:1.5,multiStrike:4},{노말:10}],
- ['geodude',40,20,6000,0,{attack:2,defense:1},{바위:1,땅:1}],
- ['exeggcute',60,4,4700,0,{specialAttack:3},{풀:1,에스퍼:1}],
+ ['geodude',40,20,6000,0,{attack:2,defense:1},{노말:1}],
+ ['exeggcute',60,4,4700,0,{specialAttack:3},{노말:1}],
  ['sentret',100,4.6,2400,0,{hp:16.1},{노말:15}],
  ['tauros',225,20,1500,0,{hp:15,attack:5,defense:1,specialDefense:1},{노말:49}]
  ];

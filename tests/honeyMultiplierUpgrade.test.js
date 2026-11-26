@@ -20,7 +20,7 @@ test('honey upgrade increases effective honey additively per level without chang
  assert.equal(effectiveDittoStats({...s,energyUpgrades:{honeyMultiplier:10}}).honey,0);
 });
 test('purchase spends bug energy, preserves game state and survives save roundtrip',()=>{
- let s={...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,벌레:100},dittoStats:{...initialState().dittoStats,honey:100}};
+ let s={...initialState(),phase:'running',unlockedLayer:4,energyBalances:{...initialState().energyBalances,벌레:100},dittoStats:{...initialState().dittoStats,honey:100}};
  s=transition(s,{type:'BUY_UPGRADE',id:'honeyMultiplier'});
  assert.equal(s.energyBalances['벌레'],60);
  assert.equal(s.energyUpgrades.honeyMultiplier,1);
