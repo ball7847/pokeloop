@@ -131,7 +131,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     act({type:'ECONOMY_TICK',deltaMs:delta});
     seconds+=delta/1000;
     // Only circulation currently produces type energy outside battles.
-    if(state.pointCirculationUnlocked&&compareAmount(state.energyBalances.노말,before.노말)>0)
+    if(state.pointCirculationUnlocked&&state.automation.point&&compareAmount(state.energyBalances.노말,before.노말)>0)
       production.노말=addAmount(production.노말,subtractAmount(state.energyBalances.노말,before.노말));
   }
   function recover(){

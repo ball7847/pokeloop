@@ -181,36 +181,32 @@ test('actual repeated battles grant decaying type energy, not fixed payouts',()=
 });
 
 
-test('point circulation purchase requires unlocked types and is atomic and one-time',()=>{
- let s={...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:10,벌레:10,비행:9}};
+test('Slow Start purchases only normal energy and creates particles',()=>{
+ let s={...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:99}};
  assert.equal(transition(s,{type:'BUY_CIRCULATION',id:'point'}),s);
- assert.equal(s.particleBalances.노말,0);
- s={...s,energyBalances:{...s.energyBalances,비행:10}};
- assert.equal(transition(s,{type:'BUY_CIRCULATION',id:'point'}),s);
- s={...s,unlockedLayer:4};
+ s={...s,energyBalances:{...s.energyBalances,노말:100}};
  const purchased=transition(s,{type:'BUY_CIRCULATION',id:'point'});
  assert.equal(purchased.pointCirculationUnlocked,true);
- for(const type of ['노말','벌레','비행'])assert.equal(purchased.energyBalances[type],0);
- assert.equal(purchased.particleBalances.노말,10);
- assert.equal(purchased.particleEarned.노말,10);
- assert.equal(purchased.particleBalances.벌레,10);
- assert.equal(purchased.particleBalances.비행,10);
- assert.equal(purchased.particleEarned.벌레,10);
+ assert.equal(purchased.automation.point,true);
+ assert.equal(purchased.energyBalances.노말,0);
+ assert.equal(purchased.particleBalances.노말,100);
+ assert.equal(purchased.particleEarned.노말,100);
  assert.equal(transition(purchased,{type:'BUY_CIRCULATION',id:'point'}),purchased);
  assert.equal(transition({...s,phase:'paused'},{type:'BUY_CIRCULATION',id:'point'}).pointCirculationUnlocked,false);
 });
-test('point circulation produces 0.5 normal energy per second without battle or first milestone',()=>{
- let s={...initialState(),phase:'running',pointCirculationUnlocked:true};
+test('Slow Start produces one normal energy per second and toggles',()=>{
+ let s={...initialState(),phase:'running',pointCirculationUnlocked:true,automation:{...initialState().automation,point:true}};
  s=transition(s,{type:'ECONOMY_TICK',deltaMs:1000});
- assert.equal(s.energyBalances.노말,0.5);
- assert.equal(s.unlockedLayer,1);
- assert.equal(s.particleBalances.노말,0);
+ assert.equal(s.energyBalances.노말,1);
  s=tickEconomy(s,5);
- assert.equal(s.energyBalances.노말,3);
- assert.equal(s.particleBalances.노말,0);
- const paused=transition({...s,phase:'paused'},{type:'ECONOMY_TICK',deltaMs:1000});
- assert.equal(paused.energyBalances.노말,3);
- assert.equal(tickEconomy(initialState(),1).energyBalances.노말,0);
+ assert.equal(s.energyBalances.노말,6);
+ s=transition(s,{type:'TOGGLE_AUTOMATION',id:'point'});
+ assert.equal(s.automation.point,false);
+ assert.equal(tickEconomy(s,5).energyBalances.노말,6);
+ assert.equal(decodeSave(encodeSave(s)).game.automation.point,false);
+ s=transition(s,{type:'TOGGLE_AUTOMATION',id:'point'});
+ assert.equal(tickEconomy(s,1).energyBalances.노말,7);
+ assert.equal(transition({...s,phase:'paused'},{type:'ECONOMY_TICK',deltaMs:1000}).energyBalances.노말,6);
 });
 test('point circulation survives save, old saves default off, planet move clears it',()=>{
  let s={...initialState(),phase:'running',pointCirculationUnlocked:true};
