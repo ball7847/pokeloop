@@ -14,20 +14,20 @@ function defeatEnemy(state,id){
   return s;
 }
 
-test('Mankey pays 3.5 Normal energy first and 1.75 second, both in log',()=>{
+test('Mankey pays 3 Normal energy first and 1.5 second, both in log',()=>{
   const p=getWildPokemon('mankey');
-  assert.equal(p.energyReward,3.5);
+  assert.equal(p.energyReward,3);
   let s=transition(initialState(),{type:'START'});
   s={...s,dittoStats:{...s.dittoStats,hp:1000,attack:100,speed:100}};
   s=defeatEnemy(s,'mankey');
-  assert.deepEqual(s.combat.lastEvent.energyRewards,{'노말':3.5});
-  assert.match(eventMessage(s.combat.lastEvent),/^망키 1회 처치 · HP \+5\.6, 공격 \+2, 노말 에너지 \+3\.5$/);
-  assert.equal(s.energyBalances['노말'],3.5);
+  assert.deepEqual(s.combat.lastEvent.energyRewards,{'노말':3});
+  assert.match(eventMessage(s.combat.lastEvent),/^망키 1회 처치 · HP \+5\.6, 공격 \+2, 노말 에너지 \+3$/);
+  assert.equal(s.energyBalances['노말'],3);
   s=defeatEnemy(s,'mankey');
-  assert.deepEqual(s.combat.lastEvent.energyRewards,{'노말':1.75});
-  assert.match(eventMessage(s.combat.lastEvent),/망키 2회 처치 .*노말 에너지 \+1\.75/);
-  assert.equal(s.energyBalances['노말'],5.25);
-  assert.deepEqual(battleEnergyRewards(p,2),{노말:3.5/3});
+  assert.deepEqual(s.combat.lastEvent.energyRewards,{'노말':1.5});
+  assert.match(eventMessage(s.combat.lastEvent),/망키 2회 처치 .*노말 에너지 \+1\.5/);
+  assert.equal(s.energyBalances['노말'],4.5);
+  assert.deepEqual(battleEnergyRewards(p,2),{노말:3/3});
 });
 
 test('dual-type awards are logged separately and zero energy is omitted',()=>{
