@@ -51,9 +51,10 @@ test('expected combat avoids real COMBAT_TICK and marks long stalemates uncertai
  assert.equal(tough.result,'uncertain');
  assert.equal(tough.reason,'expected-time-limit');
 });
-test('simulation defaults to hybrid and allows fast and exact explicitly',()=>{
+test('simulation defaults to exact and allows fast and exact explicitly',()=>{
  const s=initialState();
- const hybrid=playOnePlanet(s,{maxBattles:1,logLimit:10});
+ const hybrid=playOnePlanet(s,{mode:'hybrid',maxBattles:1,logLimit:10});
+ assert.equal(playOnePlanet(s,{maxBattles:1,logLimit:10}).report.combatMode,'exact');
  assert.equal(hybrid.report.combatMode,'hybrid');
  const fast=playOnePlanet(s,{mode:'fast',maxBattles:1,logLimit:10});
  assert.equal(fast.report.combatMode,'fast');
