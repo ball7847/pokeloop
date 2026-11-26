@@ -13,7 +13,7 @@ test('region 1 extends to 10 common species with configured stats, energy and fi
  ['geodude',40,20,6000,0,{attack:2,defense:1},{노말:6}],
  ['exeggcute',60,4,4700,0,{specialAttack:3},{노말:8}],
  ['sentret',100,4.6,2400,0,{hp:16.1},{노말:10}],
- ['tauros',225,20,1500,0,{hp:15,attack:5,defense:1,specialDefense:1},{노말:20}]
+ ['tauros',288,20,1500,0,{hp:15,attack:5,defense:1,specialDefense:1},{노말:50}]
  ];
  for(const [id,hp,attack,speed,multiStrike,rewards,energy] of expected){
   const p=WILD_POKEMON.find(x=>x.id===id);
