@@ -9,9 +9,9 @@ const move=(state,random=()=>.99)=>transition({...state,pendingStellar:1},{type:
 const ids=state=>appearedInRegion(state,REGION.id).map(p=>p.id);
 const bonus=(planet,discovered=[])=>activePlanetEncounterBonuses(planet,discovered,ENCOUNTER_SLOTS);
 
-test('planet bonus configuration matches approved 2 / 4 / 6 multipliers',()=>{
+test('planet bonus configuration matches approved 2 / 4 / 6 / 8 multipliers',()=>{
  assert.deepEqual(PLANET_ENCOUNTER_BONUSES.map(x=>[x.planet,x.slotId,x.multiplier]),[
-  [2,'W010302',20],[4,'W010602',15],[6,'W011502',10]
+  [2,'W010302',20],[4,'W010602',15],[6,'W011502',10],[8,'W020502',10]
  ]);
  assert.deepEqual(bonus(1),{});
  assert.deepEqual(bonus(2),{W010302:20});
@@ -19,7 +19,9 @@ test('planet bonus configuration matches approved 2 / 4 / 6 multipliers',()=>{
  assert.deepEqual(bonus(4),{W010302:20,W010602:15});
  assert.deepEqual(bonus(5),{W010302:20,W010602:15});
  assert.deepEqual(bonus(6),{W010302:20,W010602:15,W011502:10});
- assert.deepEqual(bonus(10),bonus(6));
+ assert.deepEqual(bonus(7),bonus(6));
+ assert.deepEqual(bonus(8),{...bonus(6),W020502:10});
+ assert.deepEqual(bonus(10),bonus(8));
 });
 
 test('discovered target disables only that bonus, including either Zigzagoon variant',()=>{
@@ -100,4 +102,35 @@ test('persisting discovery removes next planet bonus',()=>{
  for(let planet=3;planet<=6;planet++)state=move(state,()=>.99);
  assert.equal(state.planetMoves,5);
  assert.equal(ids(state).includes('zigzagoon-galar'),false);
+});
+
+
+test('Pikachu bonus starts at planet eight and stops after discovery',()=>{
+ const slot=ENCOUNTER_SLOTS.find(s=>s.id==='W020502');
+ assert.deepEqual(slot.candidates,['pikachu']);
+ assert.equal(bonus(7).W020502,undefined);
+ assert.equal(bonus(8).W020502,10);
+ assert.equal(bonus(12).W020502,10);
+ assert.equal(bonus(8,['pikachu']).W020502,undefined);
+ assert.equal(bonus(12,['pikachu']).W020502,undefined);
+ const roll=(planet,discovered,draws)=>rollEncounterSlots([slot],{chances:{uncommon:.05},bonuses:bonus(planet,discovered),random:()=>draws.shift()}).W020502;
+ assert.equal(roll(7,[],[.9,.1]),null);
+ assert.equal(roll(8,[],[.9,.1]),'pikachu');
+ assert.equal(roll(8,[],[.9,.9]),null);
+ assert.equal(roll(9,['pikachu'],[.9,.1]),null);
+ assert.equal(roll(9,['pikachu'],[0]),'pikachu');
+});
+test('real planet movement activates Pikachu bonus only from eighth planet until discovery',()=>{
+ let state=transition(initialState(),{type:'START'});
+ state={...state,planetMoves:5,dexDiscovered:['psyduck','ponyta','zigzagoon'],dexLifetimeKills:{...state.dexLifetimeKills,psyduck:1,ponyta:1,zigzagoon:1}};
+ const seventh=move(state,()=>.2);
+ assert.equal(seventh.planetMoves,6);
+ assert.equal(seventh.raritySlotResults.W020502,null);
+ const eighth=move(seventh,()=>.2);
+ assert.equal(eighth.planetMoves,7);
+ assert.equal(eighth.raritySlotResults.W020502,'pikachu');
+ assert.equal(eighth.berryRareAppeared,true);
+ assert.equal(move(eighth,()=>.2).raritySlotResults.W020502,'pikachu');
+ assert.equal(move({...eighth,dexDiscovered:[...eighth.dexDiscovered,'pikachu']},()=>.2).raritySlotResults.W020502,null);
+ assert.equal(move(eighth,()=>.99).raritySlotResults.W020502,null);
 });
