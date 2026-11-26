@@ -6,11 +6,11 @@ import {initialState} from '../src/core/gameState.js';
 
 const byId = Object.fromEntries(LAKE_POKEMON.map(p => [p.id, p]));
 const patched = {
-  buizel: {hp:855},
+  buizel: {hp:418,rewards:{attack:2,multiStrike:22}},
   popplio: {hp:2789,speed:2700},
   sobble: {hp:2789,speed:2700},
   quaxly: {hp:2789,speed:2700},
-  cutiefly: {hp:600},
+  cutiefly: {hp:600,rewards:{specialAttack:4,speed:-30}},
   ribombee: {hp:1800},
   azurill: {hp:2000},
   marill: {hp:2830},
