@@ -111,7 +111,7 @@ test('Layer two costs, prerequisites and stat stacking',()=>{
  assert.equal(buyStellarUpgrade(s,'SU042'),s);
  const eligible={...s,permanentUpgrades:{SU013:10}};
  assert.equal(buyStellarUpgrade(eligible,'SU042').permanentUpgrades.SU042,1);
- for(const [id,base,second] of [['SU021',100,500],['SU031',1500,5250],['SU041',1000,3300],['SU032',40000,1600000000]]){
+ for(const [id,base,second] of [['SU021',100,500],['SU031',1500,5250],['SU041',1000,3300],['SU032',40000,40000**1.3]]){
   assert.equal(stellarUpgradeCost(s,id),base);
   assert.ok(Math.abs(stellarUpgradeCost({...s,permanentUpgrades:{[id]:1}},id)/second-1)<1e-10);
  }
@@ -134,4 +134,19 @@ test('Layer two planet transition retains owned abilities in AB order and amplif
  assert.equal(n.automation.point,true);
  assert.equal(n.automation.download,false);
  assert.equal(decodeSave(encodeSave(n)).game.pointCirculationUnlocked,true);
+});
+
+
+test('Burning Will uses power 1.3 through level 20 within the game amount cap',()=>{
+ const s=initialState();
+ assert.equal(stellarUpgradeCost(s,'SU032'),40000);
+ for(const level of [1,5,9,19]){
+  const cost=stellarUpgradeCost({...s,permanentUpgrades:{SU032:level}},'SU032');
+  assert.notEqual(cost,null);
+  const expectedLog=Math.log10(40000)*1.3**level;
+  const actualLog=Math.log10(Number(String(cost).split('e')[0]))+Number(String(cost).split('e')[1]??0);
+  assert.ok(Math.abs(actualLog-expectedLog)<1e-8);
+ }
+ assert.equal(stellarUpgradeCost({...s,permanentUpgrades:{SU032:20}},'SU032'),null);
+ assert.ok(Math.abs(stellarUpgradeCost({...s,permanentUpgrades:{SU022:1}},'SU022')/100000**1.5-1)<1e-10);
 });
