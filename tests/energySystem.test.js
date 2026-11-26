@@ -47,26 +47,25 @@ test('18 types are assigned once across the 10 fixed layers',()=>{
   assert.deepEqual(LAYERS.flatMap(l=>l.types).sort(),[...TYPES].sort());
 });
 
-test('battle rewards give energy to both types even if their layer is locked; no particles',()=>{
+test('battle energy grants reject locked types; no particles',()=>{
   const s=grantBattleEnergy(initialEconomy(),['노말','비행'],10);
   assert.equal(s.energyBalances['노말'],10);
-  assert.equal(s.energyBalances['비행'],10);
+  assert.equal(s.energyBalances['비행'],0);
   assert.equal(s.particleBalances['노말'],0);
-  assert.equal(s.particleBank['비행'],0);
+  assert.equal('particleBank' in s,false);
   assert.equal(s.unlockedLayer,1);
 });
 
 test('spending 1 energy creates 1 particle of that type and cannot overspend',()=>{
-  let s=grantBattleEnergy(initialEconomy(),['노말','비행'],20);
+  let s=grantBattleEnergy({...initialEconomy(),unlockedLayer:4},['노말','비행'],20);
   const before=s;
   s=purchaseWithEnergy(s,{노말:5,비행:7});
   assert.equal(s.energyBalances['노말'],15);
   assert.equal(s.energyBalances['비행'],13);
   assert.equal(s.particleBalances['노말'],5);
   assert.equal(s.particleEarned['노말'],5);
-  assert.equal(s.particleBalances['비행'],0);
-  assert.equal(s.particleBank['비행'],7);
-  assert.equal(s.particleEarned['비행'],0);
+  assert.equal(s.particleBalances['비행'],7);
+  assert.equal(s.particleEarned['비행'],7);
   assert.deepEqual(purchaseWithEnergy(s,{노말:16}),s);
   assert.deepEqual(purchaseWithEnergy(s,{노말:1,불꽃:1}),s);
   assert.deepEqual(purchaseWithEnergy(s,{노말:-2}),s);
@@ -74,18 +73,14 @@ test('spending 1 energy creates 1 particle of that type and cannot overspend',()
   assert.equal(before.energyBalances['노말'],20);
 });
 
-test('particle accumulation, not energy accumulation, unlocks layer 2',()=>{
-  let s=grantBattleEnergy(initialEconomy(),['노말','불꽃'],1025);
-  assert.equal(s.unlockedLayer,1);
-  s=purchaseWithEnergy(s,{불꽃:25});
-  assert.equal(s.particleBank['불꽃'],25);
-  s=purchaseWithEnergy(s,{노말:1025});
-  assert.equal(s.unlockedLayer,2);
-  assert.equal(s.particleMilestones['노말'],1);
-  assert.equal(s.particleBank['불꽃'],0);
-  assert.equal(s.particleBalances['불꽃'],25);
-  assert.equal(s.particleEarned['불꽃'],25);
-  assert.equal(s.energyBalances['불꽃'],1000);
+test('particle accumulation enables production but does not unlock layer 2',()=>{
+ let s=grantBattleEnergy(initialEconomy(),['노말','불꽃'],1025);
+ assert.equal(s.energyBalances.불꽃,0);
+ assert.equal(purchaseWithEnergy(s,{불꽃:25}),s);
+ s=purchaseWithEnergy(s,{노말:1025});
+ assert.equal(s.unlockedLayer,1);
+ assert.equal(s.particleMilestones.노말,1);
+ assert.equal('particleBank' in s,false);
 });
 
 test('upper layer particles produce lower layer particles with even splitting',()=>{
@@ -108,7 +103,7 @@ test('normal particles accumulate pending stellar, only travel converts to stell
   const moved=movePlanet(s);
   assert.equal(moved.stellar,s.pendingStellar);
   assert.equal(moved.pendingStellar,0);
-  assert.equal(moved.unlockedLayer,2);
+  assert.equal(moved.unlockedLayer,1);
   assert.equal(moved.particleMilestones['노말'],1);
   assert.equal(moved.energyBalances['노말'],0);
   assert.equal(moved.planetMoves,1);
@@ -116,14 +111,14 @@ test('normal particles accumulate pending stellar, only travel converts to stell
 
 test('v4 saved energy and particles restore independently',()=>{
   let s=initialState();
-  s=grantBattleEnergy(s,['노말','비행'],1025);
+  s=grantBattleEnergy({...s,unlockedLayer:4},['노말','비행'],1025);
   s=purchaseWithEnergy(s,{노말:1025,비행:40});
   s=tickEconomy(s,1);
   const restored=decodeSave(encodeSave(s)).game;
-  assert.equal(restored.unlockedLayer,2);
+  assert.equal(restored.unlockedLayer,4);
   assert.equal(restored.particleBalances['노말'],s.particleBalances['노말']);
   assert.equal(restored.energyBalances['비행'],985);
-  assert.equal(restored.particleBank['비행'],40);
+  assert.equal(restored.particleBalances['비행'],40);
   assert.equal(restored.pendingStellar,s.pendingStellar);
   const moved=transition({...restored,pendingStellar:1},{type:'MOVE_PLANET'});
   assert.equal(moved.planetMoves,1);
@@ -146,7 +141,7 @@ test('legacy v3 preserves old essence as energy and old layer energy as particle
   assert.equal(migrated.energyBalances['노말'],17);
   assert.equal(migrated.particleBalances['노말'],32);
   assert.equal(migrated.particleEarned['노말'],32);
-  assert.equal(migrated.particleBank['비행'],9);
+  assert.equal('particleBank' in migrated,false);
 });
 
 test('configured species payouts include the Mankey balance adjustment',async()=>{
@@ -186,19 +181,21 @@ test('actual repeated battles grant decaying type energy, not fixed payouts',()=
 });
 
 
-test('point circulation purchase is atomic, one-time, and banks locked type particles',()=>{
+test('point circulation purchase requires unlocked types and is atomic and one-time',()=>{
  let s={...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:10,벌레:10,비행:9}};
  assert.equal(transition(s,{type:'BUY_CIRCULATION',id:'point'}),s);
  assert.equal(s.particleBalances.노말,0);
  s={...s,energyBalances:{...s.energyBalances,비행:10}};
+ assert.equal(transition(s,{type:'BUY_CIRCULATION',id:'point'}),s);
+ s={...s,unlockedLayer:4};
  const purchased=transition(s,{type:'BUY_CIRCULATION',id:'point'});
  assert.equal(purchased.pointCirculationUnlocked,true);
  for(const type of ['노말','벌레','비행'])assert.equal(purchased.energyBalances[type],0);
  assert.equal(purchased.particleBalances.노말,10);
  assert.equal(purchased.particleEarned.노말,10);
- assert.equal(purchased.particleBank.벌레,10);
- assert.equal(purchased.particleBank.비행,10);
- assert.equal(purchased.particleEarned.벌레,0);
+ assert.equal(purchased.particleBalances.벌레,10);
+ assert.equal(purchased.particleBalances.비행,10);
+ assert.equal(purchased.particleEarned.벌레,10);
  assert.equal(transition(purchased,{type:'BUY_CIRCULATION',id:'point'}),purchased);
  assert.equal(transition({...s,phase:'paused'},{type:'BUY_CIRCULATION',id:'point'}).pointCirculationUnlocked,false);
 });

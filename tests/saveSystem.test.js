@@ -51,13 +51,13 @@ test('invalid or malicious saves are rejected without changing state',()=>{
 
 test('type energy and particles round-trip as separate 18-type ledgers',()=>{
  const game=initialState();
- game.energyBalances.노말=12;game.energyBalances.페어리=7;
- game.particleBalances.노말=5;game.particleBank.페어리=3;
+ game.unlockedLayer=10;game.energyBalances.노말=12;game.energyBalances.페어리=7;
+ game.particleBalances.노말=5;game.particleBalances.페어리=3;
  const restored=decodeSave(encodeSave(game)).game;
  assert.equal(restored.energyBalances.노말,12);
  assert.equal(restored.energyBalances.페어리,7);
  assert.equal(restored.particleBalances.노말,5);
- assert.equal(restored.particleBank.페어리,3);
+ assert.equal(restored.particleBalances.페어리,3);
  assert.equal(restored.energyBalances.비행,0);
 });
 

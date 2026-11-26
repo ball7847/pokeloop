@@ -12,7 +12,7 @@ test('2026-11-06 observational layer-2 economy audit: 10 seeded virtual plays',(
   for(const seed of DEFAULT_VIRTUAL_SEEDS){
     const rng=createVirtualRandomStreams(seed);
     const stages=new Map();
-    const first={bank:null,unlock:null,production:null,milestone:null};
+    const first={unlock:null,production:null,milestone:null};
     const events=[];
     const observe=({action,before,after,battles,seconds})=>{
       const planet=after.planetMoves+1;
@@ -29,9 +29,8 @@ test('2026-11-06 observational layer-2 economy audit: 10 seeded virtual plays',(
         if(rate>0&&first.production===null)first.production={planet,rate:round(rate),secondsBefore:seconds,battles};
       }
       for(const t of upper){
-        const delta=num(after.particleBalances[t])+num(after.particleBank[t])-num(before.particleBalances[t])-num(before.particleBank[t]);
+        const delta=num(after.particleBalances[t])-num(before.particleBalances[t]);
         if(delta>0&&action!=='ECONOMY_TICK')p.layer2Purchased[t]+=delta;
-        if(first.bank===null&&num(after.particleBank[t])>num(before.particleBank[t]))first.bank={planet,type:t,amount:round(after.particleBank[t]),secondsBefore:seconds,battles};
         if(num(after.particleMilestones[t])>=1&&num(before.particleMilestones[t])===0){
           const detail={planet,type:t,particles:round(after.particleBalances[t]),secondsBefore:seconds,battles,action};
           events.push(detail);if(first.milestone===null)first.milestone=detail;
@@ -50,6 +49,8 @@ test('2026-11-06 observational layer-2 economy audit: 10 seeded virtual plays',(
     reports.push(line);
     console.log('LAYER2_SEED_REPORT '+JSON.stringify(line));
     assert.ok(planets.length>=1);
+    assert.equal(first.unlock,null,'no boss unlock configured');
+    assert.equal(first.production,null,'locked layer cannot produce');
   }
   const summaries={seedCount:reports.length,anyProduction:reports.filter(r=>r.first.production!==null).map(r=>r.seed),anyMilestone:reports.filter(r=>r.first.milestone!==null).map(r=>r.seed)};
   console.log('LAYER2_AUDIT_SUMMARY '+JSON.stringify(summaries));

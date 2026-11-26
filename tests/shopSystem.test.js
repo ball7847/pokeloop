@@ -6,7 +6,7 @@ import {grantBattleEnergy} from '../src/core/energySystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 
 const buy=(state,type,id)=>transition(state,{type,id});
-const funded=()=>({...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,불꽃:1000,물:1000,땅:1000,비행:1000}});
+const funded=()=>({...initialState(),phase:'running',unlockedLayer:10,energyBalances:{...initialState().energyBalances,노말:1000,격투:1000,불꽃:1000,물:1000,땅:1000,비행:1000}});
 test('normal flat HP/ATK and fighting attack multiplier scale independently',()=>{
   assert.deepEqual(UPGRADES.map(x=>[x.id,x.type,x.base,x.growth,x.bonus]),[
     ['hp','노말',1,1.5,4],['attack','노말',1,1.5,1],
@@ -33,9 +33,9 @@ test('normal flat HP/ATK and fighting attack multiplier scale independently',()=
   assert.equal(s.energyBalances.불꽃,990);
   assert.equal(s.energyBalances.비행,990);
   assert.equal(s.particleBalances.노말,3.5);
-  assert.equal(s.particleBank.격투,20);
-  assert.equal(s.particleBank.불꽃,10);
-  assert.equal(s.particleBank.비행,10);
+  assert.equal(s.particleBalances.격투,20);
+  assert.equal(s.particleBalances.불꽃,10);
+  assert.equal(s.particleBalances.비행,10);
   assert.equal(s.energyUpgrades.hp,2);
   assert.equal(s.energyUpgrades.attack,1);
   assert.equal(s.energyUpgrades.attackMultiplier,1);
@@ -151,7 +151,7 @@ test('antidote costs poison energy 10 then 15 and increases detox by one each',(
  s=buy(s,'BUY_UPGRADE','antidote');
  assert.equal(s.energyBalances.독,5);
  assert.equal(effectiveDittoStats(s).antidote,2);
- assert.equal(s.particleBank.독,25);
+ assert.equal(s.particleBalances.독,25);
  assert.equal(buy(s,'BUY_UPGRADE','antidote'),s);
 });
 
@@ -278,8 +278,8 @@ test('new water and grass upgrades use confirmed costs, correct stat order, ener
  assert.ok(Math.abs(stats.regeneration-5.3)<1e-9);
  assert.equal(s.energyBalances.물,55);
  assert.equal(s.energyBalances.풀,75);
- assert.equal(s.particleBank.물,45);
- assert.equal(s.particleBank.풀,25);
+ assert.equal(s.particleBalances.물,45);
+ assert.equal(s.particleBalances.풀,25);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.hpMultiplier,2);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.specialAttack,2);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.regenerationMultiplier,2);
@@ -307,21 +307,21 @@ test('dual energy upgrade purchases require both currencies and create matching 
  s=buy(s,'BUY_UPGRADE','attackMultiplier');
  assert.equal(s.energyBalances.불꽃,0);
  assert.equal(s.energyBalances.격투,0);
- assert.equal(s.particleBank.불꽃,10);
- assert.equal(s.particleBank.격투,10);
+ assert.equal(s.particleBalances.불꽃,10);
+ assert.equal(s.particleBalances.격투,10);
  assert.equal(s.energyUpgrades.attackMultiplier,1);
  assert.equal(buy(s,'BUY_UPGRADE','attackMultiplier'),s);
  s=buy(s,'BUY_UPGRADE','hpMultiplier');
  assert.equal(s.energyBalances.물,0);
  assert.equal(s.energyBalances.땅,0);
- assert.equal(s.particleBank.물,10);
- assert.equal(s.particleBank.땅,10);
+ assert.equal(s.particleBalances.물,10);
+ assert.equal(s.particleBalances.땅,10);
  assert.equal(buy(s,'BUY_UPGRADE','defenseMultiplier'),s);
  s=buy(s,'BUY_UPGRADE','specialAttackMultiplier');
  assert.equal(s.energyBalances.에스퍼,0);
  assert.equal(s.energyBalances.악,0);
- assert.equal(s.particleBank.에스퍼,10);
- assert.equal(s.particleBank.악,10);
+ assert.equal(s.particleBalances.에스퍼,10);
+ assert.equal(s.particleBalances.악,10);
  assert.equal(buy(s,'BUY_UPGRADE','specialDefenseMultiplier'),s);
  assert.equal(before.강철,10);
  assert.equal(s.energyBalances.강철,10);
@@ -332,8 +332,8 @@ test('dual energy upgrade purchases require both currencies and create matching 
  const purchased=buy(both,'BUY_UPGRADE','defenseMultiplier');
  assert.equal(purchased.energyBalances.강철,0);
  assert.equal(purchased.energyBalances.땅,0);
- assert.equal(purchased.particleBank.강철,10);
- assert.equal(purchased.particleBank.땅,10);
+ assert.equal(purchased.particleBalances.강철,10);
+ assert.equal(purchased.particleBalances.땅,10);
  assert.equal(decodeSave(encodeSave(purchased)).game.energyUpgrades.defenseMultiplier,1);
 });
 test('defense and special stats use flat increases before 4 percent amplifiers',()=>{
@@ -365,9 +365,9 @@ test('flat electric speed and dual-type speed amplifier apply add then divide an
  assert.equal(s.energyBalances.전기,0);
  assert.equal(s.energyBalances.격투,0);
  assert.equal(s.energyBalances.비행,0);
- assert.equal(s.particleBank.전기,1010);
- assert.equal(s.particleBank.격투,1010);
- assert.equal(s.particleBank.비행,1010);
+ assert.equal(s.particleBalances.전기,1010);
+ assert.equal(s.particleBalances.격투,1010);
+ assert.equal(s.particleBalances.비행,1010);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.speedFlat,2);
  assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,speed:50}}).speed,100);
 });
@@ -382,8 +382,8 @@ test('flat grass-fairy regeneration applies before grass multiplier with atomic 
  assert.ok(Math.abs(effectiveDittoStats(s).regeneration-7.21)<1e-8);
  assert.equal(s.energyBalances.풀,15);
  assert.equal(s.energyBalances.페어리,25);
- assert.equal(s.particleBank.풀,35);
- assert.equal(s.particleBank.페어리,25);
+ assert.equal(s.particleBalances.풀,35);
+ assert.equal(s.particleBalances.페어리,25);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.regeneration,2);
  const missingFairy={...s,energyBalances:{...s.energyBalances,페어리:0}};
  assert.equal(buy(missingFairy,'BUY_UPGRADE','regeneration'),missingFairy);
