@@ -13,6 +13,8 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['metapod',150,20,0,11,4500,0,0,100,100],
  ['weedle',80,14,0,0,3500,0,0,100,100],
  ['kakuna',160,20,0,10,5000,0,0,100,100],
+ ['shroomish',285,40,0,0,2500,0,40,100,100],
+ ['breloom',1286,130,0,0,1300,0,60,100,100],
  ['taillow',80,11,0,0,1100,0,0,100,100],
  ['swellow',600,15,15,0,825,0,0,277,100],
  ['igglybuff',180,6,20,0,2000,0,0,100,100],
@@ -25,7 +27,7 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  ['tropius',990,68,72,0,4570,0,0,100,100]
  ]);
  assert.deepEqual(BERRY_POKEMON.map(p=>p.rewards),[
- {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{attack:2.76,speed:-20},
+ {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{antidote:28,poison:15},{attack:30,multiStrike:30,antidote:33,poison:15},{attack:2.76,speed:-20},
  {accuracy:14},{hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:5.7,maxDamagePercent:3.2},{hp:12.9,poison:1},{hp:11.4,regeneration:1.14},{hp:20,attack:4},{speed:-28},{hp:50,attack:10,specialAttack:10,regeneration:10}
  ]);
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{벌레:3});
