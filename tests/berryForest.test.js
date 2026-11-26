@@ -241,7 +241,7 @@ test('misses and paralysis do not trigger antidote for either side',()=>{
 });
 test('antidote is saved and older v7 saves default to 0',()=>{
  let s=state();
- s={...s,unlockedLayer:7,energyBalances:{...s.energyBalances,독:100}};
+ s={...s,unlockedLayer:7,energyBalances:{...s.energyBalances,물:100,풀:100}};
  s=transition(s,{type:'BUY_UPGRADE',id:'antidote'});
  const restored=decodeSave(encodeSave(s)).game;
  assert.equal(restored.energyUpgrades.antidote,1);

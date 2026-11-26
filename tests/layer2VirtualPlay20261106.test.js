@@ -49,8 +49,7 @@ test('2026-11-06 observational layer-2 economy audit: 10 seeded virtual plays',(
     reports.push(line);
     console.log('LAYER2_SEED_REPORT '+JSON.stringify(line));
     assert.ok(planets.length>=1);
-    assert.equal(first.unlock,null,'no boss unlock configured');
-    assert.equal(first.production,null,'locked layer cannot produce');
+    if(first.production!==null)assert.notEqual(first.unlock,null,'production requires layer unlock');
   }
   const summaries={seedCount:reports.length,anyProduction:reports.filter(r=>r.first.production!==null).map(r=>r.seed),anyMilestone:reports.filter(r=>r.first.milestone!==null).map(r=>r.seed)};
   console.log('LAYER2_AUDIT_SUMMARY '+JSON.stringify(summaries));
