@@ -145,7 +145,7 @@ Lv는 구매 전 레벨. 외체계 노말 5개 노드만 구현. 기타 타입 �
 |nidoran-f|29|
 |tangela|35|
 |bidoof|40|
-|surskit|59|
+|surskit|100|
 |tropius|300|
 |buizel|218|
 |magikarp|100|

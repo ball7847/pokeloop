@@ -29,3 +29,5 @@
 - 2026-11-26: 사용자 지정 기본 에너지 보상 변경: psyduck=10, fearow=25, ponyta=30, bulbasaur=100, charmander=100, squirtle=100, ekans=88, rookidee=101, zigzagoon=133, zigzagoon-galar=133, shroomish=170, breloom=500, swellow=200, pikachu=250, tropius=300, buizel=218, magikarp=100, feebas=100. 능력치·처치 상한·이정표 유지.
 
 - 2026-11-26: 켄타로스 HP 225→288, 기본 노말 에너지 20→50. 기타 능력치 및 보상·해금 유지.
+
+- 2026-11-26: 브이젤 HP 855→418, 공격 보상 3→2, 연타 보상 33→22; 에블리 특수공격 보상 7→4, 스피드 보상 -42→-30ms; 비구술 스피드 보상 삭제, 기본 에너지 59→100. 기타 수치 유지.
