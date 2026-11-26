@@ -16,7 +16,7 @@ const entries=[
 {id:'geodude',number:74,name:'꼬마돌',types:['바위','땅'],energyReward:6,hp:40,attack:20,defense:10,speed:6000,rewards:{attack:2,defense:1}},
 {id:'exeggcute',number:102,name:'아라리',types:['풀','에스퍼'],energyReward:8,hp:60,attack:4,specialAttack:30,speed:4700,rewards:{specialAttack:3}},
 {id:'sentret',number:161,name:'꼬리선',types:['노말'],energyReward:10,hp:100,attack:4.6,speed:2400,rewards:{hp:16.1}},
-{id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:20,hp:225,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
+{id:'tauros',number:128,name:'켄타로스',types:['노말'],energyReward:50,hp:288,attack:20,defense:9.5,specialDefense:7,speed:1500,rewards:{hp:15,attack:5,defense:1,specialDefense:1}}
 ];
 // Encounter codes identify regional slots independently from species IDs.
 const region1Codes=Object.freeze(['W010101','W010201','W010401','W010501','W010701','W010901','W011001','W011201','W011401','W011601']);
