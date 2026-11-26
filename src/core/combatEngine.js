@@ -43,16 +43,19 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
     lastEvent:{id:state.eventSerial+1,type:'start',pokemonId:id,name:p.name}
   }};
 }
-function finish(state,c,type,random=Math.random) {
+// Single outcome settlement for actual combat and test-only expected combat.
+export function settleBattleOutcome(state,c,type,random=Math.random) {
   const p=getWildPokemon(c.pokemonId);
   if(type==='victory') {
     const count=state.killCounts[p.id]||0;
     if(count>=getKillLimit(p))return {...state,combat:{...c,active:false,enemy:null}};
     const stats={...state.dittoStats};
     const honeyMultiplier=1+(effectiveDittoStats(state).honey??0)*.001;
+    const rewards={};
     for(const [key,base] of Object.entries(p.rewards)){
       const originalReward=scaledReward(key,base,count);
       const value=honeyMultiplier===1?originalReward:key==='speed'?-Number(multiplyAmount(Math.abs(originalReward),honeyMultiplier)):multiplyAmount(originalReward,honeyMultiplier);
+      rewards[key]=value;
       stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
     const energyRewards=calculateBattleEnergyRewards(state,p,count);
@@ -67,7 +70,7 @@ function finish(state,c,type,random=Math.random) {
       killCounts:{...state.killCounts,[p.id]:count+1},
       dexDiscovered:state.dexDiscovered.includes(p.id)?state.dexDiscovered:[...state.dexDiscovered,p.id],
       combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type:'victory',pokemonId:p.id,name:p.name,
-        count:count+1,rewards:Object.fromEntries(Object.entries(p.rewards).map(([k,v])=>[k,honeyMultiplier===1?scaledReward(k,v,count):k==='speed'?-Number(multiplyAmount(Math.abs(scaledReward(k,v,count)),honeyMultiplier)):multiplyAmount(scaledReward(k,v,count),honeyMultiplier)])),energyRewards}}};
+        count:count+1,rewards,energyRewards}}};
     if(updated.automation?.hunger&&count+1<getKillLimit(p)&&compareAmount(c.currentHp,0)>0){
       // Reward applies before next encounter. Current HP carries over without healing.
       // A follow-up attack starts a fresh enemy and cooldown, not a new run.
@@ -211,8 +214,8 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
     if(c.regenerationElapsedMs>=1000){
       c.regenerationElapsedMs-=1000;
       applySecond();
-      if(compareAmount(c.currentHp,0)<=0)return withEffects(finish(state,c,'defeat',random));
-      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(finish(state,c,'victory',random));
+      if(compareAmount(c.currentHp,0)<=0)return withEffects(settleBattleOutcome(state,c,'defeat',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',random));
     }
     // Continue elapsed time across second-boundary ticks without skipping due attacks.
     if(my.elapsed<myPeriod&&foe.elapsed<foePeriod){
@@ -223,19 +226,19 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
       my.elapsed-=myPeriod;
       const attack=resolveAttack(c,'player',playerStats,enemyStats,random,visualEvents);
       my.duration=Math.max(100,playerStats.speed+attack.delayMs);
-      if(compareAmount(c.currentHp,0)<=0)return withEffects(finish(state,c,'defeat',random));
-      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(finish(state,c,'victory',random));
+      if(compareAmount(c.currentHp,0)<=0)return withEffects(settleBattleOutcome(state,c,'defeat',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',random));
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
       const attack=resolveAttack(c,'enemy',enemyStats,playerStats,random,visualEvents);
       foe.duration=Math.max(100,enemyStats.speed+attack.delayMs);
-      if(compareAmount(c.currentHp,0)<=0)return withEffects(finish(state,c,'defeat',random));
-      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(finish(state,c,'victory',random));
+      if(compareAmount(c.currentHp,0)<=0)return withEffects(settleBattleOutcome(state,c,'defeat',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',random));
     }
   }
   return {...state,combat:c,combatVisualEvents:visualEvents};
 }
 export function fleeBattle(state){
-  return state.combat.active ? finish(state,state.combat,'flee') : state;
+  return state.combat.active ? settleBattleOutcome(state,state.combat,'flee') : state;
 }
