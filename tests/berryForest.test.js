@@ -30,29 +30,29 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  {hp:7},{hp:10,defense:1},{hp:7},{hp:10,defense:1},{antidote:28,poison:15},{attack:30,multiStrike:30,antidote:33,poison:15},{attack:2.76,speed:-20},
  {accuracy:14},{hp:18,specialAttack:5},{attack:25,paralysis:25},{attack:5.7,maxDamagePercent:3.2},{hp:12.9,poison:1},{hp:11.4,regeneration:1.14},{hp:20,attack:4},{speed:-28},{hp:50,attack:10,specialAttack:10,regeneration:10}
  ]);
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{노말:3});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='weedle')),{노말:3});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='metapod')),{노말:5});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='kakuna')),{노말:5});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='taillow')),{노말:27.6});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='swellow')),{노말:30});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff')),{노말:39});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff'),1),{노말:19.5});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='pikachu')),{노말:25});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela')),{노말:11.4});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela'),1),{노말:5.7});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='bidoof')),{노말:40});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit')),{노말:28});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit'),1),{노말:14});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='caterpie')),{노말:30});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='weedle')),{노말:30});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='metapod')),{노말:50});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='kakuna')),{노말:50});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='taillow')),{노말:127});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='swellow')),{노말:300});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff')),{노말:139});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='igglybuff'),1),{노말:69.5});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='pikachu')),{노말:250});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela')),{노말:228});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela'),1),{노말:114});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='bidoof')),{노말:400});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit')),{노말:328});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit'),1),{노말:164});
  assert.equal(BERRY_POKEMON.find(p=>p.id==='surskit').specialDefense,52);
  assert.equal(BERRY_POKEMON.find(p=>p.id==='tropius').regeneration,46);
  assert.deepEqual(BERRY_POKEMON.find(p=>p.id==='tropius').types,['풀','비행']);
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius')),{노말:100});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius'),1),{노말:50});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius')),{노말:1000});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius'),1),{노말:500});
  for(const id of ['nidoran-m','nidoran-f']){
    const p=BERRY_POKEMON.find(p=>p.id===id);
-   assert.deepEqual(battleEnergyRewards(p,0),{노말:6.9});
-   assert.deepEqual(battleEnergyRewards(p,1),{노말:3.45});
+   assert.deepEqual(battleEnergyRewards(p,0),{노말:269});
+   assert.deepEqual(battleEnergyRewards(p,1),{노말:134.5});
  }
 });
 test('male Nidoran minimum damage 50% and max 150%',()=>{
@@ -169,7 +169,7 @@ test('berry forest battles pay configured type energy and stat rewards',()=>{
  assert.equal(s.killCounts.caterpie,1);
  assert.equal(s.dittoStats.hp,beforeHp+7);
  assert.equal(s.dittoStats.attack,beforeAttack);
- assert.equal(s.energyBalances.노말,beforeEnergy.노말+3);
+ assert.equal(s.energyBalances.노말,beforeEnergy.노말+30);
  assert.equal(isPokemonUnlockedInState(s,'metapod'),true);
 });
 
@@ -184,13 +184,13 @@ test('Igglybuff grants normal and no locked fairy energy with repetition decay a
  assert.equal(s.combat.enemy.hp.max,180);
  s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
  assert.equal(s.killCounts.igglybuff,1);
- assert.equal(s.energyBalances.노말,before.노말+39);
+ assert.equal(s.energyBalances.노말,before.노말+139);
  assert.equal(s.energyBalances.페어리,before.페어리);
  assert.equal(s.dittoStats.specialAttack,5);
  s=transition(s,{type:'SELECT_WILD',pokemonId:'igglybuff'});
  s=transition(s,{type:'COMBAT_TICK',deltaMs:100,random:()=>.6});
  assert.equal(s.killCounts.igglybuff,2);
- assert.ok(Math.abs(s.energyBalances.노말-(before.노말+58.5))<1e-8);
+ assert.ok(Math.abs(s.energyBalances.노말-(before.노말+208.5))<1e-8);
  assert.ok(Math.abs(s.energyBalances.페어리-(before.페어리))<1e-8);
  assert.equal(s.dittoStats.specialAttack,7.5);
 });
@@ -211,7 +211,7 @@ test('Nidoran males and females grant normal energy with normal diminishing retu
      assert.equal(s.killCounts[id],count);
      assert.equal(s.combat.active,false);
    }
-   assert.ok(Math.abs(s.energyBalances.노말-(initialEnergy.노말+10.35))<1e-8);
+   assert.ok(Math.abs(s.energyBalances.노말-(initialEnergy.노말+403.5))<1e-8);
    assert.equal(s.energyBalances.독,initialEnergy.독);
    assert.equal(s.dittoStats[rewardField],initialReward+rewardValue+rewardValue/2);
  }

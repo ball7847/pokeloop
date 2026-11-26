@@ -8,10 +8,10 @@ test('Wishiwashi is common slot 10 and School Form is its guaranteed common evol
  const solo=getWildPokemon('wishiwashi'),school=getWildPokemon('wishiwashi-school');
  assert.deepEqual([solo.number,solo.encounterCode,solo.hp,solo.attack,solo.defense,solo.specialAttack,solo.specialDefense,solo.speed],[746,'W031001',225,2,2,2,2.5,400]);
  assert.deepEqual(solo.rewards,{});
- assert.deepEqual(battleEnergyRewards(solo),{노말:20});
+ assert.deepEqual(battleEnergyRewards(solo),{노말:200});
  assert.deepEqual([school.number,school.encounterCode,school.hp,school.attack,school.defense,school.specialAttack,school.specialDefense,school.speed,school.multiStrike],[746,'W031001-E1',4500,40,40,40,50,2000,9000]);
  assert.deepEqual(school.rewards,{hp:174,defense:10,multiStrike:60});
- assert.deepEqual(battleEnergyRewards(school),{노말:620});
+ assert.deepEqual(battleEnergyRewards(school),{노말:4000});
  assert.equal(school.rarity,'common');
  assert.equal(school.evolvesFrom,'wishiwashi');
  assert.equal(evolutionFor('wishiwashi').id,school.id);

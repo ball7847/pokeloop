@@ -16,7 +16,7 @@ const patched = {
   marill: {hp:2830},
   azumarill: {hp:2830},
   wingull: {hp:2333},
-  milotic: {hp:4950,energyReward:740,rewards:{hp:350,specialDefense:62}},
+  milotic: {hp:4950,energyReward:7400,rewards:{hp:350,specialDefense:62}},
   tadbulb: {hp:2611,counter:50,rewards:{hp:127.2,counter:2.7,paralysis:2.7}},
   lotad: {hp:2400,rewards:{hp:135,specialAttack:16,regeneration:16}},
   bombirdier: {hp:1962},
@@ -33,12 +33,12 @@ test('ordinary Wishiwashi is unchanged; boosted school form keeps one-kill limit
  assert.equal(byId.wishiwashi.hp,225);
  assert.equal(byId.wishiwashi.speed,400);
  assert.deepEqual(byId.wishiwashi.rewards,{});
- assert.equal(byId.wishiwashi.energyReward,20);
+ assert.equal(byId.wishiwashi.energyReward,200);
  assert.equal(byId['wishiwashi-school'].maxKillsPerPlanet,1);
  assert.equal(getKillLimit(byId['wishiwashi-school']),1);
  assert.equal(byId['wishiwashi-school'].hp,4500);
  assert.equal(byId['wishiwashi-school'].multiStrike,9000);
- assert.equal(byId['wishiwashi-school'].energyReward,620);
+ assert.equal(byId['wishiwashi-school'].energyReward,4000);
  assert.equal(evolutionFor('wishiwashi').id,'wishiwashi-school');
  assert.equal(evolutionChance(byId['wishiwashi-school'],initialState()),1);
 });
@@ -51,15 +51,15 @@ test('rare Milotic, Magikarp and Gyarados progression stays intact',()=>{
  assert.equal(evolutionFor('magikarp').id,'gyarados');
  assert.equal(byId.gyarados.rarity,'common');
  assert.equal(evolutionChance(byId.gyarados,initialState()),1);
- assert.deepEqual(battleEnergyRewards(byId.milotic,0),{노말:740});
- assert.deepEqual(battleEnergyRewards(byId.milotic,1),{노말:370});
- assert.deepEqual(battleEnergyRewards(byId['wishiwashi-school'],0),{노말:620});
+ assert.deepEqual(battleEnergyRewards(byId.milotic,0),{노말:7400});
+ assert.deepEqual(battleEnergyRewards(byId.milotic,1),{노말:3700});
+ assert.deepEqual(battleEnergyRewards(byId['wishiwashi-school'],0),{노말:4000});
 });
 test('three uncommon water starters retain the same slot and unchanged reward types',()=>{
  const starters=['popplio','sobble','quaxly'].map(id=>byId[id]);
  assert.equal(new Set(starters.map(p=>p.encounterCode.slice(0,6))).size,1);
  for(const pokemon of starters){
   assert.equal(pokemon.rarity,'uncommon');
-  assert.deepEqual(battleEnergyRewards(pokemon,0),{노말:100});
+  assert.deepEqual(battleEnergyRewards(pokemon,0),{노말:1789});
  }
 });

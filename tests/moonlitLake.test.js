@@ -14,9 +14,9 @@ test('moonlit lake roster and 3-to-1 uncommon slot are registered',()=>{
  assert.deepEqual(slot.candidates,['popplio','sobble','quaxly']);
  assert.equal(ENCOUNTER_SLOTS.find(s=>s.id==='W030201').candidates.length,1);
  const s=prepared();assert.ok(isRegionUnlocked(s,LAKE_REGION.id));
- assert.deepEqual(appearedInRegion(s,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','cutiefly','azurill','wingull','feebas','tadbulb','lotad','bombirdier','wishiwashi']);
+ assert.deepEqual(appearedInRegion(s,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','cutiefly','azurill','wingull','feebas','tadbulb','bombirdier','lotad','wishiwashi']);
  const rare={...s,raritySlotResults:{W030302:'sobble',W030101:'buizel',W030201:'magikarp',W030401:'cutiefly',W030501:'azurill',W030601:'wingull',W030701:'feebas',W030801:'tadbulb',W030901:'lotad',W031001:'wishiwashi',W031101:'bombirdier'}};
- assert.deepEqual(appearedInRegion(rare,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','sobble','cutiefly','azurill','wingull','feebas','tadbulb','lotad','bombirdier','wishiwashi']);
+ assert.deepEqual(appearedInRegion(rare,LAKE_REGION.id).map(p=>p.id),['buizel','magikarp','sobble','cutiefly','azurill','wingull','feebas','tadbulb','bombirdier','lotad','wishiwashi']);
 });
 test('enemy intimidation halves player physical attack at battle start',()=>{
  const s=prepared();const unlocked={...s,evolutionResults:{gyarados:true},killCounts:{...s.killCounts,buizel:1,magikarp:1}};
@@ -37,7 +37,7 @@ test('region 3 dodge rebalance retains all other enemy stats and rewards',()=>{
  const magikarp=getWildPokemon('magikarp'),quaxly=getWildPokemon('quaxly');
  assert.equal(magikarp.dodge,100);
  assert.equal(quaxly.dodge,30);
- assert.equal(magikarp.energyReward,20);
+ assert.equal(magikarp.energyReward,200);
  assert.deepEqual(magikarp.rewards,{});
  assert.deepEqual(quaxly.rewards,{attack:40,dodge:15,multiStrike:15});
 });
@@ -52,27 +52,27 @@ test('Gyarados is common and guaranteed after Magikarp first defeat, regardless 
  const appeared={...state,evolutionResults:{...state.evolutionResults,gyarados:true},
   killCounts:{...state.killCounts,buizel:1,magikarp:1}};
  assert.deepEqual(appearedInRegion(appeared,LAKE_REGION.id).map(p=>p.id),
-  ['buizel','magikarp','gyarados','cutiefly','azurill','wingull','feebas','tadbulb','lotad','bombirdier','wishiwashi']);
+  ['buizel','magikarp','gyarados','cutiefly','azurill','wingull','feebas','tadbulb','bombirdier','lotad','wishiwashi']);
  assert.deepEqual(gyarados.rewards,{attack:20,intimidation:16});
- assert.equal(gyarados.energyReward,130);
+ assert.equal(gyarados.energyReward,540);
 });
 
 test('new Lake base slots, exact stats and type energy rewards',()=>{
  const azurill=getWildPokemon('azurill'),wingull=getWildPokemon('wingull'),feebas=getWildPokemon('feebas');
  assert.deepEqual([azurill.hp,azurill.attack,azurill.speed,azurill.minDamagePercent,azurill.maxDamagePercent],[2000,100,4000,100,200]);
  assert.deepEqual(azurill.rewards,{hp:30,attack:10,minDamagePercent:1,maxDamagePercent:2});
- assert.deepEqual(battleEnergyRewards(azurill,0),{노말:50});
+ assert.deepEqual(battleEnergyRewards(azurill,0),{노말:500});
  assert.deepEqual([wingull.hp,wingull.specialAttack,wingull.speed,wingull.accuracy,wingull.regeneration],
    [2333,70,1533,333,0]);
  assert.equal(wingull.dodge,33);
  assert.deepEqual(wingull.rewards,{specialAttack:13,accuracy:13,dodge:3});
- assert.deepEqual(battleEnergyRewards(wingull,0),{노말:55.6});
+ assert.deepEqual(battleEnergyRewards(wingull,0),{노말:777});
  assert.deepEqual([feebas.hp,feebas.specialAttack,feebas.defense,feebas.specialDefense,feebas.regeneration,feebas.speed],
    [95,10,1250,79,95,3500]);
  assert.deepEqual(feebas.rewards,{});
- assert.deepEqual(battleEnergyRewards(feebas,0),{노말:20});
+ assert.deepEqual(battleEnergyRewards(feebas,0),{노말:200});
  assert.deepEqual(ENCOUNTER_SLOTS.filter(slot=>slot.id.startsWith('W03')).map(slot=>slot.id),
-   ['W030101','W030201','W030302','W030401','W030501','W030601','W030701','W030801','W030901','W031101','W031001']);
+   ['W030101','W030201','W030302','W030401','W030501','W030601','W030701','W030801','W031101','W030901','W031001']);
 });
 test('Azurill evolves through two independently rolled uncommon stages on first victories',()=>{
  const marill=getWildPokemon('marill'),azumarill=getWildPokemon('azumarill');
@@ -85,12 +85,12 @@ test('Azurill evolves through two independently rolled uncommon stages on first 
  assert.deepEqual(marill.rewards,{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3});
  assert.deepEqual([azumarill.hp,azumarill.attack,azumarill.speed,azumarill.minDamagePercent,azumarill.maxDamagePercent],[2830,250,2800,200,200]);
  assert.deepEqual(azumarill.rewards,{hp:100,attack:50,minDamagePercent:5,maxDamagePercent:5});
- assert.deepEqual(battleEnergyRewards(marill,0),{노말:75});
- assert.deepEqual(battleEnergyRewards(azumarill,0),{노말:200});
+ assert.deepEqual(battleEnergyRewards(marill,0),{노말:2000});
+ assert.deepEqual(battleEnergyRewards(azumarill,0),{노말:4000});
  const state=prepared(), kills={...state.killCounts,buizel:1,magikarp:1,cutiefly:1,azurill:1,marill:1};
  const linked={...state,killCounts:kills,evolutionResults:{marill:true,azumarill:true}};
  assert.deepEqual(appearedInRegion(linked,LAKE_REGION.id).map(p=>p.id),
-   ['buizel','magikarp','cutiefly','azurill','marill','azumarill','wingull','feebas','tadbulb','lotad','bombirdier','wishiwashi']);
+   ['buizel','magikarp','cutiefly','azurill','marill','azumarill','wingull','feebas','tadbulb','bombirdier','lotad','wishiwashi']);
  assert.equal(isPokemonUnlockedInState(linked,'azumarill'),true);
  const blocked={...linked,evolutionResults:{...linked.evolutionResults,marill:false}};
  assert.equal(isPokemonUnlockedInState(blocked,'azumarill'),false);
@@ -104,5 +104,5 @@ test('rare Milotic is registered but cannot roll naturally until rare odds are c
  assert.deepEqual([milotic.hp,milotic.specialAttack,milotic.defense,milotic.specialDefense,milotic.regeneration,milotic.speed],
    [4950,100,118.5,125,35,1750]);
  assert.deepEqual(milotic.rewards,{hp:350,specialDefense:62});
- assert.deepEqual(battleEnergyRewards(milotic,0),{노말:740});
+ assert.deepEqual(battleEnergyRewards(milotic,0),{노말:7400});
 });
