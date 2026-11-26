@@ -211,6 +211,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
           uncertain:estimate.uncertain,reason:estimate.reason});
         // Ambiguous model outputs must not create fictitious victories or defeats.
         if(estimate.result==='uncertain'){
+          for(let left=estimate.seconds*1000;left>0;){const delta=Math.min(5000,left);economy(delta);left-=delta;}
           uncertainties.push({id,kills:state.killCounts[id]??0,reason:estimate.reason,
             seconds:estimate.seconds,playerHp:estimate.playerHp,enemyHp:estimate.enemyHp});
           failedConditions.set(condition,MAX_SAME_CONDITION_FAILURES);
@@ -354,7 +355,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     }
     if(goal===10){
       const exit=decidePlanetExit(state,false);
-      if(exit.status==='COMPLETE')break;
+      if(exit.status==='COMPLETE'){recover();shop();break;}
       // If the first-pass target was not finished, try to finish it after farming.
       }
     if(!progressed&&identity(state)===beginning){
@@ -370,7 +371,6 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
     }
   }
   recover();
-  shop();
   const exit=decidePlanetExit(state,true);
   const finalFiveCleared=appearedTargets(state).length>0&&appearedTargets(state).every(id=>(state.killCounts[id]??0)>=phaseGoal(id,5));
   if(finalFiveCleared&&!firstPassDone){firstPassDone=true;note('five-phase-completed-after-farming');}
