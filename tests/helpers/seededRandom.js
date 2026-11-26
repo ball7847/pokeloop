@@ -19,6 +19,7 @@ export function createSeededRandom(seed){
 export function createVirtualRandomStreams(seed){
  return {
   encounterRandom:createSeededRandom(deriveSeed(seed,'encounter')),
+  evolutionRandom:createSeededRandom(deriveSeed(seed,'evolution')),
   combatRandom:createSeededRandom(deriveSeed(seed,'combat')),
  };
 }

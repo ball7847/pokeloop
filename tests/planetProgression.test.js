@@ -57,7 +57,8 @@ test('repeat pattern excludes cumulative SE but detects changed permanent upgrad
  const b={...a,totalStellarEarned:300};
  assert.equal(planetPattern(a),planetPattern(b));
  assert.notEqual(planetPattern(a),planetPattern({...a,stats:{...a.stats,permanent:{SU012:2}}}));
- assert.notEqual(planetPattern(a),planetPattern({...a,battles:3}));
+ assert.equal(planetPattern(a),planetPattern({...a,battles:3})); // RNG-dependent attempts are not structural progress
+ assert.notEqual(planetPattern(a),planetPattern({...a,kills:{rattata:9}}));
 });
 test('next SU forecast uses real cost, current SE and measured income only',()=>{
  const state={...initialState(),stellar:50,permanentUpgrades:{SU012:1,SU013:2,SU011:1}};

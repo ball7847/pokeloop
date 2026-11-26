@@ -42,3 +42,5 @@ GitHub ball7847/pokeloop의 development/DEVELOPMENT_GUIDE.md, IMPLEMENTED_SYSTEM
 - `npm test`: 일반 PR 및 배포 핵심 회귀. 전체 장시간 가상플레이는 제외.
 - `npm run test:virtual`: 최신 10시드 가상플레이, 사용자 요청 시 실행. `npm run test:historical`: 과거 분석 재실행, 현행 정책과 구별. `npm run test:all`: 전체 실행.
 - GitHub Actions의 PokeLoop virtual play 수동 실행에서 최신 가상플레이 JSON artifact를 제공한다.
+
+- 가상플레이 기본 exact(공격/초 경계 진행), RNG 3채널, 보고서 v3. hybrid는 평균값 진단+전수 exact 검증, fast는 근사 전용. 명시 요청 없이 전체 가상플레이 실행 금지.

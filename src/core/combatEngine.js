@@ -160,7 +160,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   }
   return {hit,cancelled:false,paralysisTriggered:triggered,delayMs};
 }
-export function advanceBattle(state,deltaMs,random=Math.random) {
+export function advanceBattle(state,deltaMs,random=Math.random,evolutionRandom=random) {
   if(state.phase!=='running'||!state.combat.active)return state;
   if(!Number.isFinite(deltaMs)||deltaMs<=0)return state;
   const c=structuredClone(state.combat);
@@ -214,7 +214,7 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
       c.regenerationElapsedMs-=1000;
       applySecond();
       if(compareAmount(c.currentHp,0)<=0)return withEffects(settleBattleOutcome(state,c,'defeat',random));
-      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',evolutionRandom));
     }
     // Continue elapsed time across second-boundary ticks without skipping due attacks.
     if(my.elapsed<myPeriod&&foe.elapsed<foePeriod){
@@ -226,14 +226,14 @@ export function advanceBattle(state,deltaMs,random=Math.random) {
       const attack=resolveAttack(c,'player',playerStats,enemyStats,random,visualEvents);
       my.duration=Math.max(100,playerStats.speed+attack.delayMs);
       if(compareAmount(c.currentHp,0)<=0)return withEffects(settleBattleOutcome(state,c,'defeat',random));
-      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',evolutionRandom));
     }
     if(foe.elapsed>=foePeriod){
       foe.elapsed-=foePeriod;
       const attack=resolveAttack(c,'enemy',enemyStats,playerStats,random,visualEvents);
       foe.duration=Math.max(100,enemyStats.speed+attack.delayMs);
       if(compareAmount(c.currentHp,0)<=0)return withEffects(settleBattleOutcome(state,c,'defeat',random));
-      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',random));
+      if(compareAmount(c.enemy.hp.current,0)<=0)return withEffects(settleBattleOutcome(state,c,'victory',evolutionRandom));
     }
   }
   return {...state,combat:c,combatVisualEvents:visualEvents};

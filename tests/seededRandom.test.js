@@ -8,6 +8,7 @@ test('seeded RNG is reproducible and encounter/combat streams independent',()=>{
  const a1=createVirtualRandomStreams(7847),a2=createVirtualRandomStreams(7847);
  for(let i=0;i<200;i++)a1.combatRandom();
  assert.equal(a1.encounterRandom(),a2.encounterRandom());
+ assert.equal(a1.evolutionRandom(),a2.evolutionRandom());
  assert.notDeepEqual(Array.from({length:10},()=>createSeededRandom(7847)()),Array.from({length:10},()=>createSeededRandom(7848)()));
 });
 
