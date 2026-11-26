@@ -4,7 +4,8 @@
 export const PLANET_ENCOUNTER_BONUSES=Object.freeze([
  Object.freeze({planet:2,slotId:'W010302',multiplier:20}), // Psyduck
  Object.freeze({planet:4,slotId:'W010602',multiplier:15}), // Ponyta
- Object.freeze({planet:6,slotId:'W011502',multiplier:10})  // Zigzagoon / Galarian Zigzagoon
+ Object.freeze({planet:6,slotId:'W011502',multiplier:10}), // Zigzagoon / Galarian Zigzagoon
+ Object.freeze({planet:8,slotId:'W020502',multiplier:10}) // Pikachu
 ]);
 
 export function activePlanetEncounterBonuses(planetNumber,discovered=[],slots=[]){
