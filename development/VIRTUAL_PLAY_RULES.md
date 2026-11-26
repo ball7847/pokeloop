@@ -21,3 +21,6 @@
 - 각 행성 첫 5회 목표 단계 상세 순서형 타임라인, 10회까지 요약. 시간은 별도 지표; JSON 원자료 이벤트 seconds 보존. 5회 미달/잠김/미등장/상한 미달 명시. 최초 도전 및 승리 전 스탯/강화, 최대 연승, 시도/패배/재검증, 불확실성 및 미결 기록.
 - 타입별 전투 에너지 수입, 슬로스타트 생산, 지출, 잔액, 누적 입자 및 잔액, 이정표, 최초 생산 시각/속도, 2/3계층 해금 및 승계, 특성, 최종 스탯/강화, 대기/보유/누적 SE, 이동 수익·SU 구매 기록.
 - `tests/seededVirtualPlay.test.js` 전체 시드/행성 JSON `artifacts/virtual-play/report.json`, CI artifact `virtual-play-report`. 로그 요약만으로 원자료가 있다고 단정하지 않는다. 보고서에 날짜/SHA/시드/모드/중단 조건/한계 기록. 역사적 보고서와 최신 결과 혼동 금지.
+
+## 실행 명령
+일반 CI 및 배포는 `npm test`로 핵심 회귀만 실행한다. 최신 10시드 분석은 `npm run test:virtual` 또는 수동 PokeLoop virtual play workflow의 virtual 선택으로 실행한다. 과거 분석은 `npm run test:historical`로 별도 실행하며 최신 정책의 결과가 아니다. 전체 실행은 `npm run test:all`.

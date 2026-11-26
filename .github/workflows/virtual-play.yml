@@ -1,0 +1,29 @@
+name: PokeLoop virtual play
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Simulation suite
+        type: choice
+        options:
+          - virtual
+          - historical
+        default: virtual
+permissions:
+  contents: read
+jobs:
+  simulation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run test:${{ inputs.suite }}
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.suite == 'virtual'
+        with:
+          name: virtual-play-report
+          path: artifacts/virtual-play/report.json
+          if-no-files-found: error

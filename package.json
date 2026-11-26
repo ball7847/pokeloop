@@ -7,7 +7,10 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node scripts/run-tests.mjs core",
+    "test:virtual": "node scripts/run-tests.mjs virtual",
+    "test:historical": "node scripts/run-tests.mjs historical",
+    "test:all": "node scripts/run-tests.mjs all"
   },
   "dependencies": {
     "react": "^19.2.0",

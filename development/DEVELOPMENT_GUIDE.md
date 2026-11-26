@@ -37,3 +37,8 @@ Vite 7, React 19, Zustand 5, break_eternity.js 2.1, JavaScript ES modules.
 
 ## 새 대화 인수인계
 GitHub ball7847/pokeloop의 development/DEVELOPMENT_GUIDE.md, IMPLEMENTED_SYSTEMS.md, PLANNED_SYSTEMS.md, VIRTUAL_PLAY_RULES.md를 읽고 최신 main 코드와 대조한다. 기존 1~3지역 55종과 밸런스를 유지하고, 승인 범위에서 브랜치·PR·CI 성공 확인·병합까지 수행한다. 원작은 별도 읽기 전용 저장소에서 요청 시 분석한다.
+
+## 테스트 실행 분리
+- `npm test`: 일반 PR 및 배포 핵심 회귀. 전체 장시간 가상플레이는 제외.
+- `npm run test:virtual`: 최신 10시드 가상플레이, 사용자 요청 시 실행. `npm run test:historical`: 과거 분석 재실행, 현행 정책과 구별. `npm run test:all`: 전체 실행.
+- GitHub Actions의 PokeLoop virtual play 수동 실행에서 최신 가상플레이 JSON artifact를 제공한다.

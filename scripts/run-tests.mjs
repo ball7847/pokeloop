@@ -1,0 +1,13 @@
+import {readdirSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+const historical=new Set(["virtualPlay10Planets20261028.test.js","layer2VirtualPlay20261106.test.js","layer2SeComparison20261106.test.js","fullClearPlaythrough.test.js","fiveKillProbe.test.js","adaptiveFiveReturn.test.js","hungerFiveStreaks.test.js","virtualPlaythrough.test.js"]);
+const virtual='seededVirtualPlay.test.js';
+const mode=process.argv[2]??'core';
+if(!['core','virtual','historical','all'].includes(mode))throw Error('Unknown test suite: '+mode);
+const files=readdirSync(new URL('../tests/',import.meta.url)).filter(f=>f.endsWith('.test.js')).sort();
+for(const f of [...historical,virtual])if(!files.includes(f))throw Error('Missing suite member: '+f);
+const selected=files.filter(f=>mode==='all'||(mode==='virtual'?f===virtual:mode==='historical'?historical.has(f):f!==virtual&&!historical.has(f)));
+console.log('Test suite '+mode+': '+selected.length+' files');
+const result=spawnSync(process.execPath,['--test',...selected.map(f=>'tests/'+f)],{stdio:'inherit',env:{...process.env,...(mode==='virtual'?{VIRTUAL_REPORT_DIR:process.env.VIRTUAL_REPORT_DIR??'artifacts/virtual-play'}:{})}});
+if(result.error)throw result.error;
+process.exitCode=result.status??1;
