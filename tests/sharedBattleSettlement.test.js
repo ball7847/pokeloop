@@ -14,7 +14,7 @@ function ready(id,{count=0,layer=1,hunger=false,honey=0}={}){
  raritySlotResults:slots,uncommonChance:.5,dexLifetimeKills:{...killCounts},
  evolutionResults:Object.fromEntries(ALL_POKEMON.filter(p=>p.evolvesFrom).map(p=>[p.id,true])),
  automation:{...state.automation,hunger},qolUnlocks:hunger?['hunger']:[],
- permanentUpgrades:{SU011:2},dittoStats:{...state.dittoStats,hp:100000,attack:100000,speed:100,honey}};
+ permanentUpgrades:{SU011:2},dittoStats:{...state.dittoStats,hp:100000,attack:100000,speed:100,accuracy:1000000,honey}};
  const active=startBattle(s,id);
  assert.equal(active.combat.active,true,id);
  return active;
