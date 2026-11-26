@@ -4,7 +4,7 @@ import {initialState,transition} from '../../src/core/gameState.js';
 import {REGIONS,REGION,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState,regionForPokemon,getWildPokemon,getKillLimit,ALL_POKEMON} from '../../src/core/wildData.js';
 import {UPGRADES,AUTOMATIONS,effectiveDittoStats,upgradeCosts} from '../../src/core/shopSystem.js';
 import {STELLAR_UPGRADE_BY_ID,stellarUpgradeCost,stellarUpgradeMaxed} from '../../src/core/stellarUpgrades.js';
-import {TYPES,typeLayer,particleRates} from '../../src/core/energySystem.js';
+import {TYPES,typeLayer,particleRates,POINT_CIRCULATION} from '../../src/core/energySystem.js';
 import {addAmount,compareAmount,subtractAmount,decimal} from '../../src/core/bigNumber.js';
 
 export const DEFAULT_SU_ORDER=Object.freeze(['SU012','SU013','SU011']);
@@ -22,7 +22,7 @@ export function nextProductionWait(state,budget=MAX_IDLE_WAIT_SECONDS){
   if(!costs||Object.keys(costs).some(t=>typeLayer(t)>state.unlockedLayer))continue;
   if(Object.entries(costs).some(([t,c])=>t!=='노말'&&compareAmount(state.energyBalances[t]??0,c)<0))continue;
   const missing=Number(subtractAmount(costs.노말??0,state.energyBalances.노말??0));
-  if(missing>0)wait=Math.min(wait,Math.ceil(missing));
+  if(missing>0)wait=Math.min(wait,Math.ceil(missing/POINT_CIRCULATION.production.노말));
  }
  return wait<=Math.min(budget,MAX_IDLE_WAIT_SECONDS)?wait:null;
 }
