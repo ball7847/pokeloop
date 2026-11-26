@@ -39,11 +39,11 @@ test('region 2 conditional and evolved species inherit fixed region slots',()=>{
 
 test('approved energy rebalance keeps correct per-type payouts and other stats',()=>{
  for(const starter of UNCOMMON_STARTERS){
-  assert.equal(starter.energyReward,28);
+  assert.equal(starter.energyReward,100);
   assert.deepEqual(starter.rewards,{hp:10,attack:1,speed:-30});
-  for(const value of Object.values(battleEnergyRewards(starter,0)))assert.equal(value,28);
+  for(const value of Object.values(battleEnergyRewards(starter,0)))assert.equal(value,100);
  }
- for(const [id,energy] of [['fearow',12],['swellow',40]]){
+ for(const [id,energy] of [['fearow',25],['swellow',200]]){
   const p=getWildPokemon(id);
   assert.equal(p.energyReward,energy);
   assert.deepEqual(battleEnergyRewards(p,0),{노말:energy});
