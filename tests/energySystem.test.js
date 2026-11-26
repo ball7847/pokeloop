@@ -147,15 +147,15 @@ test('legacy v3 preserves old essence as energy and old layer energy as particle
 test('configured species payouts include the Mankey balance adjustment',async()=>{
   const {WILD_POKEMON,UNCOMMON_STARTERS}=await import('../src/core/wildData.js');
   assert.deepEqual(WILD_POKEMON.map(p=>[p.id,p.energyReward]),[
-    ['rattata',1],['pidgey',2],['mankey',3.5],['spearow',3],['zubat',3],['meowth',10],['geodude',12],['exeggcute',16.6],['sentret',20],['tauros',49]
+    ['rattata',1],['pidgey',2],['mankey',3],['spearow',2.5],['zubat',2.5],['meowth',5],['geodude',6],['exeggcute',8],['sentret',10],['tauros',20]
   ]);
-  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.energyReward),[55,55,55]);
+  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.energyReward),[28,28,28]);
 });
 
 test('energy uses the same 1/(1+previous kills) decay as stat rewards',async()=>{
   const {getWildPokemon,scaledReward}=await import('../src/core/wildData.js');
-  for(const [id,base] of [['rattata',1],['pidgey',2],['mankey',3.5],
-    ['spearow',3],['zubat',3],['bulbasaur',55],['charmander',55],['squirtle',55]]){
+  for(const [id,base] of [['rattata',1],['pidgey',2],['mankey',3],
+    ['spearow',2.5],['zubat',2.5],['bulbasaur',28],['charmander',28],['squirtle',28]]){
     const pokemon=getWildPokemon(id);
     assert.equal(pokemon.energyReward,base);
     assert.equal(scaledReward('energy',base,0),base);
@@ -194,19 +194,19 @@ test('Slow Start purchases only normal energy and creates particles',()=>{
  assert.equal(transition(purchased,{type:'BUY_CIRCULATION',id:'point'}),purchased);
  assert.equal(transition({...s,phase:'paused'},{type:'BUY_CIRCULATION',id:'point'}).pointCirculationUnlocked,false);
 });
-test('Slow Start produces one normal energy per second and toggles',()=>{
+test('Slow Start produces half a normal energy per second and toggles',()=>{
  let s={...initialState(),phase:'running',pointCirculationUnlocked:true,automation:{...initialState().automation,point:true}};
  s=transition(s,{type:'ECONOMY_TICK',deltaMs:1000});
- assert.equal(s.energyBalances.노말,1);
+ assert.equal(s.energyBalances.노말,0.5);
  s=tickEconomy(s,5);
- assert.equal(s.energyBalances.노말,6);
+ assert.equal(s.energyBalances.노말,3);
  s=transition(s,{type:'TOGGLE_AUTOMATION',id:'point'});
  assert.equal(s.automation.point,false);
- assert.equal(tickEconomy(s,5).energyBalances.노말,6);
+ assert.equal(tickEconomy(s,5).energyBalances.노말,3);
  assert.equal(decodeSave(encodeSave(s)).game.automation.point,false);
  s=transition(s,{type:'TOGGLE_AUTOMATION',id:'point'});
- assert.equal(tickEconomy(s,1).energyBalances.노말,7);
- assert.equal(transition({...s,phase:'paused'},{type:'ECONOMY_TICK',deltaMs:1000}).energyBalances.노말,6);
+ assert.equal(tickEconomy(s,1).energyBalances.노말,3.5);
+ assert.equal(transition({...s,phase:'paused'},{type:'ECONOMY_TICK',deltaMs:1000}).energyBalances.노말,3);
 });
 test('point circulation survives save, old saves default off, planet move clears it',()=>{
  let s={...initialState(),phase:'running',pointCirculationUnlocked:true};
