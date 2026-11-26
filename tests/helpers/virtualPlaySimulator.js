@@ -187,7 +187,9 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,mode=
             estimatedOutcome:estimate.result});
         }
         const before={...state.energyBalances};
+        const previousState=state;
         state=settleExpectedBattle(state,id,estimate,encounterRandom);
+        if(observe&&state!==previousState)observe({action:'EXPECTED_BATTLE_SETTLEMENT',deltaMs:null,before:previousState,after:state,battles,seconds,events:events.length});
         // Economic production is still handled by real game transitions, at
         // legal 5s chunks. No invented energy or stellar grants.
         let remainingMs=estimate.seconds*1000;
