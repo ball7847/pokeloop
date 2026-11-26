@@ -13,8 +13,8 @@ test('abilities have stable AB codes and retain internal ids, costs and effects'
  assert.equal(POINT_CIRCULATION.abilityId,'AB03');
  assert.equal(POINT_CIRCULATION.name,'슬로스타트');
  assert.equal(POINT_CIRCULATION.id,'point');
- assert.deepEqual(POINT_CIRCULATION.costs,{노말:10,벌레:10,비행:10});
- assert.deepEqual(POINT_CIRCULATION.production,{노말:0.5});
+ assert.deepEqual(POINT_CIRCULATION.costs,{노말:100});
+ assert.deepEqual(POINT_CIRCULATION.production,{노말:1});
 });
 
 test('legacy ability ownership and production persist under previous save keys',()=>{
