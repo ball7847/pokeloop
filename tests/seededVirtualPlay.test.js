@@ -27,7 +27,7 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
    appeared:p.appeared.map(x=>x.id??x),maxStreak:p.maxStreak,
    pendingSE:p.pendingStellar,stellar:p.stellar,totalSE:p.totalStellarEarned,
    stats:p.stats,upgrades:p.stats.upgrades,
-   gained:p.gained,spent:p.spent,remaining:p.remaining,
+   gained:p.gained,spent:p.spent,remaining:p.remaining,production:p.production,unlockedLayer:p.unlockedLayer,startLayer:p.startLayer,layerEvents:p.layerEvents,milestoneEvents:p.milestoneEvents,firstProduction:p.firstProduction,particleEarned:p.particleEarned,firstVictories:p.firstVictories,idleSeconds:p.idleSeconds,locked:p.locked,
    kills:p.kills,
    ...(seed===7847?{timeline:p.timeline}:{}),
   }));
@@ -42,7 +42,7 @@ test('ten independent seeded virtual playthroughs follow real transitions',()=>{
  planets:planets.map(p=>({
   planet:p.planet,reason:p.reason,fiveCleared:p.fiveCleared,capped:p.capped.length,
   combatMode:p.combatMode,uncertaintyCount:p.uncertainties.length,approximateUnresolved:p.approximateUnresolved,
-  incomplete:p.incomplete,battles:p.battles,defeats:p.defeats,
+  incomplete:p.incomplete,locked:p.locked,battles:p.battles,defeats:p.defeats,unlockedLayer:p.unlockedLayer,startLayer:p.startLayer,layerEvents:p.layerEvents,milestoneEvents:p.milestoneEvents,firstProduction:p.firstProduction,particleEarned:p.particleEarned,production:p.production,idleSeconds:p.idleSeconds,firstVictories:Object.fromEntries(Object.entries(p.firstVictories).filter(([id])=>['tauros','pikachu','gyarados'].includes(id))),
   rare:p.appeared.filter(id=>!['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros','caterpie','metapod','weedle','kakuna','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit','tropius'].includes(id)),
   pendingSE:+Number(p.pendingSE).toFixed(2),
   tropiusKills:p.kills.tropius,
