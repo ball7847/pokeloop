@@ -1,0 +1,33 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {initialState,transition} from '../src/core/gameState.js';
+import {startBattle,advanceBattle} from '../src/core/combatEngine.js';
+import {encodeSave,decodeSave} from '../src/core/saveCodec.js';
+test('Moxie costs 1000 normal and Intimidate cannot be bought',()=>{
+ let s={...initialState(),phase:'running',energyBalances:{...initialState().energyBalances,노말:999}};
+ assert.equal(transition(s,{type:'BUY_AUTOMATION',id:'moxie'}),s);
+ s={...s,energyBalances:{...s.energyBalances,노말:1000}};
+ assert.equal(transition(s,{type:'BUY_AUTOMATION',id:'intimidate'}),s);
+ s=transition(s,{type:'BUY_AUTOMATION',id:'moxie'});
+ assert.equal(s.energyBalances.노말,0);
+ assert.equal(s.particleBalances.노말,1000);
+ assert.equal(s.automation.moxie,true);
+});
+test('Gyarados first victory grants Intimidate and planet move resets abilities',()=>{
+ let s=initialState();
+ const ids=['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela','magikarp'];
+ s={...s,phase:'running',activeRegionId:'moonlit-lake',unlockedLayer:2,killCounts:{...s.killCounts,...Object.fromEntries(ids.map(id=>[id,1]))},evolutionResults:{gyarados:true},dittoStats:{...s.dittoStats,hp:100000,attack:100000,speed:100}};
+ s=startBattle(s,'gyarados');
+ assert.equal(s.combat.active,true);
+ s=advanceBattle(s,100,()=>0.5);
+ assert.equal(s.killCounts.gyarados,1);
+ assert.equal(s.automation.intimidate,true);
+ assert.ok(s.qolUnlocks.includes('intimidate'));
+ assert.equal(s.particleBalances.노말,0);
+ s=transition(s,{type:'TOGGLE_AUTOMATION',id:'intimidate'});
+ assert.equal(s.automation.intimidate,false);
+ assert.equal(decodeSave(encodeSave(s)).game.automation.intimidate,false);
+ s=transition({...s,pendingStellar:1},{type:'MOVE_PLANET'});
+ assert.equal(s.automation.intimidate,false);
+ assert.ok(!s.qolUnlocks.includes('intimidate'));
+});

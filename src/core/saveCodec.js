@@ -217,10 +217,10 @@ export function decodeSave(encoded){
     if(owned.some(k=>!AUTOMATIONS.some(item=>item.id===k)))throw new Error('자동화 해금 데이터가 올바르지 않습니다.');
     const flags=original.automation??{};
     if(!flags||typeof flags!=='object'||Array.isArray(flags)||
-      Object.keys(flags).some(k=>!AUTOMATIONS.some(item=>item.id===k))||
+      Object.keys(flags).some(k=>k!=='point'&&!AUTOMATIONS.some(item=>item.id===k))||
       Object.values(flags).some(v=>typeof v!=='boolean'))throw new Error('자동화 활성화 값이 올바르지 않습니다.');
-    if(Object.entries(flags).some(([k,v])=>v&&!owned.includes(k)))throw new Error('미해금 자동화 활성화');
-    cleanGame.automation={...DEFAULT_AUTOMATION,...flags};
+    if(Object.entries(flags).some(([k,v])=>v&&(k==='point'?!cleanGame.pointCirculationUnlocked:!owned.includes(k))))throw new Error('미해금 자동화 활성화');
+    cleanGame.automation={...DEFAULT_AUTOMATION,point:cleanGame.pointCirculationUnlocked,...flags};
     const selection=original.autoBuySelection??{};
     if(!selection||typeof selection!=='object'||Array.isArray(selection)||Object.entries(selection).some(([id,enabled])=>!UPGRADES.some(item=>item.id===id)||typeof enabled!=='boolean'))throw new Error('자동 구매 선택값이 올바르지 않습니다.');
     cleanGame.autoBuySelection={...DEFAULT_AUTO_BUY_SELECTION,...selection};

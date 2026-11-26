@@ -1,9 +1,9 @@
 import {REGION,getKillLimit,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,evolutionFor,evolutionChance} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
-import {grantBattleEnergy} from './energySystem.js';
+import {grantBattleEnergy,unlockLayerForVictory} from './energySystem.js';
 import {recordItemProgress} from './itemSystem.js';
 import {stellarBattleEnergyReward} from './stellarUpgrades.js';
-import {effectiveDittoStats} from './shopSystem.js';
+import {effectiveDittoStats,grantVictoryAbility} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
 import {appendDamageEvents,appendStatusDamageEvent,appendHealingEvent} from './combatVisualEvents.js';
 export const emptyCombat = hp=>({
@@ -14,7 +14,7 @@ export const emptyCombat = hp=>({
 });
 export function calculateBattleEnergyRewards(state,p,count){
  const honey=1+(effectiveDittoStats(state).honey??0)*.001;
- return Object.fromEntries(Object.entries(battleEnergyRewards(p,count,state)).map(([type,amount])=>[type,multiplyAmount(stellarBattleEnergyReward(state,type,amount),honey)]));
+ return Object.fromEntries(Object.entries(battleEnergyRewards(p,count,unlockLayerForVictory(state,p.id,count))).map(([type,amount])=>[type,multiplyAmount(stellarBattleEnergyReward(state,type,amount),honey)]));
 }
 export function startBattle(state,id,carryHp=null,carryStatus=null) {
   const p=getWildPokemon(id);
@@ -56,7 +56,7 @@ function finish(state,c,type,random=Math.random) {
       stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
     const energyRewards=calculateBattleEnergyRewards(state,p,count);
-    let rewarded=state;
+    let rewarded=grantVictoryAbility(unlockLayerForVictory(state,p.id,count),p.id,count);
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
     const evolution=count===0?evolutionFor(p.id):null;

@@ -7,7 +7,8 @@ import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 const ready=()=>({...initialState(),phase:'running'});
 test('AB04 to AB06 identities and costs',()=>{
  assert.deepEqual(AUTOMATIONS.slice(2).map(x=>[x.abilityId,x.name,x.type,x.cost]),[
-  ['AB04','다운로드','노말',200],['AB05','자기과신','악',10],['AB06','위협','악',25]]);
+  ['AB04','다운로드','노말',200],['AB05','자기과신','노말',1000],['AB06','위협',undefined,undefined]]);
+ assert.equal(AUTOMATIONS.find(x=>x.id==='intimidate').victoryPokemonId,'gyarados');
 });
 test('download buys by next cost and respects exclusions',()=>{
  let s={...ready(),qolUnlocks:['download'],automation:{download:true},energyBalances:{노말:100,물:100,바위:100},autoBuySelection:{hp:true,attack:true,defense:true,specialAttack:true}};

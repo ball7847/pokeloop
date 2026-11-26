@@ -63,7 +63,7 @@ function run(strategy,startingState=null,verbose=true){
      const delta=Math.min(5000,s.recoveryMs);
      s=transition(s,{type:'RECOVERY_TICK',deltaMs:delta});
      s=transition(s,{type:'ECONOMY_TICK',deltaMs:delta});
-     if(s.pointCirculationUnlocked)circulationSeconds+=delta/1000;
+     if(s.pointCirculationUnlocked&&s.automation.point)circulationSeconds+=delta/1000;
      ms+=delta;
    }
  }
@@ -90,7 +90,7 @@ function run(strategy,startingState=null,verbose=true){
        ? {stats:effectiveDittoStats(s),upgrades:{...s.energyUpgrades},baseStats:{...s.dittoStats}}:null;
      const next=transition(s,{type:'COMBAT_TICK',deltaMs:500,random:()=>0.5});
      s=transition(next,{type:'ECONOMY_TICK',deltaMs:500});
-     if(s.pointCirculationUnlocked)circulationSeconds+=0.5;
+     if(s.pointCirculationUnlocked&&s.automation.point)circulationSeconds+=0.5;
      ms+=500;elapsed+=500;steps++;
      const now=s.killCounts[id]??0;
      if(now>lastKills){
@@ -200,7 +200,7 @@ function run(strategy,startingState=null,verbose=true){
      for(const [type,value] of Object.entries(battleEnergyRewards(pokemon,i,s)))totalEnergy[type]+=value;
    }
  }
- const result={pointCirculation:{purchased:circulationBoughtAt!==null,boughtAtMs:circulationBoughtAt,seconds:circulationSeconds,produced:circulationSeconds*0.5,unlocked:s.pointCirculationUnlocked},fiveClearTimelineEnd,fiveClearStats,fiveClearUpgrades,fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
+ const result={pointCirculation:{purchased:circulationBoughtAt!==null,boughtAtMs:circulationBoughtAt,seconds:circulationSeconds,produced:circulationSeconds,unlocked:s.pointCirculationUnlocked},fiveClearTimelineEnd,fiveClearStats,fiveClearUpgrades,fiveCleared,secondPassPending,appearedIds,totalEnergy,remainingEnergy:{...s.energyBalances},strategy,minutes:+(ms/60000).toFixed(2),automationBoughtAt,
    victories:s.victories,kills:Object.fromEntries(reportIds.map(id=>[id,s.killCounts[id]??0])),
    battles,failures,streaks,
    maxStreak:Object.fromEntries(reportIds.map(id=>[id,Math.max(0,...(streaks[id]??[]).map(x=>x.wins))])),
@@ -251,7 +251,7 @@ test('two real playthroughs separated by planet move; all victories and currency
     upgrades:{...s.energyUpgrades},remainingEnergy:{...s.energyBalances}};
  if(Number(s.pendingStellar)<1){
   assert.equal(transition(s,{type:'MOVE_PLANET'}),s);
-  assert.equal(s.unlockedLayer,1);
+  assert.ok(s.unlockedLayer>=1&&s.unlockedLayer<=3);
   console.log('TWO_PLANET_BLOCKED_PENDING_BOSS_BALANCE '+JSON.stringify(beforeMove));
   return; // No fabricated resources; actual travel is covered by economy unit tests.
  }
