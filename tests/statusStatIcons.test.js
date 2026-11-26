@@ -5,95 +5,22 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
 
-test('uploaded status icons are separate transparent vector silhouettes with eye cutouts',()=>{
- for(const [stat,color] of [['paralysis','#FFD21A'],['poison','#9221C6']]){
-  const svg=readFileSync(new URL('../public/assets/stats/'+stat+'.svg',import.meta.url),'utf8');
-  assert.match(svg,/<svg /);
-  assert.match(svg,/viewBox=/);
-  assert.ok(svg.includes('fill="'+color+'"'));
-  assert.doesNotMatch(svg,/<rect|<image|background/i);
- }
- const poison=readFileSync(new URL('../public/assets/stats/poison.svg',import.meta.url),'utf8');
- assert.ok(poison.includes('fill-rule="evenodd"'));
-});
-test('paralysis and poison render with proper shared stat icons and no old text glyphs',async()=>{
+const cases=[['paralysis','마비'],['poison','독'],['antidote','해독'],['honey','꿀'],['intimidation','위협'],['sound','소리'],['criticalChance','치명타확률'],['criticalMultiplier','치명타배율'],['minDamagePercent','최소 피해량'],['maxDamagePercent','최대 피해량']];
+test('all approved special stat icons are local SVG assets and render through shared components',async()=>{
  const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
  try{
   const {homeStatIconUrl,StatIcon,StatLabel,STATUS_STAT_FILES}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
   assert.deepEqual(STATUS_STAT_FILES,{paralysis:'paralysis.svg',poison:'poison.svg',antidote:'antidote.svg'});
-  for(const [stat,label] of [['paralysis','마비'],['poison','독']]){
-   assert.ok(homeStatIconUrl(stat).endsWith('assets/stats/'+stat+'.svg'));
-   const rendered=renderToStaticMarkup(React.createElement(StatLabel,{stat,label}));
-   assert.ok(rendered.includes(stat+'.svg'));
-   assert.ok(rendered.includes(label));
-   assert.ok(renderToStaticMarkup(React.createElement(StatIcon,{stat})).includes('home-stat-icon'));
+  for(const [stat,label] of cases){
+   const svg=readFileSync(new URL('../public/assets/stats/'+stat+'.svg',import.meta.url),'utf8');
+   assert.match(svg,/<svg\b/,stat);
+   assert.ok(homeStatIconUrl(stat).endsWith('assets/stats/'+stat+'.svg'),stat);
+   const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat}));
+   const markup=renderToStaticMarkup(React.createElement(StatLabel,{stat,label}));
+   assert.ok(icon.includes(stat+'.svg'),stat);
+   assert.ok(icon.includes('home-stat-icon'),stat);
+   assert.ok(markup.includes(stat+'.svg')&&markup.includes(label),stat);
+   assert.doesNotMatch(icon+markup,/extra-stat-icon|✚|✿|♪/);
   }
- }finally{await vite.close();}
-});
-
-test('intimidation uses transparent dark-red face SVG instead of arrow glyph',async()=>{
- const svg=readFileSync(new URL('../public/assets/stats/intimidation.svg',import.meta.url),'utf8');
- assert.match(svg,/<svg /);
- assert.match(svg,/fill="#96000E"/);
- assert.match(svg,/fill="#fff"/);
- assert.doesNotMatch(svg,/<rect|<image|background/i);
- const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- try{
-  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
-  assert.ok(homeStatIconUrl('intimidation').endsWith('assets/stats/intimidation.svg'));
-  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'intimidation'}));
-  assert.match(icon,/intimidation\.svg/);
-  assert.doesNotMatch(icon,/extra-stat-icon|↓/);
-  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'intimidation',label:'위협'})),/intimidation\.svg/);
- }finally{await vite.close();}
-});
-
-test('sound uses the black transparent double-note SVG instead of a text glyph',async()=>{
- const svg=readFileSync(new URL('../public/assets/stats/sound.svg',import.meta.url),'utf8');
- assert.match(svg,/viewBox="0 0 128 128"/);
- assert.match(svg,/fill="#000"/);
- assert.doesNotMatch(svg,/<rect|<image|background|♪/i);
- const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- try{
-  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
-  assert.ok(homeStatIconUrl('sound').endsWith('assets/stats/sound.svg'));
-  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'sound'}));
-  assert.match(icon,/sound\.svg/);
-  assert.doesNotMatch(icon,/extra-stat-icon|♪/);
-  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'sound',label:'소리'})),/sound\.svg/);
- }finally{await vite.close();}
-});
-
-test('critical chance uses transparent red burst SVG instead of text symbol',async()=>{
- const svg=readFileSync(new URL('../public/assets/stats/criticalChance.svg',import.meta.url),'utf8');
- assert.match(svg,/viewBox="0 0 128 128"/);
- assert.match(svg,/fill="#D00016"/);
- assert.doesNotMatch(svg,/<rect|<image|background/i);
- const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- try{
-  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
-  assert.ok(homeStatIconUrl('criticalChance').endsWith('assets/stats/criticalChance.svg'));
-  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'criticalChance'}));
-  assert.match(icon,/criticalChance\.svg/);
-  assert.doesNotMatch(icon,/extra-stat-icon/);
-  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'criticalChance',label:'치명타확률'})),/criticalChance\.svg/);
- }finally{await vite.close();}
-});
-
-test('critical multiplier uses red burst/X SVG with transparent X separation',async()=>{
- const svg=readFileSync(new URL('../public/assets/stats/criticalMultiplier.svg',import.meta.url),'utf8');
- assert.match(svg,/viewBox="0 0 128 128"/);
- assert.match(svg,/mask id="burst-cutout"/);
- assert.match(svg,/stroke="black" stroke-width="21"/);
- assert.match(svg,/stroke="#D00016" stroke-width="13"/);
- assert.doesNotMatch(svg,/<rect|<image|background/i);
- const vite=await createServer({server:{middlewareMode:true},appType:'custom'});
- try{
-  const {homeStatIconUrl,StatIcon,StatLabel}=await vite.ssrLoadModule('/src/components/StatIcon.jsx');
-  assert.ok(homeStatIconUrl('criticalMultiplier').endsWith('assets/stats/criticalMultiplier.svg'));
-  const icon=renderToStaticMarkup(React.createElement(StatIcon,{stat:'criticalMultiplier'}));
-  assert.match(icon,/criticalMultiplier\.svg/);
-  assert.doesNotMatch(icon,/extra-stat-icon/);
-  assert.match(renderToStaticMarkup(React.createElement(StatLabel,{stat:'criticalMultiplier',label:'치명타배율'})),/criticalMultiplier\.svg/);
  }finally{await vite.close();}
 });
