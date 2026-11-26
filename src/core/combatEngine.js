@@ -96,6 +96,7 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   const actingStatus=player?c.playerStatus:c.enemyStatus;
   const targetStatus=player?c.enemyStatus:c.playerStatus;
   const defenderHp=player?()=>c.enemy.hp.current:()=>c.currentHp;
+  const bothAlive=()=>compareAmount(defenderHp(),0)>0&&compareAmount(player?c.currentHp:c.enemy.hp.current,0)>0;
   const setDefenderHp=value=>{
     if(player)c.enemy.hp.current=value;
     else {c.currentHp=value;c.dittoHp.current=value;}
@@ -150,10 +151,10 @@ export function resolveAttack(c,attacker,attackerStats,defenderStats,random=Math
   // An additional hit is immediate; do not recurse or pay poison per hit.
   // A value of 1000 guarantees one bonus hit; fractional remainder is rolled once.
   const multi=decimal(attackerStats.multiStrike??0);
-  if(multi.gt(0)&&compareAmount(defenderHp(),0)>0&&compareAmount(player?c.currentHp:c.enemy.hp.current,0)>0){
+  if(multi.gt(0)&&bothAlive()){
     const guaranteed=Math.min(1000,Math.floor(multi.div(1000).toNumber()));
-    for(let i=0;i<guaranteed&&compareAmount(defenderHp(),0)>0;i++)strike();
-    if(compareAmount(defenderHp(),0)>0&&random()<multi.mod(1000).div(1000).toNumber())strike();
+    for(let i=0;i<guaranteed&&bothAlive();i++)strike();
+    if(bothAlive()&&random()<multi.mod(1000).div(1000).toNumber())strike();
   }
   return {hit,cancelled:false,paralysisTriggered:triggered,delayMs};
 }
