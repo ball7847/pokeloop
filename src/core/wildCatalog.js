@@ -43,16 +43,16 @@ const berryEntries=[
 {id:'kakuna',evolvesFrom:'weedle',rarity:'common',number:14,name:'딱충이',types:['벌레','독'],energyReward:15,hp:160,attack:20,defense:10,speed:5000,rewards:{hp:10,defense:1}},
 {id:'shroomish',number:285,name:'버섯꼬',types:['풀'],rarity:'uncommon',hp:285,attack:40,multiStrike:50,antidote:40,regeneration:40,poison:40,speed:2500,energyReward:65,rewards:{antidote:28,poison:15}},
 {id:'breloom',number:286,name:'버섯모',types:['풀','격투'],rarity:'uncommon',evolvesFrom:'shroomish',hp:1286,attack:130,multiStrike:250,antidote:60,poison:60,speed:1300,energyReward:180,rewards:{attack:30,multiStrike:30,antidote:33,poison:15}},
-{id:'taillow',number:276,name:'테일로',types:['노말','비행'],energyReward:16,hp:80,attack:11,speed:1100,rewards:{attack:2.76,speed:-20}},
+{id:'taillow',number:276,name:'테일로',types:['노말','비행'],energyReward:20,hp:80,attack:11,speed:1100,rewards:{attack:2.76,speed:-20}},
 {id:'swellow',evolvesFrom:'taillow',rarity:'uncommon',number:277,name:'스왈로',types:['노말','비행'],hp:600,attack:15,specialAttack:15,speed:825,accuracy:277,energyReward:40,rewards:{accuracy:14}},
-{id:'igglybuff',number:174,name:'푸푸린',types:['노말','페어리'],energyReward:18,hp:180,attack:6,specialAttack:20,specialDefense:4,speed:2000,rewards:{hp:18,specialAttack:5}},
+{id:'igglybuff',number:174,name:'푸푸린',types:['노말','페어리'],energyReward:22,hp:180,attack:6,specialAttack:20,specialDefense:4,speed:2000,rewards:{hp:18,specialAttack:5}},
 {id:'pikachu',number:25,name:'피카츄',types:['전기'],rarity:'uncommon',energyReward:35,hp:250,attack:25,specialAttack:25,speed:1025,paralysis:250,rewards:{attack:25,paralysis:25}},
-{id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:25,hp:230,attack:57,speed:2730,accuracy:80,minDamagePercent:50,maxDamagePercent:150,rewards:{attack:5.7,maxDamagePercent:3.2}},
-{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:25,hp:220,attack:21,speed:2750,poison:10,rewards:{hp:12.9,poison:1}},
-{id:'tangela',number:114,name:'덩쿠리',types:['풀'],energyReward:30,hp:195,specialAttack:15.5,regeneration:5,speed:1600,rewards:{hp:11.4,regeneration:1.14}},
+{id:'nidoran-m',number:32,name:'니드런♂',types:['독'],energyReward:29,hp:230,attack:57,speed:2730,accuracy:80,minDamagePercent:50,maxDamagePercent:150,rewards:{attack:5.7,maxDamagePercent:3.2}},
+{id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:29,hp:220,attack:21,speed:2750,poison:10,rewards:{hp:12.9,poison:1}},
+{id:'tangela',number:114,name:'덩쿠리',types:['풀'],energyReward:35,hp:195,specialAttack:15.5,regeneration:5,speed:1600,rewards:{hp:11.4,regeneration:1.14}},
 {id:'bidoof',number:399,name:'비버니',types:['노말'],energyReward:40,hp:390,attack:25,specialAttack:15,speed:2900,rewards:{hp:20,attack:4}},
-{id:'surskit',number:283,name:'비구술',types:['벌레','물'],energyReward:45,hp:40,attack:30,defense:32,specialAttack:50,specialDefense:52,speed:990,rewards:{speed:-28}},
-{id:'tropius',number:357,name:'트로피우스',types:['풀','비행'],energyReward:100,hp:990,attack:68,specialAttack:72,regeneration:46,speed:4570,rewards:{hp:50,attack:10,specialAttack:10,regeneration:10}}
+{id:'surskit',number:283,name:'비구술',types:['벌레','물'],energyReward:59,hp:40,attack:30,defense:32,specialAttack:50,specialDefense:52,speed:990,rewards:{speed:-28}},
+{id:'tropius',number:357,name:'트로피우스',types:['풀','비행'],energyReward:200,hp:990,attack:68,specialAttack:72,regeneration:46,speed:4570,rewards:{hp:50,attack:10,specialAttack:10,regeneration:10}}
 ];
 // Region 2 slots remain fixed even when conditional Pokémon have not appeared.
 // Evolutions inherit their parent's slot and use -E1 for the first evolution.
