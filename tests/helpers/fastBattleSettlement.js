@@ -3,7 +3,7 @@ import {getWildPokemon,evolutionFor,evolutionChance,REGION,scaledReward,battleEn
 import {effectiveDittoStats} from '../../src/core/shopSystem.js';
 import {stellarBattleEnergyReward} from '../../src/core/stellarUpgrades.js';
 import {recordItemProgress} from '../../src/core/itemSystem.js';
-import {grantBattleEnergy} from '../../src/core/energySystem.js';
+import {grantBattleEnergy,unlockLayerForVictory} from '../../src/core/energySystem.js';
 import {addAmount,multiplyAmount} from '../../src/core/bigNumber.js';
 
 // Test-only settlement of an estimated encounter. Never used by gameplay.
@@ -24,7 +24,7 @@ export function settleExpectedBattle(state,id,estimate,encounterRandom=Math.rand
     stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
   }
   const energyRewards=calculateBattleEnergyRewards(state,p,count);
-  let rewarded=state;
+  let rewarded=unlockLayerForVictory(state,id,count);
   for(const [type,value] of Object.entries(energyRewards))rewarded=grantBattleEnergy(rewarded,[type],value);
   const nextEvolution=count===0?evolutionFor(id):null;
   const evolutionResults=nextEvolution?{...state.evolutionResults,

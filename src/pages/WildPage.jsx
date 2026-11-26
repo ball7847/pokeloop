@@ -1,3 +1,4 @@
+import {unlockLayerForVictory} from '../core/energySystem.js';
 import {StatIcon} from '../components/StatIcon.jsx';
 import {EnergyTypeIcon} from '../components/EnergyTypeIcon.jsx';
 import {formatAmount,isAmount,compareAmount} from '../core/bigNumber.js';
@@ -35,7 +36,7 @@ export function visibleWildExtraStats(pokemon){
 function WildCard({pokemon,count,unlockedLayer,unlocked,capped,fighting,disabled,onSelect}){
   const basic=new Set(visibleWildBasicStats(pokemon).map(({key})=>key));
   const extras=visibleWildExtraStats(pokemon);
-  const energyRewards=battleEnergyRewards(pokemon,count,{unlockedLayer});
+  const energyRewards=battleEnergyRewards(pokemon,count,unlockLayerForVictory({unlockedLayer},pokemon.id,count));
   const gain=Object.entries(pokemon.rewards).filter(([,v])=>typeof v==='number'?v!==0:isAmount(v)&&compareAmount(v,0)!==0)
     .map(([stat,val])=>({stat,label:statLabel(stat),value:scaledReward(stat,val,count)}));
   return <button type="button" disabled={disabled}

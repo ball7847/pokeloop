@@ -7,21 +7,21 @@ import {stellarChildBonus} from './stellarUpgrades.js';
 export const UPGRADES=Object.freeze([
   {id:'hp',name:'HP 증가',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
   {id:'attack',name:'공격 증가',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
-  {id:'specialAttack',name:'특수공격 증가',type:'물',base:8,growth:1.5,bonus:1,unit:'flat',stat:'특수공격'},
-  {id:'hpMultiplier',name:'HP 증폭',types:['물','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'HP'},
-  {id:'defense',name:'방어 증가',type:'바위',base:1,growth:1.5,bonus:1,unit:'flat',stat:'방어'},
-  {id:'specialDefense',name:'특수방어 증가',type:'페어리',base:8,growth:1.5,bonus:1,unit:'flat',stat:'특수방어'},
-  {id:'specialAttackMultiplier',name:'특수공격 증폭',types:['에스퍼','악'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수공격'},
-  {id:'defenseMultiplier',name:'방어 증폭',types:['강철','땅'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'방어'},
-  {id:'specialDefenseMultiplier',name:'특수방어 증폭',types:['강철','에스퍼'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'특수방어'},
-  {id:'attackMultiplier',name:'공격 증폭',types:['불꽃','격투'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
+  {id:'specialAttack',name:'특수공격 증가',type:'노말',base:999999,growth:1.5,bonus:1,unit:'flat',stat:'특수공격'},
+  {id:'hpMultiplier',name:'HP 증폭',types:['노말','물'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'HP'},
+  {id:'defense',name:'방어 증가',type:'노말',base:999999,growth:1.5,bonus:1,unit:'flat',stat:'방어'},
+  {id:'specialDefense',name:'특수방어 증가',type:'노말',base:999999,growth:1.5,bonus:1,unit:'flat',stat:'특수방어'},
+  {id:'specialAttackMultiplier',name:'특수공격 증폭',type:'노말',base:999999,growth:1.5,bonus:0.04,unit:'percent',stat:'특수공격'},
+  {id:'defenseMultiplier',name:'방어 증폭',type:'노말',base:999999,growth:1.5,bonus:0.04,unit:'percent',stat:'방어'},
+  {id:'specialDefenseMultiplier',name:'특수방어 증폭',type:'노말',base:999999,growth:1.5,bonus:0.04,unit:'percent',stat:'특수방어'},
+  {id:'attackMultiplier',name:'공격 증폭',types:['노말','불꽃'],base:10,growth:1.5,bonus:0.04,unit:'percent',stat:'공격'},
   {id:'speedFlat',name:'스피드 증가',type:'전기',base:10,growth:100,bonus:10,unit:'ms',stat:'스피드'},
-  {id:'speed',name:'스피드 증폭',types:['격투','비행'],base:10,growth:100,bonus:0.01,unit:'percent',stat:'스피드'},
-  {id:'antidote',name:'해독 증가',type:'독',base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
-  {id:'poisonMultiplier',name:'독 증폭',type:'독',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'독'},
-  {id:'regeneration',name:'회복 증가',types:['풀','페어리'],base:10,growth:1.5,bonus:1,unit:'flat',stat:'회복'},
-  {id:'regenerationMultiplier',name:'회복 증폭',type:'풀',base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'},
-  {id:'honeyMultiplier',name:'꿀 증폭',type:'벌레',base:40,growth:1.5,bonus:0.05,unit:'percent',stat:'꿀'}
+  {id:'speed',name:'스피드 증폭',type:'노말',base:999999,growth:100,bonus:0.01,unit:'percent',stat:'스피드'},
+  {id:'antidote',name:'해독 증가',types:['물','풀'],base:10,growth:1.5,bonus:1,unit:'flat',stat:'해독'},
+  {id:'poisonMultiplier',name:'독 증폭',type:'노말',base:999999,growth:1.5,bonus:0.03,unit:'percent',stat:'독'},
+  {id:'regeneration',name:'회복 증가',type:'노말',base:999999,growth:1.5,bonus:1,unit:'flat',stat:'회복'},
+  {id:'regenerationMultiplier',name:'회복 증폭',types:['노말','풀'],base:10,growth:1.5,bonus:0.03,unit:'percent',stat:'회복'},
+  {id:'honeyMultiplier',name:'꿀 증폭',type:'노말',base:999999,growth:1.5,bonus:0.05,unit:'percent',stat:'꿀'}
 ]);
 // Immutable catalog for constant-time ID lookup (same costs and ordering).
 export const UPGRADE_BY_ID=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,item])));

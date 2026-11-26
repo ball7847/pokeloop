@@ -68,10 +68,16 @@ function processMilestones(economy){
   }
   return e;
 }
-// Future boss victory integration: sequential, idempotent, no public action yet.
+// Sequential, idempotent layer unlock; no public action.
 export function unlockNextLayer(state,level){
  if(!Number.isInteger(level)||level!==state.unlockedLayer+1||level>LAYERS.length)return state;
  return {...state,unlockedLayer:level};
+}
+export const LAYER_VICTORY_REQUIREMENTS=Object.freeze({2:'tauros',3:'pikachu'});
+export function unlockLayerForVictory(state,pokemonId,count){
+ if(count!==0)return state;
+ const next=state.unlockedLayer+1;
+ return LAYER_VICTORY_REQUIREMENTS[next]===pokemonId?unlockNextLayer(state,next):state;
 }
 // Battles award spendable type energy only. No particle generation occurs at battle end.
 export function grantBattleEnergy(state,types,amount){

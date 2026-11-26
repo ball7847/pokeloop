@@ -38,7 +38,7 @@ export function EnergyPage(){
         {LAYERS.map(layer=>{
           const unlocked=layer.level<=game.unlockedLayer;
           return <div key={layer.level} className={'world-layer-row '+(!unlocked?'is-locked':'')} role="row">
-            <div className="world-layer-title"><strong>{layer.level}계층 · {layer.name}</strong><small>{unlocked?'해금':'잠김'}</small></div>
+            <div className="world-layer-title"><strong>{layer.level}계층 · {layer.name}</strong><small>{unlocked?'해금':layer.level===2?'켄타로스 첫 처치':layer.level===3?'피카츄 첫 처치':'잠김 · 조건 미정'}</small></div>
             <div className="world-layer-types">
               {layer.types.map(t=><div className="world-type-line" key={t}>
                 <span className="world-type-name"><EnergyTypeIcon type={t}/>{t}</span>
@@ -50,7 +50,7 @@ export function EnergyPage(){
           </div>;
         })}
       </div>
-      <p>미해금 계층의 타입 에너지는 획득하거나 사용할 수 없습니다. 계층 해금은 별도 진행 조건으로 제공될 예정입니다.</p>
+      <p>미해금 계층의 타입 에너지는 획득하거나 사용할 수 없습니다. 2계층은 켄타로스, 3계층은 피카츄 첫 처치 시 해금됩니다. 이후 계층 조건은 미정입니다.</p>
     </section>
     </div>
     <aside className="energy-world-stellar" aria-label="스텔라에너지 영역">
