@@ -30,15 +30,9 @@ const capForId=id=>getKillLimit(getWildPokemon(id));
 const phaseGoal=(id,goal)=>Math.min(goal,capForId(id));
 // Compare earned progress and combat outcomes, not the ever-growing lifetime SE.
 export function planetPattern(report){
-  return JSON.stringify({
-    appeared:report.appeared,kills:report.kills,attempts:report.attempts,
-    defeats:report.defeats,maxStreak:report.maxStreak,battles:report.battles,
-    uncertainties:report.uncertainties,combatMode:report.combatMode,
-    fiveCleared:report.fiveCleared,stats:report.stats,
-    remaining:report.remaining,gained:report.gained,spent:report.spent,
-    production:report.production,pendingStellar:report.pendingStellar,
-    unlockedLayer:report.unlockedLayer,particles:report.particles,milestones:report.milestones,locked:report.locked
-  });
+  return JSON.stringify({appeared:report.appeared,kills:report.kills,
+    fiveCleared:report.fiveCleared,unlockedLayer:report.unlockedLayer,
+    permanent:report.stats?.permanent,locked:report.locked});
 }
 // Prediction only: projected planets, kills and SE are never inserted into game state.
 export function nextStellarForecast(state,planetGain){
@@ -102,7 +96,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,evolu
   if(!['fast','hybrid','exact'].includes(mode))throw new RangeError('Invalid combat mode');
   let state=start.phase==='ready'?transition(start,{type:'START'}):start;
   const startMoves=state.planetMoves,started={...state.killCounts},startingEnergy={...state.energyBalances};
-  const timeline=[],events=[],attempts={},defeats={},maxStreak={},firstChallenges={},uncertainties=[];
+  const timeline=[],events=[],attempts={},encounterAttempts={},defeats={},maxStreak={},firstChallenges={},uncertainties=[];
   const failedConditions=new Map();
   const gained=balance(),spent=balance(),production=balance();
   let ticks=0,battles=0,seconds=0,idleSeconds=0,goal=5,safetyStop=null,firstPassDone=false,passes=0;
@@ -225,6 +219,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,evolu
       if((state.killCounts[id]??0)>=target-1)toggleHunger(false);
       if(ticks>=maxTicks){safetyStop='combat-tick-budget';break;}
       const beforeKills=state.killCounts[id]??0;
+      encounterAttempts[id]=(encounterAttempts[id]??0)+1;
       const estimate=mode==='exact'?null:estimateExpectedBattle(state,id);
       if(estimate)note('expected-combat',{id,seconds:estimate.seconds,outcome:estimate.result,uncertain:estimate.uncertain,reason:estimate.reason});
       // Hybrid uses exact combat whenever a fast result could change gameplay;
@@ -379,7 +374,7 @@ export function playOnePlanet(start,{random=()=>0.5,encounterRandom=random,evolu
    if(ledger.some(x=>!x.ok))throw Error('Virtual energy ledger mismatch: '+JSON.stringify(ledger.filter(x=>!x.ok)));
    const report={planet:startMoves+1,reason:safetyStop??(exit.status==='STALLED'&&approximateUnresolved?'UNCERTAIN':exit.status),exitReason:exit.reason,
     fiveCleared:finalFiveCleared,appeared:appearedTargets(state),locked:appearedTargets(state).filter(id=>!availableTargets(state).includes(id)),capped,incomplete,
-    battles,attempts,defeats,maxStreak,exactTicks,estimatedFights,exactFights,combatSeconds,recoverySeconds,ledger,startingEnergy,limits:{maxBattles,maxTicks,maxPasses},notAppeared:ALL_POKEMON.map(p=>p.id).filter(id=>!appearedTargets(state).includes(id)),uncertainties,unresolvedUncertainties,exactRechecks,passes,approximateUnresolved,combatMode:mode,seconds,stats:statsSnapshot(state),
+    battles,attempts,encounterAttempts,defeats,maxStreak,exactTicks,estimatedFights,exactFights,combatSeconds,recoverySeconds,ledger,startingEnergy,limits:{maxBattles,maxTicks,maxPasses},notAppeared:ALL_POKEMON.map(p=>p.id).filter(id=>!appearedTargets(state).includes(id)),uncertainties,unresolvedUncertainties,exactRechecks,passes,approximateUnresolved,combatMode:mode,seconds,stats:statsSnapshot(state),
     kills:{...state.killCounts},gained,spent,production,remaining:{...state.energyBalances},
     particles:{...state.particleBalances},pendingStellar:state.pendingStellar,
     stellar:state.stellar,totalStellarEarned:state.totalStellarEarned,
@@ -414,6 +409,8 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,encounterRandom=rando
       permanent:{...state.permanentUpgrades},firstStats:effectiveDittoStats(state)});
     // No extrapolation: always perform a real move and try real SU purchases first.
     if(planets.length>=2&&acquired.bought.length===0&&
+        !report.approximateUnresolved&&report.combatMode!=='fast'&&
+        !ALL_POKEMON.some(p=>p.rarity&&p.rarity!=='common'&&!(state.dexLifetimeKills[p.id]>0))&&
         planetPattern(planets.at(-2))===planetPattern(report)){
       const forecast=nextStellarForecast(state,report.pendingStellar);
       if(forecast.status==='all-maxed'){
@@ -427,5 +424,5 @@ export function runMultiPlanet({maxMoves=10,random=()=>0.5,encounterRandom=rando
       }
     }
   }
-  return {planets,moves,state,stop,repeatForecast};
+  return {planets,moves,state,stop,repeatForecast,unplayedPlanet:moves.length>=planets.length?state.planetMoves+1:null};
 }
