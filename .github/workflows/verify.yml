@@ -13,5 +13,10 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - run: npm test
-      - run: npm run build
+      - run: npm run test:virtual
+      - run: node scripts/four-walls-summary.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: virtual-play-report
+          path: artifacts/virtual-play/report.json
