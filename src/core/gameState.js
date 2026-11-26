@@ -61,7 +61,7 @@ export function transition(state, action) {
     }
     case 'SELECT_REGION': return !state.combat.active&&isRegionUnlocked(state,action.regionId)?{...state,activeRegionId:action.regionId}:state;
     case 'SELECT_WILD': return startBattle(state,action.pokemonId);
-    case 'COMBAT_TICK': return advanceBattle(state,action.deltaMs,action.random);
+    case 'COMBAT_TICK': return advanceBattle(state,action.deltaMs,action.random,action.evolutionRandom);
     case 'FLEE': return fleeBattle(state);
     case 'ENCOUNTER_WON':
       if(state.phase!==PHASE.RUNNING || action.encounterIndex!==state.encounterIndex)return state;
