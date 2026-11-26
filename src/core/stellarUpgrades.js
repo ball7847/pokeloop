@@ -15,7 +15,7 @@ export const STELLAR_UPGRADES=Object.freeze({
   }),
   불꽃:Object.freeze({
     0:Object.freeze({id:'SU031',name:'공격 증가',baseCost:1500,costGrowth:3.5,maxLevel:650,description:'공격 +12%/레벨'}),
-    2:Object.freeze({id:'SU032',name:'불타는 의지',baseCost:40000,costPower:2,maxLevel:20,description:'행성이동 시 특성 1개/레벨 유지'})
+    2:Object.freeze({id:'SU032',name:'불타는 의지',baseCost:40000,costPower:1.3,maxLevel:20,description:'행성이동 시 특성 1개/레벨 유지'})
   }),
   물:Object.freeze({
     0:Object.freeze({id:'SU041',name:'거대화 II',baseCost:1000,costGrowth:3.3,maxLevel:500,description:'HP +20%/레벨'}),
