@@ -1,64 +1,16 @@
-import {startBattle,emptyCombat,calculateBattleEnergyRewards} from '../../src/core/combatEngine.js';
-import {getWildPokemon,evolutionFor,evolutionChance,getKillLimit,scaledReward,battleEnergyRewards} from '../../src/core/wildData.js';
-import {effectiveDittoStats,grantVictoryAbility} from '../../src/core/shopSystem.js';
-import {stellarBattleEnergyReward} from '../../src/core/stellarUpgrades.js';
-import {recordItemProgress} from '../../src/core/itemSystem.js';
-import {grantBattleEnergy,unlockLayerForVictory} from '../../src/core/energySystem.js';
-import {addAmount,multiplyAmount} from '../../src/core/bigNumber.js';
+import {settleBattleOutcome} from '../../src/core/combatEngine.js';
+import {getWildPokemon,getKillLimit} from '../../src/core/wildData.js';
 
-// Test-only settlement of an estimated encounter. Never used by gameplay.
-// Values follow the live combat finish() reward pipeline.
+// Test-only adapter: supplies an estimated final combat snapshot to the
+// same outcome settlement used by real combat. Never called by gameplay.
 export function settleExpectedBattle(state,id,estimate,encounterRandom=Math.random){
- const p=getWildPokemon(id),c=state.combat;
+ const c=state.combat;
  if(!c?.active||c.pokemonId!==id)throw new Error('Expected settlement requires an active matching battle');
- if(estimate.result==='victory'){
-  const count=state.killCounts[id]??0;
-  if(count>=getKillLimit(p))throw new Error('Kill cap exceeded');
-  const honey=1+(effectiveDittoStats(state).honey??0)*0.001;
-  const stats={...state.dittoStats};
-  const rewards={};
-  for(const [key,base] of Object.entries(p.rewards??{})){
-    const original=scaledReward(key,base,count);
-    const value=honey===1?original:key==='speed'?-Number(multiplyAmount(Math.abs(original),honey)):multiplyAmount(original,honey);
-    rewards[key]=value;
-    stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
-  }
-  const energyRewards=calculateBattleEnergyRewards(state,p,count);
-  let rewarded=grantVictoryAbility(unlockLayerForVictory(state,id,count),id,count);
-  for(const [type,value] of Object.entries(energyRewards))rewarded=grantBattleEnergy(rewarded,[type],value);
-  const nextEvolution=count===0?evolutionFor(id):null;
-  const evolutionResults=nextEvolution?{...state.evolutionResults,
-    [nextEvolution.id]:encounterRandom()<evolutionChance(nextEvolution,state)}:state.evolutionResults;
-  const progress=recordItemProgress(recordItemProgress(rewarded,'victories'),'pokemon:'+id);
-  const eventId=state.eventSerial+1;
-  const event={id:eventId,type:'victory',pokemonId:id,name:p.name,count:count+1,rewards,energyRewards};
-  const updated={...progress,eventSerial:eventId,
-    victories:state.victories+1,encounterIndex:state.encounterIndex+1,
-    dittoStats:stats,evolutionResults,
-    killCounts:{...state.killCounts,[id]:count+1},
-    dexLifetimeKills:{...state.dexLifetimeKills,[id]:(state.dexLifetimeKills?.[id]??0)+1},
-    dexDiscovered:state.dexDiscovered.includes(id)?state.dexDiscovered:[...state.dexDiscovered,id],
-    combat:{...c,active:false,enemy:null,currentHp:estimate.playerHp,
-      dittoHp:{...c.dittoHp,current:estimate.playerHp},
-      playerStatus:estimate.playerStatus??c.playerStatus,lastEvent:event}};
-  // Match hunger's chained start and carry remaining HP/poison across wins.
-  if(updated.automation?.hunger&&count+1<getKillLimit(p)&&estimate.playerHp>0){
-    const continued=startBattle(updated,id,estimate.playerHp,updated.combat.playerStatus);
-    return {...continued,combat:{...continued.combat,lastEvent:{...event,id:continued.eventSerial}}};
-  }
-  return updated;
- }
- if(estimate.result==='defeat'){
-  const eventId=state.eventSerial+1;
-  return {...state,eventSerial:eventId,recoveryMs:10000,
-    retryPokemonId:state.automation?.resolve?id:null,
-    combat:{...c,active:false,enemy:null,currentHp:0,dittoHp:{...c.dittoHp,current:0},
-      lastEvent:{id:eventId,type:'defeat',pokemonId:id,name:p.name}}};
- }
- if(estimate.result==='uncertain'){
-  // Unknown is never reported as a confirmed defeat or victory. Exit encounter
-  // through an actual FLEE transition, without granting rewards.
-  return {...state,combat:{...c,lastEvent:{...c.lastEvent}}};
- }
- throw new Error('Unknown estimated battle result: '+estimate.result);
+ if(estimate.result==='uncertain')return {...state,combat:{...c,lastEvent:{...c.lastEvent}}};
+ if(estimate.result!=='victory'&&estimate.result!=='defeat')throw new Error('Unknown estimated battle result: '+estimate.result);
+ if(estimate.result==='victory'&&(state.killCounts[id]??0)>=getKillLimit(getWildPokemon(id)))throw new Error('Kill cap exceeded');
+ const hp=estimate.result==='defeat'?0:estimate.playerHp;
+ const resolved={...c,currentHp:hp,dittoHp:{...c.dittoHp,current:hp},
+  playerStatus:estimate.result==='victory'?(estimate.playerStatus??c.playerStatus):c.playerStatus};
+ return settleBattleOutcome(state,resolved,estimate.result,encounterRandom);
 }
