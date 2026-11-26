@@ -42,7 +42,7 @@ export function EnergyPage(){
             <div className="world-layer-types">
               {layer.types.map(t=><div className="world-type-line" key={t}>
                 <span className="world-type-name"><EnergyTypeIcon type={t}/>{t}</span>
-                <strong>{unlocked?formatAmount(game.particleBalances[t]??0):'보관 '+formatAmount(game.particleBank[t]??0)}</strong>
+                <strong>{unlocked?formatAmount(game.particleBalances[t]??0):'잠김'}</strong>
                 <span>{unlocked?formatAmount(rates[t]??0)+'/s':'잠김'}</span>
                 <small>누적 {unlocked?formatAmount(game.particleEarned[t]??0):'—'} · 이정표 {game.particleMilestones[t]??0}{unlocked?' · 다음 '+formatAmount(particleMilestoneThreshold(game.particleMilestones[t]??0)):''}</small>
               </div>)}
@@ -50,7 +50,7 @@ export function EnergyPage(){
           </div>;
         })}
       </div>
-      <p>미해금 계층에도 타입 에너지는 정상 지급됩니다. 에너지 구매로 생성된 입자는 100% 보관하고 계층 해금 시 지급됩니다.</p>
+      <p>미해금 계층의 타입 에너지는 획득하거나 사용할 수 없습니다. 계층 해금은 별도 진행 조건으로 제공될 예정입니다.</p>
     </section>
     </div>
     <aside className="energy-world-stellar" aria-label="스텔라에너지 영역">
@@ -62,7 +62,7 @@ export function EnergyPage(){
       </div>
       <p>노말 입자가 성층권에 스텔라 입자를 생산합니다. 대기 스텔라에너지 1 SE 이상일 때 행성 이동할 수 있으며, 이동 시 이를 흡수해 스텔라에너지를 획득합니다.</p>
       <button type="button" disabled={game.combat.active||game.recoveryMs>0||game.phase!=='running'||compareAmount(game.pendingStellar??0,1)<0}
-        onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 타입 에너지·입자·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
+        onClick={()=>{if(window.confirm('행성을 이동하시겠습니까? 타입 에너지·입자·일반 능력치가 초기화되고 대기 스텔라에너지를 흡수합니다. 해금 계층은 유지됩니다.'))dispatch({type:'MOVE_PLANET'});}}>행성 이동</button>
     </section>
     </aside>
     </div>:systemTab==='outer'?<OuterStellarWorld/>:<EnergyShop energyTab={energyTab}/>}

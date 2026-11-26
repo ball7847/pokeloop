@@ -1,3 +1,5 @@
+import {typeLayer} from './energySystem.js';
+import {multiplyAmount} from './bigNumber.js';
 import {createEncounterSlots,baseSlotId} from './raritySystem.js';
 import {REGION,BERRY_REGION,LAKE_REGION,REGIONS,WILD_POKEMON,PLAINS_EVOLUTIONS,UNCOMMON_BASE_CHANCE,UNCOMMON_STARTERS,PLAINS_UNCOMMON,STARTER_IDS,BERRY_POKEMON,LAKE_POKEMON,ALL_POKEMON} from './wildCatalog.js';
 export {REGION,BERRY_REGION,LAKE_REGION,REGIONS,WILD_POKEMON,PLAINS_EVOLUTIONS,UNCOMMON_BASE_CHANCE,UNCOMMON_STARTERS,PLAINS_UNCOMMON,STARTER_IDS,BERRY_POKEMON,LAKE_POKEMON,ALL_POKEMON} from './wildCatalog.js';
@@ -93,10 +95,15 @@ export function getActiveWildPokemon(state){
 }
 // Existing battles award the same base to each Pokémon type. Explicit per-type
 // overrides allow partial regional rewards without silently awarding all types.
-export function battleEnergyRewards(pokemon,count=0){
-  const rewards=pokemon.energyRewards??(pokemon.energyReward===undefined?{}:
-    Object.fromEntries(pokemon.types.map(type=>[type,pokemon.energyReward])));
-  return Object.fromEntries(Object.entries(rewards).map(([type,amount])=>[type,scaledReward('energy',amount,count)]));
+export function battleEnergyRewards(pokemon,count=0,state={}){
+ const base=pokemon.energyReward??0;
+ if(base<=0)return {};
+ const amount=scaledReward('energy',base,count);
+ const rewards={노말:amount};
+ for(const type of new Set(pokemon.types)){
+  if(type!=='노말'&&typeLayer(type)>0&&typeLayer(type)<=(state.unlockedLayer??1))rewards[type]=multiplyAmount(amount,0.1);
+ }
+ return rewards;
 }
 export const spriteUrl=number=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+number+'.png';
 const pokemonById=new Map(ALL_POKEMON.map(p=>[p.id,p]));

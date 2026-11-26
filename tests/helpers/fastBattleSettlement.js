@@ -1,4 +1,4 @@
-import {startBattle,emptyCombat} from '../../src/core/combatEngine.js';
+import {startBattle,emptyCombat,calculateBattleEnergyRewards} from '../../src/core/combatEngine.js';
 import {getWildPokemon,evolutionFor,evolutionChance,REGION,scaledReward,battleEnergyRewards} from '../../src/core/wildData.js';
 import {effectiveDittoStats} from '../../src/core/shopSystem.js';
 import {stellarBattleEnergyReward} from '../../src/core/stellarUpgrades.js';
@@ -23,9 +23,7 @@ export function settleExpectedBattle(state,id,estimate,encounterRandom=Math.rand
     rewards[key]=value;
     stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
   }
-  const energyRewards=Object.fromEntries(Object.entries(battleEnergyRewards(p,count))
-    .map(([type,value])=>[type,honey===1?stellarBattleEnergyReward(state,type,value):
-      multiplyAmount(stellarBattleEnergyReward(state,type,value),honey)]));
+  const energyRewards=calculateBattleEnergyRewards(state,p,count);
   let rewarded=state;
   for(const [type,value] of Object.entries(energyRewards))rewarded=grantBattleEnergy(rewarded,[type],value);
   const nextEvolution=count===0?evolutionFor(id):null;

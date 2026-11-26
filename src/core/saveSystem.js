@@ -1,7 +1,7 @@
 import {encodeSave,decodeSave} from './saveCodec.js';
 export {SAVE_VERSION,gameSnapshot,encodeSave,decodeSave} from './saveCodec.js';
 
-export const SAVE_KEY='pokeloop.save.v1';
+export const SAVE_KEY='pokeloop.save.v2';
 export const AUTOSAVE_KEY='pokeloop.autosave.enabled';
 export const AUTOSAVE_INTERVAL_MS=30000;
 

@@ -9,7 +9,7 @@ import {DEFAULT_AUTOMATION,DEFAULT_AUTO_BUY_SELECTION,AUTOMATIONS,UPGRADES} from
 import {STELLAR_UPGRADE_BY_ID,stellarUncommonBonus} from './stellarUpgrades.js';
 import {ITEM_BY_ID} from './itemSystem.js';
 
-export const SAVE_VERSION=17;
+export const SAVE_VERSION=18;
 const MAX_SAVE_LENGTH=1000000;
 const MAX_COUNTER=1e12;
 // A single source of truth prevents newly introduced combat stats from being silently lost.
@@ -40,7 +40,7 @@ export function gameSnapshot(game){
     automation:game.automation??DEFAULT_AUTOMATION,
     autoBuySelection:game.autoBuySelection??DEFAULT_AUTO_BUY_SELECTION,
     recoveryMs:game.recoveryMs??0,retryPokemonId:game.retryPokemonId??null,
-    ...Object.fromEntries(['energyBalances','particleBalances','particleEarned','particleBank','particleMilestones','unlockedLayer',
+    ...Object.fromEntries(['energyBalances','particleBalances','particleEarned','particleMilestones','unlockedLayer',
       'normalFirstMilestonePermanent','pendingStellar','stellar','totalStellarEarned','planetMoves','energyUpgrades',
       'qolUnlocks','permanentUpgrades','pointCirculationUnlocked'].map(key=>[key,game[key]]))
   };
@@ -62,7 +62,7 @@ export function decodeSave(encoded){
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{throw new Error('저장 데이터를 해독할 수 없습니다.');}
-  if(!data||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
+  if(!data||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,SAVE_VERSION].includes(data.version)||!data.game||typeof data.game!=='object')
     throw new Error('지원하지 않는 저장 버전이거나 잘못된 데이터입니다.');
   if(typeof data.savedAt!=='string'||!Number.isFinite(Date.parse(data.savedAt)))
     throw new Error('저장 시점이 올바르지 않습니다.');
@@ -146,9 +146,9 @@ export function decodeSave(encoded){
     const previous=data.version===3;
     const records=previous?
       [['energyBalances','essences'],['particleBalances','energyBalances'],
-       ['particleEarned','energyEarned'],['particleBank','energyBank']]:
+       ['particleEarned','energyEarned']]:
       [['energyBalances','energyBalances'],['particleBalances','particleBalances'],
-       ['particleEarned','particleEarned'],['particleBank','particleBank']];
+       ['particleEarned','particleEarned']];
     for(const [target,source] of records){
       const record=original[source]??{};
       if(!record||typeof record!=='object'||Array.isArray(record)||Object.keys(record).some(t=>!TYPES.includes(t)))

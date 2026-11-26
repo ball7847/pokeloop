@@ -26,7 +26,7 @@ const layerByType=new Map(LAYERS.flatMap(layer=>layer.types.map(type=>[type,laye
 export const typeLayer=type=>layerByType.get(type)??0;
 const zeros=()=>Object.fromEntries(TYPES.map(type=>[type,0]));
 export function initialEconomy(){
-  return {energyBalances:zeros(),particleBalances:zeros(),particleEarned:zeros(),particleBank:zeros(),particleMilestones:zeros(),
+  return {energyBalances:zeros(),particleBalances:zeros(),particleEarned:zeros(),particleMilestones:zeros(),
     unlockedLayer:1,normalFirstMilestonePermanent:false,pendingStellar:0,stellar:0,totalStellarEarned:0,planetMoves:0,
     energyUpgrades:{},qolUnlocks:[],permanentUpgrades:{},pointCirculationUnlocked:false};
 }
@@ -64,49 +64,40 @@ function processMilestones(economy){
       }
     }
     if(e.particleMilestones['노말']>=1&&!e.normalFirstMilestonePermanent)e.normalFirstMilestonePermanent=true;
-    const current=LAYERS[e.unlockedLayer-1];
-    if(current&&e.unlockedLayer<LAYERS.length&&current.types.some(type=>e.particleMilestones[type]>=1)){
-      e.unlockedLayer++;changed=true;
-      const bank={...e.particleBank},particles={...e.particleBalances},earned={...e.particleEarned};
-      for(const type of LAYERS[e.unlockedLayer-1].types){
-        particles[type]=addAmount(particles[type],bank[type]);
-        earned[type]=addAmount(earned[type],bank[type]);
-        bank[type]=0;
-      }
-      e={...e,particleBank:bank,particleBalances:particles,particleEarned:earned};
-    }
     if(!changed)break;
   }
   return e;
+}
+// Future boss victory integration: sequential, idempotent, no public action yet.
+export function unlockNextLayer(state,level){
+ if(!Number.isInteger(level)||level!==state.unlockedLayer+1||level>LAYERS.length)return state;
+ return {...state,unlockedLayer:level};
 }
 // Battles award spendable type energy only. No particle generation occurs at battle end.
 export function grantBattleEnergy(state,types,amount){
   if(!isAmount(amount)||compareAmount(amount,0)<=0)return state;
   const energy={...state.energyBalances};
   for(const type of new Set(types)){
-    if(TYPES.includes(type))energy[type]=addAmount(energy[type],amount);
+    if(TYPES.includes(type)&&typeLayer(type)<=state.unlockedLayer)energy[type]=addAmount(energy[type],amount);
   }
   return {...state,energyBalances:energy};
 }
 // All shop purchases must use this atomic operation, never subtract energy directly.
 // Costs are keyed by type; each spent unit creates one particle of that type.
-// A locked layer banks 100% until it unlocks. No energy is retroactively deducted.
+// Locked types cannot be spent; purchases remain atomic.
 export function purchaseWithEnergy(state,costs){
   if(!costs||typeof costs!=='object'||Array.isArray(costs)||!Object.keys(costs).length)return state;
   const entries=Object.entries(costs);
-  if(entries.some(([type,amount])=>!TYPES.includes(type)||!isAmount(amount)||compareAmount(amount,0)<=0||
+  if(entries.some(([type,amount])=>!TYPES.includes(type)||typeLayer(type)>state.unlockedLayer||!isAmount(amount)||compareAmount(amount,0)<=0||
       compareAmount(state.energyBalances[type]??0,amount)<0))return state;
   const energy={...state.energyBalances},particles={...state.particleBalances},
-    earned={...state.particleEarned},bank={...state.particleBank};
+    earned={...state.particleEarned};
   for(const [type,amount] of entries){
     energy[type]=subtractAmount(energy[type],amount);
-    if(typeLayer(type)>state.unlockedLayer)bank[type]=addAmount(bank[type],amount);
-    else{
-      particles[type]=addAmount(particles[type],amount);
-      earned[type]=addAmount(earned[type],amount);
-    }
+    particles[type]=addAmount(particles[type],amount);
+    earned[type]=addAmount(earned[type],amount);
   }
-  return processMilestones({...state,energyBalances:energy,particleBalances:particles,particleEarned:earned,particleBank:bank});
+  return processMilestones({...state,energyBalances:energy,particleBalances:particles,particleEarned:earned});
 }
 function particleRatesFromBalances(particleBalances,particleMilestones,unlockedLayer){
   const rates=zeros();
@@ -175,6 +166,6 @@ export function movePlanet(state){
   const base=initialEconomy(),carry=state.normalFirstMilestonePermanent||state.particleMilestones['노말']>=1;
   const stellarGain=state.pendingStellar;
   return {...base,stellar:addAmount(state.stellar,stellarGain),totalStellarEarned:addAmount(state.totalStellarEarned,stellarGain),
-    normalFirstMilestonePermanent:carry,planetMoves:state.planetMoves+1,unlockedLayer:carry?2:1,
+    normalFirstMilestonePermanent:carry,planetMoves:state.planetMoves+1,unlockedLayer:state.unlockedLayer,
     particleMilestones:{...base.particleMilestones,노말:carry?1:0},permanentUpgrades:{...state.permanentUpgrades}};
 }

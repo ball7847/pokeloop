@@ -12,6 +12,10 @@ export const emptyCombat = hp=>({
   playerStatus:{paralysis:0,poison:0},enemyStatus:{paralysis:0,poison:0},
   lastEvent:null
 });
+export function calculateBattleEnergyRewards(state,p,count){
+ const honey=1+(effectiveDittoStats(state).honey??0)*.001;
+ return Object.fromEntries(Object.entries(battleEnergyRewards(p,count,state)).map(([type,amount])=>[type,multiplyAmount(stellarBattleEnergyReward(state,type,amount),honey)]));
+}
 export function startBattle(state,id,carryHp=null,carryStatus=null) {
   const p=getWildPokemon(id);
   if(!p || state.combat.active || (state.recoveryMs??0)>0 || state.phase==='paused'||state.phase==='finished' ||
@@ -30,7 +34,7 @@ export function startBattle(state,id,carryHp=null,carryStatus=null) {
       stats:Object.fromEntries(visibleNonDefaultStats(p).map(({key,label})=>[label,p[key]])),
       minDamagePercent:p.minDamagePercent,maxDamagePercent:p.maxDamagePercent,
       rewards:Object.fromEntries(Object.entries(p.rewards).map(([key,value])=>[key,scaledReward(key,value,state.killCounts[id]||0)])),
-      energyRewards:Object.fromEntries(Object.entries(battleEnergyRewards(p,state.killCounts[id]||0)).map(([type,amount])=>[type,stellarBattleEnergyReward(state,type,amount)])),
+      energyRewards:calculateBattleEnergyRewards(state,p,state.killCounts[id]||0),
       attackCooldown:{elapsed:0,duration:p.speed},
       damage:p.attack,statistics:p
     },
@@ -51,7 +55,7 @@ function finish(state,c,type,random=Math.random) {
       const value=honeyMultiplier===1?originalReward:key==='speed'?-Number(multiplyAmount(Math.abs(originalReward),honeyMultiplier)):multiplyAmount(originalReward,honeyMultiplier);
       stats[key]=key==='speed'?Math.max(100,stats.speed+value):addAmount(stats[key],value);
     }
-    const energyRewards=Object.fromEntries(Object.entries(battleEnergyRewards(p,count)).map(([type,amount])=>[type,honeyMultiplier===1?stellarBattleEnergyReward(state,type,amount):multiplyAmount(stellarBattleEnergyReward(state,type,amount),honeyMultiplier)]));
+    const energyRewards=calculateBattleEnergyRewards(state,p,count);
     let rewarded=state;
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
