@@ -30,14 +30,22 @@ test('all approved region-three base stats and first-kill rewards are exact',()=
  assert.equal(Object.keys(patched).length,15);
 });
 test('ordinary Wishiwashi is unchanged; boosted school form keeps one-kill limit',()=>{
- assert.equal(byId.wishiwashi.hp,225);
- assert.equal(byId.wishiwashi.speed,400);
+ assert.equal(byId.wishiwashi.hp,160);
+ assert.equal(byId.wishiwashi.attack,1);
+ assert.equal(byId.wishiwashi.specialAttack,1);
+ assert.equal(byId.wishiwashi.defense,1.6);
+ assert.equal(byId.wishiwashi.specialDefense,2);
+ assert.equal(byId.wishiwashi.speed,200);
  assert.deepEqual(byId.wishiwashi.rewards,{});
  assert.equal(byId.wishiwashi.energyReward,200);
  assert.equal(byId['wishiwashi-school'].maxKillsPerPlanet,1);
  assert.equal(getKillLimit(byId['wishiwashi-school']),1);
- assert.equal(byId['wishiwashi-school'].hp,4500);
- assert.equal(byId['wishiwashi-school'].multiStrike,9000);
+ assert.equal(byId['wishiwashi-school'].hp,4800);
+ assert.equal(byId['wishiwashi-school'].attack,30);
+ assert.equal(byId['wishiwashi-school'].specialAttack,30);
+ assert.equal(byId['wishiwashi-school'].defense,48);
+ assert.equal(byId['wishiwashi-school'].specialDefense,60);
+ assert.equal(byId['wishiwashi-school'].multiStrike,14000);
  assert.equal(byId['wishiwashi-school'].energyReward,4000);
  assert.equal(evolutionFor('wishiwashi').id,'wishiwashi-school');
  assert.equal(evolutionChance(byId['wishiwashi-school'],initialState()),1);
