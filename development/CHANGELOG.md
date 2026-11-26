@@ -27,3 +27,5 @@
 - 2026-11-26: 베리숲 보상 재조정: 테일로20, 푸푸린22, 니드런 암수29, 덩쿠리35, 비버니40 유지, 비구술59, 트로피우스200.
 
 - 2026-11-26: 사용자 지정 기본 에너지 보상 변경: psyduck=10, fearow=25, ponyta=30, bulbasaur=100, charmander=100, squirtle=100, ekans=88, rookidee=101, zigzagoon=133, zigzagoon-galar=133, shroomish=170, breloom=500, swellow=200, pikachu=250, tropius=300, buizel=218, magikarp=100, feebas=100. 능력치·처치 상한·이정표 유지.
+
+- 2026-11-26: 켄타로스 HP 225→288, 기본 노말 에너지 20→50. 기타 능력치 및 보상·해금 유지.
