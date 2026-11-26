@@ -42,9 +42,10 @@ test('berry forest roster, stats, rewards and energy payout',()=>{
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela')),{노말:35});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tangela'),1),{노말:17.5});
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='bidoof')),{노말:40});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit')),{노말:59});
- assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit'),1),{노말:29.5});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit')),{노말:100});
+ assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='surskit'),1),{노말:50});
  assert.equal(BERRY_POKEMON.find(p=>p.id==='surskit').specialDefense,52);
+ assert.deepEqual(BERRY_POKEMON.find(p=>p.id==='surskit').rewards,{});
  assert.equal(BERRY_POKEMON.find(p=>p.id==='tropius').regeneration,46);
  assert.deepEqual(BERRY_POKEMON.find(p=>p.id==='tropius').types,['풀','비행']);
  assert.deepEqual(battleEnergyRewards(BERRY_POKEMON.find(p=>p.id==='tropius')),{노말:300});
