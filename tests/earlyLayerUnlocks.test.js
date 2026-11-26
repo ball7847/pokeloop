@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {initialState,transition} from '../src/core/gameState.js';
 import {startBattle,advanceBattle} from '../src/core/combatEngine.js';
 import {unlockLayerForVictory,movePlanet} from '../src/core/energySystem.js';
-import {upgradeCosts} from '../src/core/shopSystem.js';
+import {upgradeCosts,upgradeCost} from '../src/core/shopSystem.js';
 import {encodeSave,decodeSave} from '../src/core/saveCodec.js';
 test('approved costs for all 17 upgrades',()=>{
- const costs={hp:{노말:1},attack:{노말:1},hpMultiplier:{노말:10,물:10},attackMultiplier:{노말:10,불꽃:10},antidote:{물:10,풀:10},regenerationMultiplier:{노말:10,풀:10},speedFlat:{전기:10}};
- for(const id of ['specialAttack','defense','specialDefense','specialAttackMultiplier','defenseMultiplier','specialDefenseMultiplier','speed','poisonMultiplier','regeneration','honeyMultiplier'])costs[id]={노말:999999};
+ const costs={hp:{노말:1},attack:{노말:1},hpMultiplier:{노말:10,물:10},attackMultiplier:{노말:10,불꽃:10},antidote:{물:10,풀:10},regeneration:{노말:22,풀:22},speedFlat:{전기:10}};
+ for(const id of ['specialAttack','defense','specialDefense','specialAttackMultiplier','defenseMultiplier','specialDefenseMultiplier','speed','poisonMultiplier','regenerationMultiplier','honeyMultiplier'])costs[id]={노말:999999};
  for(const [id,cost] of Object.entries(costs))assert.deepEqual(upgradeCosts(id,0),cost);
 });
 test('actual first victories unlock sequential layers before reward; save and planet carry',()=>{
@@ -35,3 +35,11 @@ test('actual first victories unlock sequential layers before reward; save and pl
  assert.equal(decodeSave(encodeSave(s)).game.unlockedLayer,3);
  assert.equal(movePlanet({...s,pendingStellar:1}).unlockedLayer,3);
 });
+
+ test('approved amplifier and flat recovery cost growth',()=>{
+ for(const id of ['hpMultiplier','attackMultiplier']){assert.equal(upgradeCost(id,1),18);assert.ok(Math.abs(upgradeCost(id,2)-32.4)<1e-9);}
+ assert.deepEqual(upgradeCosts('regeneration',1),{노말:33,풀:33});
+ const recoveryCosts=upgradeCosts('regenerationMultiplier',1);
+ assert.deepEqual(Object.keys(recoveryCosts),['노말']);
+ assert.ok(Math.abs(recoveryCosts.노말-1799998.2)<1e-8);
+ });

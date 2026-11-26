@@ -18,7 +18,7 @@ test('normal flat HP/ATK and fire attack multiplier scale independently',()=>{
  assert.equal(s.particleBalances.불꽃,10);
  assert.equal(upgradeCost('hp',1),1.5);
  assert.equal(upgradeCost('attack',2),2.25);
- assert.equal(upgradeCost('attackMultiplier',1),15);
+ assert.equal(upgradeCost('attackMultiplier',1),18);
  assert.equal(buy(s,'BUY_UPGRADE','speed'),s);
 });
 test('flat upgrades also apply to earned kill rewards before fighting multiplier',()=>{
@@ -116,7 +116,7 @@ test('legacy v6 fighting attack upgrade levels migrate without becoming flat att
  assert.equal(loaded.energyUpgrades.hp,1);
  assert.equal(loaded.energyUpgrades.attack,0);
  assert.equal(loaded.energyUpgrades.attackMultiplier,2);
- assert.equal(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier),22.5);
+ assert.ok(Math.abs(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier)-32.4)<1e-9);
  assert.equal(effectiveDittoStats(loaded).attack,1.08);
 });
 
@@ -233,15 +233,16 @@ test('upgrade costs beyond supported amount range are unavailable instead of thr
 });
 
 
-test('water and grass amplifiers and temporary special attack costs',()=>{
- let s={...funded(),energyBalances:{...funded().energyBalances,노말:2500100,물:100,풀:100},dittoStats:{...funded().dittoStats,hp:100,specialAttack:4,regeneration:5}};
+test('water HP amplifier and temporary normal recovery and special attack costs',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,노말:6000000,물:100,풀:100},dittoStats:{...funded().dittoStats,hp:100,specialAttack:4,regeneration:5}};
  assert.equal(upgradeCost('specialAttack',0),999999);
  for(const id of ['hp','specialAttack','specialAttack','hpMultiplier','hpMultiplier','regenerationMultiplier','regenerationMultiplier'])s=buy(s,'BUY_UPGRADE',id);
  const stats=effectiveDittoStats(s);
  assert.ok(Math.abs(stats.hp-112.32)<1e-9);
  assert.equal(stats.specialAttack,6);
  assert.ok(Math.abs(stats.regeneration-5.3)<1e-9);
- for(const t of ['물','풀']){assert.equal(s.energyBalances[t],75);assert.equal(s.particleBalances[t],25);}
+ assert.equal(s.energyBalances.물,72);assert.equal(s.particleBalances.물,28);
+ assert.equal(s.energyBalances.풀,100);assert.equal(s.particleBalances.풀,0);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.hpMultiplier,2);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.specialAttack,2);
  assert.equal(decodeSave(encodeSave(s)).game.energyUpgrades.regenerationMultiplier,2);
@@ -296,8 +297,8 @@ test('flat electric speed and temporary normal speed amplifier retain effects',(
  assert.equal(effectiveDittoStats({...s,dittoStats:{...s.dittoStats,speed:50}}).speed,100);
 });
 
-test('temporary normal flat regeneration applies before normal-grass multiplier',()=>{
- let s={...funded(),energyBalances:{...funded().energyBalances,노말:2500007.5,풀:10},dittoStats:{...funded().dittoStats,regeneration:5}};
+test('normal-grass flat regeneration applies before temporary normal multiplier',()=>{
+ let s={...funded(),energyBalances:{...funded().energyBalances,노말:1000054,풀:55},dittoStats:{...funded().dittoStats,regeneration:5}};
  for(const id of ['regeneration','regeneration','regenerationMultiplier'])s=buy(s,'BUY_UPGRADE',id);
  assert.ok(Math.abs(effectiveDittoStats(s).regeneration-7.21)<1e-8);
  assert.equal(s.energyBalances.노말,0);
