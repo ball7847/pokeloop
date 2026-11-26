@@ -8,7 +8,7 @@ const slot=id=>ENCOUNTER_SLOTS.find(s=>s.id===id);
 test('six uncommon slots sit at 3, 6, 8, 11, 13, 15; normals stay at 10',()=>{
  assert.deepEqual(ENCOUNTER_SLOTS.filter(x=>x.id.startsWith('W01')&&x.rarity==='uncommon').map(x=>x.id).sort(),['W010302','W010602','W010802','W011102','W011302','W011502']);
  assert.equal(regionUnlockRequirement(),7);
- assert.deepEqual(['psyduck','ponyta','zigzagoon','zigzagoon-galar'].map(x=>getWildPokemon(x).energyReward),[5.4,27.7,66,66]);
+ assert.deepEqual(['psyduck','ponyta','zigzagoon','zigzagoon-galar'].map(x=>getWildPokemon(x).energyReward),[4,15,35,35]);
  assert.equal(getWildPokemon('zigzagoon').dodge,26);
  assert.equal(getWildPokemon('zigzagoon-galar').dodge,13);
 });

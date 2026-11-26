@@ -10,12 +10,12 @@ test('production waiting requires unlocked active Slow Start and sufficient othe
  let s=initialState();
  assert.equal(nextProductionWait(s),null);
  s={...s,pointCirculationUnlocked:true,automation:{...s.automation,point:true}};
- assert.equal(nextProductionWait(s),1);
+ assert.equal(nextProductionWait(s),2);
  s={...s,energyUpgrades:{hp:20,attack:20},unlockedLayer:2};
  assert.equal(nextProductionWait(s),null);
  s={...s,energyBalances:{...s.energyBalances,물:10}};
- assert.equal(nextProductionWait(s,9),null);
- assert.equal(nextProductionWait(s,10),10);
+ assert.equal(nextProductionWait(s,19),null);
+ assert.equal(nextProductionWait(s,20),20);
  assert.equal(MAX_PLANET_IDLE_SECONDS,300);
 });
 test('locked appeared targets prevent false completion',()=>{

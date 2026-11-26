@@ -1,6 +1,6 @@
 # PokeLoop 현행 구현 시스템
 
-> 2026-11-26 현행 코드 기준: PR #202 병합 `aec9a73ee7b6c5a606d77e215a34fd665183ffd4`. 다음 변경 시 최신 main 재확인. 과거 문서는 [CHANGELOG.md](./CHANGELOG.md) 참조.
+> 2026-11-26 초기 경제 밸런스 개정 기준. 이전 기준 main `a45ba78be9763a641827aa555e9bdad62c6d1ffe`. 다음 변경 시 최신 main 재확인.
 
 ## 실행과 전투
 - React/Zustand; ready/running/paused/finished. 메타몽·야생·도감·에너지·설정 화면. 실제 시간 전투 및 경제 틱. 전투 시작 메타몽 탭, 종료 팝업 표시 후 야생 복귀. 공격바 RAF, 피해 팝업 물리 빨강/특수 파랑/독 보라/회복 초록, 고정 피해는 CSS만.
@@ -26,8 +26,8 @@
 <!-- catalog-upgrades-start -->
 | ID | 이름 | 타입 | 첫 비용(각) | 배율 | 레벨당 효과 |
 |---|---|---|---:|---:|---|
-|hp|HP 증가|노말|1|1.5|+4|
-|attack|공격 증가|노말|1|1.5|+1|
+|hp|HP 증가|노말|1|1.4|+4|
+|attack|공격 증가|노말|1|1.4|+1|
 |specialAttack|특수공격 증가|노말|999999|1.5|+1|
 |hpMultiplier|HP 증폭|노말+물|10|1.8|+4%|
 |defense|방어 증가|노말|999999|1.5|+1|
@@ -52,7 +52,7 @@
 |---|---|---|---|
 |AB01|먹보|노말1|승리 후 같은 적 연속 도전, HP/상태 유지|
 |AB02|불굴의마음|노말5|패배 후 10초 회복 및 재도전|
-|AB03|슬로스타트|노말100|노말 에너지 초당1, 온라인/오프라인|
+|AB03|슬로스타트|노말100|노말 에너지 초당0.5, 온라인/오프라인|
 |AB04|다운로드|노말200|선택한 강화 중 최저 총 비용 우선 자동 구매|
 |AB05|자기과신|노말1000|상한 달성 뒤 다음 대상/해금 지역 도전|
 |AB06|위협|갸라도스 첫 처치|상한 달성 카드 숨김|
@@ -113,40 +113,40 @@ Lv는 구매 전 레벨. 외체계 노말 5개 노드만 구현. 기타 타입 �
 |---|---:|
 |rattata|1|
 |pidgey|2|
-|mankey|3.5|
-|spearow|3|
-|zubat|3|
-|meowth|10|
-|geodude|12|
-|exeggcute|16.6|
-|sentret|20|
-|tauros|49|
-|fearow|22|
-|bulbasaur|55|
-|charmander|55|
-|squirtle|55|
-|psyduck|5.4|
-|ponyta|27.7|
-|ekans|35|
-|rookidee|38|
-|zigzagoon|66|
-|zigzagoon-galar|66|
-|caterpie|30|
-|metapod|50|
-|weedle|30|
-|kakuna|50|
-|shroomish|500|
-|breloom|1860|
-|taillow|127|
-|swellow|300|
-|igglybuff|139|
-|pikachu|250|
-|nidoran-m|269|
-|nidoran-f|269|
-|tangela|228|
-|bidoof|400|
-|surskit|328|
-|tropius|1000|
+|mankey|3|
+|spearow|2.5|
+|zubat|2.5|
+|meowth|5|
+|geodude|6|
+|exeggcute|8|
+|sentret|10|
+|tauros|20|
+|fearow|12|
+|bulbasaur|28|
+|charmander|28|
+|squirtle|28|
+|psyduck|4|
+|ponyta|15|
+|ekans|20|
+|rookidee|25|
+|zigzagoon|35|
+|zigzagoon-galar|35|
+|caterpie|10|
+|metapod|15|
+|weedle|10|
+|kakuna|15|
+|shroomish|65|
+|breloom|180|
+|taillow|16|
+|swellow|40|
+|igglybuff|18|
+|pikachu|35|
+|nidoran-m|25|
+|nidoran-f|25|
+|tangela|30|
+|bidoof|40|
+|surskit|45|
+|tropius|100|
 |buizel|418|
 |magikarp|200|
 |gyarados|540|

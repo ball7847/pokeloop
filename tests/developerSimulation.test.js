@@ -38,6 +38,6 @@ test('production batching retains the exact standard 5-second economy model',()=
   let state={...initialState(),pointCirculationUnlocked:true,automation:{...initialState().automation,point:true},phase:'running'};
   const before=state;
   state=tickEconomy(state,5);
-  assert.equal(state.energyBalances.노말,5);
+  assert.equal(state.energyBalances.노말,2.5);
   assert.equal(before.energyBalances.노말,0);
 });

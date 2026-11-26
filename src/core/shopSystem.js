@@ -5,8 +5,8 @@ import {stellarChildBonus} from './stellarUpgrades.js';
 // Rejected Draft shop pattern: base cost * growth^currentLevel,
 // additive per-level bonuses to the base stat.
 export const UPGRADES=Object.freeze([
-  {id:'hp',name:'HP 증가',type:'노말',base:1,growth:1.5,bonus:4,unit:'flat',stat:'HP'},
-  {id:'attack',name:'공격 증가',type:'노말',base:1,growth:1.5,bonus:1,unit:'flat',stat:'공격'},
+  {id:'hp',name:'HP 증가',type:'노말',base:1,growth:1.4,bonus:4,unit:'flat',stat:'HP'},
+  {id:'attack',name:'공격 증가',type:'노말',base:1,growth:1.4,bonus:1,unit:'flat',stat:'공격'},
   {id:'specialAttack',name:'특수공격 증가',type:'노말',base:999999,growth:1.5,bonus:1,unit:'flat',stat:'특수공격'},
   {id:'hpMultiplier',name:'HP 증폭',types:['노말','물'],base:10,growth:1.8,bonus:0.04,unit:'percent',stat:'HP'},
   {id:'defense',name:'방어 증가',type:'노말',base:999999,growth:1.5,bonus:1,unit:'flat',stat:'방어'},

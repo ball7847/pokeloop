@@ -1,6 +1,6 @@
 # PokeLoop 개발 가이드
 
-> 2026-11-26 현행 코드 기준: PR #202 병합 `aec9a73ee7b6c5a606d77e215a34fd665183ffd4`. 다음 변경 시 최신 main 재확인. 과거 문서는 [CHANGELOG.md](./CHANGELOG.md) 참조.
+> 2026-11-26 초기 경제 밸런스 개정 기준. 이전 기준 main `a45ba78be9763a641827aa555e9bdad62c6d1ffe`. 다음 변경 시 최신 main 재확인.
 
 ## 프로젝트
 - PokeLoop: 포켓몬 테마 자동 전투·성장·재화 생산 방치형 게임.

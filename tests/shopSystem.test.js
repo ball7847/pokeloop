@@ -12,12 +12,12 @@ test('normal flat HP/ATK and fire attack multiplier scale independently',()=>{
  for(const id of ['hp','hp','attack','attackMultiplier'])s=buy(s,'BUY_UPGRADE',id);
  assert.equal(effectiveDittoStats(s).hp,18);
  assert.equal(effectiveDittoStats(s).attack,2.08);
- assert.equal(s.energyBalances.노말,986.5);
+ assert.equal(s.energyBalances.노말,986.6);
  assert.equal(s.energyBalances.불꽃,990);
- assert.equal(s.particleBalances.노말,13.5);
+ assert.equal(s.particleBalances.노말,13.4);
  assert.equal(s.particleBalances.불꽃,10);
- assert.equal(upgradeCost('hp',1),1.5);
- assert.equal(upgradeCost('attack',2),2.25);
+ assert.equal(upgradeCost('hp',1),1.4);
+ assert.ok(Math.abs(upgradeCost('attack',2)-1.96)<1e-9);
  assert.equal(upgradeCost('attackMultiplier',1),18);
  assert.equal(buy(s,'BUY_UPGRADE','speed'),s);
 });

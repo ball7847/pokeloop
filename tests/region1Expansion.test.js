@@ -9,11 +9,11 @@ const ids=['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exe
 test('region 1 extends to 10 common species with configured stats, energy and first-kill rewards',()=>{
  assert.deepEqual(WILD_POKEMON.map(p=>p.id),ids);
  const expected=[
- ['meowth',20,1.8,1100,1000,{attack:1.5,multiStrike:4},{노말:10}],
- ['geodude',40,20,6000,0,{attack:2,defense:1},{노말:12}],
- ['exeggcute',60,4,4700,0,{specialAttack:3},{노말:16.6}],
- ['sentret',100,4.6,2400,0,{hp:16.1},{노말:20}],
- ['tauros',225,20,1500,0,{hp:15,attack:5,defense:1,specialDefense:1},{노말:49}]
+ ['meowth',20,1.8,1100,1000,{attack:1.5,multiStrike:4},{노말:5}],
+ ['geodude',40,20,6000,0,{attack:2,defense:1},{노말:6}],
+ ['exeggcute',60,4,4700,0,{specialAttack:3},{노말:8}],
+ ['sentret',100,4.6,2400,0,{hp:16.1},{노말:10}],
+ ['tauros',225,20,1500,0,{hp:15,attack:5,defense:1,specialDefense:1},{노말:20}]
  ];
  for(const [id,hp,attack,speed,multiStrike,rewards,energy] of expected){
   const p=WILD_POKEMON.find(x=>x.id===id);
