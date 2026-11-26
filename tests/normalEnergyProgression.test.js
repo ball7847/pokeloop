@@ -7,10 +7,10 @@ import {initialEconomy,unlockNextLayer,purchaseWithEnergy,grantBattleEnergy,move
 import {encodeSave,decodeSave,SAVE_VERSION} from '../src/core/saveCodec.js';
 test('normal reward always and conditional ten percent extras, no duplicate normal',()=>{
  const fire=getWildPokemon('charmander'),pika=getWildPokemon('pikachu'),bird=getWildPokemon('pidgey'),lotad=getWildPokemon('lotad');
- assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:1}),{노말:55});
- assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:2}),{노말:55,불꽃:5.5});
- assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:2}),{노말:250});
- assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:3}),{노말:250,전기:25});
+ assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:1}),{노말:28});
+ assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:2}),{노말:28,불꽃:2.8});
+ assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:2}),{노말:35});
+ assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:3}),{노말:35,전기:3.5});
  assert.deepEqual(battleEnergyRewards(bird,0,{unlockedLayer:4}),{노말:2,비행:0.2});
  const rewards=battleEnergyRewards(lotad,1,{unlockedLayer:2});
  assert.equal(rewards.노말,635);
@@ -21,8 +21,8 @@ test('SU011 amplifies only normal, honey applies once to all rewards',()=>{
  const s=initialState();
  const state={...s,unlockedLayer:2,permanentUpgrades:{SU011:10},dittoStats:{...s.dittoStats,honey:100}};
  const rewards=calculateBattleEnergyRewards(state,getWildPokemon('charmander'),0);
- assert.ok(Math.abs(Number(rewards.노말)-121)<1e-9);
- assert.ok(Math.abs(Number(rewards.불꽃)-6.05)<1e-9);
+ assert.ok(Math.abs(Number(rewards.노말)-61.6)<1e-9);
+ assert.ok(Math.abs(Number(rewards.불꽃)-3.08)<1e-9);
 });
 test('milestone production does not unlock layers; locked currency cannot be spent or earned',()=>{
  let s=initialEconomy();
