@@ -51,15 +51,15 @@ test('rare Milotic, Magikarp and Gyarados progression stays intact',()=>{
  assert.equal(evolutionFor('magikarp').id,'gyarados');
  assert.equal(byId.gyarados.rarity,'common');
  assert.equal(evolutionChance(byId.gyarados,initialState()),1);
- assert.deepEqual(battleEnergyRewards(byId.milotic,0),{물:740});
- assert.deepEqual(battleEnergyRewards(byId.milotic,1),{물:370});
- assert.deepEqual(battleEnergyRewards(byId['wishiwashi-school'],0),{물:620});
+ assert.deepEqual(battleEnergyRewards(byId.milotic,0),{노말:740});
+ assert.deepEqual(battleEnergyRewards(byId.milotic,1),{노말:370});
+ assert.deepEqual(battleEnergyRewards(byId['wishiwashi-school'],0),{노말:620});
 });
 test('three uncommon water starters retain the same slot and unchanged reward types',()=>{
  const starters=['popplio','sobble','quaxly'].map(id=>byId[id]);
  assert.equal(new Set(starters.map(p=>p.encounterCode.slice(0,6))).size,1);
  for(const pokemon of starters){
   assert.equal(pokemon.rarity,'uncommon');
-  assert.deepEqual(battleEnergyRewards(pokemon,0),{물:100});
+  assert.deepEqual(battleEnergyRewards(pokemon,0),{노말:100});
  }
 });

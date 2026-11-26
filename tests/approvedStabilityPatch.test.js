@@ -66,7 +66,7 @@ test('invalid imported region resets but All and unlocked selections persist; fa
   useGameStore.setState({game:{...s,phase:'running'},wildRegionFilter:'berry-forest'});
   useGameStore.getState().importGame(s);
   assert.equal(useGameStore.getState().wildRegionFilter,'starting-plains');
-  assert.ok(storage.has('pokeloop.save.v1'));
+  assert.ok(storage.has('pokeloop.save.v2'));
   useGameStore.setState({wildRegionFilter:'all'});
   useGameStore.getState().importGame(s);
   assert.equal(useGameStore.getState().wildRegionFilter,'all');

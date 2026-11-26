@@ -30,7 +30,7 @@ test('type icons appear alongside energy labels without changing displayed rewar
    const {WildPage}=await vite.ssrLoadModule('/src/pages/WildPage.jsx');
    const wild=renderToStaticMarkup(React.createElement(WildPage));
    assert.match(wild,/assets\/types\/normal\.svg/);
-   assert.match(wild,/assets\/types\/flying\.svg/);
+   assert.doesNotMatch(wild,/assets\/types\/flying\.svg/);
    assert.match(wild,/노말 에너지 \+1/);
    const {EnergyPage}=await vite.ssrLoadModule('/src/pages/EnergyPage.jsx');
    const energy=renderToStaticMarkup(React.createElement(EnergyPage));

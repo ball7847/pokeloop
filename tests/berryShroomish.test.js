@@ -14,8 +14,8 @@ test('Berry Forest Shroomish and Breloom preserve existing slots and use approve
  assert.deepEqual([breloom.hp,breloom.attack,breloom.multiStrike,breloom.antidote,breloom.regeneration,breloom.poison,breloom.speed],[1286,130,250,60,0,60,1300]);
  assert.deepEqual(shroomish.rewards,{antidote:28,poison:15});
  assert.deepEqual(breloom.rewards,{attack:30,multiStrike:30,antidote:33,poison:15});
- assert.deepEqual(battleEnergyRewards(shroomish),{'풀':50});
- assert.deepEqual(battleEnergyRewards(breloom),{'풀':186,'격투':186});
+ assert.deepEqual(battleEnergyRewards(shroomish,0,{unlockedLayer:2}),{노말:50,풀:5});
+ assert.deepEqual(battleEnergyRewards(breloom,0,{unlockedLayer:6}),{노말:186,풀:18.6,격투:18.6});
  assert.equal(getKillLimit(shroomish),10);
  assert.equal(getKillLimit(breloom),10);
  assert.equal(evolutionFor('shroomish'),breloom);

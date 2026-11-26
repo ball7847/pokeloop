@@ -1,3 +1,4 @@
+import {typeLayer} from './energySystem.js';
 import {UPGRADES,upgradeCosts,buyUpgrade} from './shopSystem.js';
 import {addAmount,compareAmount} from './bigNumber.js';
 import {REGIONS,REGION,getKillLimit,getWildPokemon,appearedInRegion,isRegionUnlocked,isPokemonUnlockedInState} from './wildData.js';
@@ -11,7 +12,7 @@ export function autoBuyTick(state,maxPurchases=3){
   for(const item of UPGRADES){
    if(current.autoBuySelection?.[item.id]===false)continue;
    const costs=upgradeCosts(item.id,current.energyUpgrades?.[item.id]??0);
-   if(!costs||Object.entries(costs).some(([type,cost])=>compareAmount(current.energyBalances[type]??0,cost)<0))continue;
+   if(!costs||Object.entries(costs).some(([type,cost])=>typeLayer(type)>current.unlockedLayer||compareAmount(current.energyBalances[type]??0,cost)<0))continue;
    const total=Object.values(costs).reduce((sum,cost)=>addAmount(sum,cost),0);
    if(!candidate||compareAmount(total,candidate.total)<0)candidate={id:item.id,total};
   }

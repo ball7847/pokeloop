@@ -32,10 +32,10 @@ export function visibleWildExtraStats(pokemon){
   const extras={...Object.fromEntries(SPECIAL_STAT_KEYS.map(key=>[key,resolved[key]])),...(pokemon.extraStats??{})};
   return Object.entries(extras).filter(([key,value])=>!BASIC_STAT_KEYS.includes(key)&&!isDefaultStat(key,value));
 }
-function WildCard({pokemon,count,unlocked,capped,fighting,disabled,onSelect}){
+function WildCard({pokemon,count,unlockedLayer,unlocked,capped,fighting,disabled,onSelect}){
   const basic=new Set(visibleWildBasicStats(pokemon).map(({key})=>key));
   const extras=visibleWildExtraStats(pokemon);
-  const energyRewards=battleEnergyRewards(pokemon,count);
+  const energyRewards=battleEnergyRewards(pokemon,count,{unlockedLayer});
   const gain=Object.entries(pokemon.rewards).filter(([,v])=>typeof v==='number'?v!==0:isAmount(v)&&compareAmount(v,0)!==0)
     .map(([stat,val])=>({stat,label:statLabel(stat),value:scaledReward(stat,val,count)}));
   return <button type="button" disabled={disabled}
@@ -79,6 +79,7 @@ export function visiblePokemonForRegion(game,filter){
 }
 export function WildPage(){
   // Enemy cards depend on encounter/unlock state, not particle production or HP animation ticks.
+  const unlockedLayer=useGameStore(s=>s.game.unlockedLayer);
   const killCounts=useGameStore(s=>s.game.killCounts);
   const activeRegionId=useGameStore(s=>s.game.activeRegionId);
   const berryRareAppeared=useGameStore(s=>s.game.berryRareAppeared);
@@ -126,7 +127,7 @@ export function WildPage(){
         const capped=count>=getKillLimit(p);
         const fighting=combatActive&&fightingId===p.id;
         const disabled=!unlocked||capped||combatActive||recoveryMs>0||phase==='paused'||phase==='finished';
-        return <WildCard key={p.id} pokemon={p} count={count} unlocked={unlocked} capped={capped}
+        return <WildCard key={p.id} pokemon={p} count={count} unlockedLayer={unlockedLayer} unlocked={unlocked} capped={capped}
           fighting={fighting} disabled={disabled} onSelect={()=>selectPokemon(p)}/>;
       })}
     </div>
