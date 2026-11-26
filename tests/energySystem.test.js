@@ -147,7 +147,7 @@ test('legacy v3 preserves old essence as energy and old layer energy as particle
 test('configured species payouts include the Mankey balance adjustment',async()=>{
   const {WILD_POKEMON,UNCOMMON_STARTERS}=await import('../src/core/wildData.js');
   assert.deepEqual(WILD_POKEMON.map(p=>[p.id,p.energyReward]),[
-    ['rattata',1],['pidgey',2],['mankey',3],['spearow',2.5],['zubat',2.5],['meowth',5],['geodude',6],['exeggcute',8],['sentret',10],['tauros',20]
+    ['rattata',1],['pidgey',2],['mankey',3],['spearow',2.5],['zubat',2.5],['meowth',5],['geodude',6],['exeggcute',8],['sentret',10],['tauros',50]
   ]);
   assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.energyReward),[100,100,100]);
 });
