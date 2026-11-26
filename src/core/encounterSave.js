@@ -24,6 +24,7 @@ export function migrateEncounterSave(original,version,slots=ENCOUNTER_SLOTS,poke
   if(original.berryRareAppeared===true)results.W020502='pikachu';
  }
  if(results!==null){
+  if(typeof results!=='object'||Array.isArray(results))throw new Error('희귀도 슬롯 판정 기록이 올바르지 않습니다.');
   if(version>=14&&version<=16){
    results=Object.fromEntries(Object.entries(results).map(([id,value])=>[legacyToWildSlot(id,version),value]));
   }
@@ -36,7 +37,9 @@ export function migrateEncounterSave(original,version,slots=ENCOUNTER_SLOTS,poke
  const validIds=new Set([...slotMap.keys(),...pokemon.map(p=>p.id)]);
  const options={};
  for(const key of ['rarityGuarantees','rarityBanishments','raritySpecialUnlocks']){
-  const ids=version>=14?(original[key]??[]).map(id=>version<=16?legacyToWildSlot(id,version):id):[];
+  const raw=version>=14?(original[key]??[]):[];
+  if(!Array.isArray(raw))throw new Error('희귀도 출현 옵션이 올바르지 않습니다: '+key);
+  const ids=raw.map(id=>version<=16?legacyToWildSlot(id,version):id);
   if(!Array.isArray(ids)||ids.length>validIds.size||
    ids.some(id=>typeof id!=='string'||!validIds.has(id))||new Set(ids).size!==ids.length)
    throw new Error('희귀도 출현 옵션이 올바르지 않습니다: '+key);
