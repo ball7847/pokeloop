@@ -25,3 +25,5 @@
 - 2026-11-26: 승인된 1·2지역 전체 기본 에너지 보상 하향, 슬로스타트 노말 0.5/s, HP/공격 증가 비용 배율 1.4. 이정표·3지역·능력치 보상 유지. 가상플레이 대기 계산은 실제 생산 상수 참조.
 
 - 2026-11-26: 베리숲 보상 재조정: 테일로20, 푸푸린22, 니드런 암수29, 덩쿠리35, 비버니40 유지, 비구술59, 트로피우스200.
+
+- 2026-11-26: 사용자 지정 기본 에너지 보상 변경: psyduck=10, fearow=25, ponyta=30, bulbasaur=100, charmander=100, squirtle=100, ekans=88, rookidee=101, zigzagoon=133, zigzagoon-galar=133, shroomish=170, breloom=500, swellow=200, pikachu=250, tropius=300, buizel=218, magikarp=100, feebas=100. 능력치·처치 상한·이정표 유지.

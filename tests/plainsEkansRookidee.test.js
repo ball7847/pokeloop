@@ -6,12 +6,12 @@ import {encodeSave,decodeSave} from '../src/core/saveSystem.js';
 const encode=record=>{const bytes=new TextEncoder().encode(JSON.stringify(record));return btoa(Array.from(bytes,x=>String.fromCharCode(x)).join(''));};
 test('Ekans and Rookidee preserve exact stats and decaying poison/flying rewards',()=>{
  const a=getWildPokemon('ekans'),b=getWildPokemon('rookidee');
- assert.deepEqual([a.hp,a.attack,a.speed,a.dodge,a.poison,a.antidote,a.energyReward],[88,20,2000,88,20,100,20]);
+ assert.deepEqual([a.hp,a.attack,a.speed,a.dodge,a.poison,a.antidote,a.energyReward],[88,20,2000,88,20,100,88]);
  assert.deepEqual(a.rewards,{dodge:20,poison:8});
- assert.deepEqual([b.hp,b.attack,b.defense,b.specialDefense,b.speed,b.accuracy,b.energyReward],[176,27,15,15,2300,200,25]);
+ assert.deepEqual([b.hp,b.attack,b.defense,b.specialDefense,b.speed,b.accuracy,b.energyReward],[176,27,15,15,2300,200,101]);
  assert.deepEqual(b.rewards,{hp:8,defense:8,specialDefense:8,accuracy:4});
- assert.deepEqual(battleEnergyRewards(a,0),{노말:20});
- assert.deepEqual(battleEnergyRewards(b,1),{노말:12.5});
+ assert.deepEqual(battleEnergyRewards(a,0),{노말:88});
+ assert.deepEqual(battleEnergyRewards(b,1),{노말:50.5});
  assert.equal(a.encounterCode,'W011102');assert.equal(b.encounterCode,'W011302');
 });
 test('all uncommon candidates only appear in correct 16-position order',()=>{

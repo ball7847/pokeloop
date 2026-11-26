@@ -149,13 +149,13 @@ test('configured species payouts include the Mankey balance adjustment',async()=
   assert.deepEqual(WILD_POKEMON.map(p=>[p.id,p.energyReward]),[
     ['rattata',1],['pidgey',2],['mankey',3],['spearow',2.5],['zubat',2.5],['meowth',5],['geodude',6],['exeggcute',8],['sentret',10],['tauros',20]
   ]);
-  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.energyReward),[28,28,28]);
+  assert.deepEqual(UNCOMMON_STARTERS.map(p=>p.energyReward),[100,100,100]);
 });
 
 test('energy uses the same 1/(1+previous kills) decay as stat rewards',async()=>{
   const {getWildPokemon,scaledReward}=await import('../src/core/wildData.js');
   for(const [id,base] of [['rattata',1],['pidgey',2],['mankey',3],
-    ['spearow',2.5],['zubat',2.5],['bulbasaur',28],['charmander',28],['squirtle',28]]){
+    ['spearow',2.5],['zubat',2.5],['bulbasaur',100],['charmander',100],['squirtle',100]]){
     const pokemon=getWildPokemon(id);
     assert.equal(pokemon.energyReward,base);
     assert.equal(scaledReward('energy',base,0),base);
