@@ -37,7 +37,7 @@ test('region 3 dodge rebalance retains all other enemy stats and rewards',()=>{
  const magikarp=getWildPokemon('magikarp'),quaxly=getWildPokemon('quaxly');
  assert.equal(magikarp.dodge,100);
  assert.equal(quaxly.dodge,30);
- assert.equal(magikarp.energyReward,200);
+ assert.equal(magikarp.energyReward,100);
  assert.deepEqual(magikarp.rewards,{});
  assert.deepEqual(quaxly.rewards,{attack:40,dodge:15,multiStrike:15});
 });
@@ -70,7 +70,7 @@ test('new Lake base slots, exact stats and type energy rewards',()=>{
  assert.deepEqual([feebas.hp,feebas.specialAttack,feebas.defense,feebas.specialDefense,feebas.regeneration,feebas.speed],
    [95,10,1250,79,95,3500]);
  assert.deepEqual(feebas.rewards,{});
- assert.deepEqual(battleEnergyRewards(feebas,0),{노말:200});
+ assert.deepEqual(battleEnergyRewards(feebas,0),{노말:100});
  assert.deepEqual(ENCOUNTER_SLOTS.filter(slot=>slot.id.startsWith('W03')).map(slot=>slot.id),
    ['W030101','W030201','W030302','W030401','W030501','W030601','W030701','W030801','W031101','W030901','W031001']);
 });
