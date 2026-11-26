@@ -5,26 +5,34 @@ import {getWildPokemon} from '../../src/core/wildData.js';
 // An approximation, NOT a combat transition. Never interpreted as an observed win rate.
 const number=value=>{const n=Number(value);return Number.isFinite(n)?n:Number.MAX_VALUE/1000;};
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
-const avgChannel=(atk,def,min,max)=>{
- const attack=number(atk??0),defense=number(def??0);
- if(attack<=0)return 0;
- const low=clamp(Math.floor(number(min??85)),0,100000);
- const high=Math.max(low,Math.floor(number(max??100)));
- // Damage range rolls are integer-uniform; zero-damage truncation matters.
- const mid=(low+high)/200;
- return Math.max(0,attack*mid-defense);
-};
+// Closed-form average over inclusive integer damage rolls, after defense clipping.
+export function averageDamageChannel(atk,def,min=85,max=100){
+ const attack=number(atk??0),defense=Math.max(0,number(def??0));
+ if(attack<=0)return {mean:0,positive:0};
+ const low=Math.max(0,Math.floor(number(min))),high=Math.max(low,Math.floor(number(max)));
+ const first=Math.max(low,Math.floor(defense/attack*100)+1);
+ if(first>high)return {mean:0,positive:0};
+ const n=high-first+1,total=high-low+1;
+ return {mean:Math.max(0,attack*((first+high)/200)-defense)*n/total,positive:n/total};
+}
 export function expectedStrike(attacker,defender){
  const accuracy=hitChance(attacker,defender);
- const channels=avgChannel(attacker.attack,defender.defense,attacker.minDamagePercent,attacker.maxDamagePercent)+
-   avgChannel(attacker.specialAttack,Math.max(0,number(defender.specialDefense??0)-number(attacker.sound??0)),attacker.minDamagePercent,attacker.maxDamagePercent);
+ const physical=averageDamageChannel(attacker.attack,Math.max(0,number(defender.defense??0)-number(attacker.piercing??0)),attacker.minDamagePercent,attacker.maxDamagePercent);
+ const special=averageDamageChannel(attacker.specialAttack,Math.max(0,number(defender.specialDefense??0)-number(attacker.sound??0)),attacker.minDamagePercent,attacker.maxDamagePercent);
+ const channels=physical.mean+special.mean;
+ const positive=1-(1-physical.positive)*(1-special.positive);
  const critical=clamp(number(attacker.criticalChance??0)/100,0,1);
  const multiplier=number(attacker.criticalMultiplier??150)/100;
- const multi=Math.max(0,number(attacker.multiStrike??0))/1000;
+ const rawMulti=Math.max(0,number(attacker.multiStrike??0))/1000;
+ const multi=Math.min(1000,Math.floor(rawMulti))+rawMulti%1;
  // Same hit chance and crit distribution for each bonus hit (expected approximation).
  const expectedDamage=accuracy*channels*(1+critical*(multiplier-1))*(1+multi);
- return {expectedDamage,accuracy,expectedPoison:accuracy*number(attacker.poison??0)*(1+multi),
+ return {expectedDamage,accuracy,damagingHits:accuracy*positive*(1+multi),expectedPoison:accuracy*number(attacker.poison??0)*(1+multi),
    expectedParalysis:accuracy*number(attacker.paralysis??0)*(1+multi)};
+}
+// Approximate free counter actions from damaging hits, without recursive counters.
+export function expectedCounterActions(strike,defender,remainingHp){
+ return remainingHp>0?strike.damagingHits*clamp(number(defender.counter??0)/100,0,1):0;
 }
 function effectivePeriod(attacker,paralysisPerSecond){
  const speed=Math.max(100,number(attacker.speed??3000));
@@ -55,17 +63,22 @@ export function estimateExpectedBattle(state,id,{maxSeconds=300,uncertaintyMargi
    const es=expectedPeriod(enemy,playerStrike.expectedParalysis/Math.max(0.1,number(player.speed)/1000));
    const playerCount=playerClock<=1000?1+Math.floor((1000-playerClock)/ps):0;
    const enemyCount=enemyClock<=1000?1+Math.floor((1000-enemyClock)/es):0;
-   playerClock=Math.max(0,playerClock-1000)+playerCount*ps;
-   enemyClock=Math.max(0,enemyClock-1000)+enemyCount*es;
+   playerClock=playerClock-1000+playerCount*ps;
+   enemyClock=enemyClock-1000+enemyCount*es;
    playerActions+=playerCount;enemyActions+=enemyCount;
    // Expected combat action damage and status application; both attacks may resolve
    // within this one-second bucket, hence ties are marked uncertain.
-   enemyHp-=playerCount*playerStrike.expectedDamage;
-   playerHp-=enemyCount*enemyStrike.expectedDamage;
-   enemyPoison+=playerCount*playerStrike.expectedPoison;
-   playerPoison+=enemyCount*enemyStrike.expectedPoison;
-   enemyParalysis+=playerCount*playerStrike.expectedParalysis;
-   playerParalysis+=enemyCount*enemyStrike.expectedParalysis;
+   const enemyAfter=enemyHp-playerCount*playerStrike.expectedDamage;
+   const playerAfter=playerHp-enemyCount*enemyStrike.expectedDamage;
+   const enemyCounters=playerCount*expectedCounterActions(playerStrike,enemy,enemyAfter);
+   const playerCounters=enemyCount*expectedCounterActions(enemyStrike,player,playerAfter);
+   const pActions=playerCount+playerCounters,eActions=enemyCount+enemyCounters;
+   enemyHp-=pActions*playerStrike.expectedDamage;
+   playerHp-=eActions*enemyStrike.expectedDamage;
+   enemyPoison+=pActions*playerStrike.expectedPoison;
+   playerPoison+=eActions*enemyStrike.expectedPoison;
+   enemyParalysis+=pActions*playerStrike.expectedParalysis;
+   playerParalysis+=eActions*enemyStrike.expectedParalysis;
    enemyPoison=Math.max(0,enemyPoison-number(enemy.antidote??0));
    playerPoison=Math.max(0,playerPoison-number(player.antidote??0));
    enemyHp-=enemyPoison;playerHp-=playerPoison;
