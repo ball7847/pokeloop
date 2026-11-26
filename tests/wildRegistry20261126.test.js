@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createWildRegistry,resolveEvolutionVictory} from '../src/core/wildRegistry.js';
+import {REGIONS,ALL_POKEMON,REGION,BERRY_REGION,LAKE_REGION,appearedInRegion,isRegionUnlocked,evolutionsFor,rollVictoryEvolution} from '../src/core/wildData.js';
+import {initialState} from '../src/core/gameState.js';
+test('registered regions preserve 55 species and exact first planet base order',()=>{
+ const s=initialState();
+ assert.equal(ALL_POKEMON.length,55);
+ assert.deepEqual(REGIONS.map(r=>r.id),[REGION.id,BERRY_REGION.id,LAKE_REGION.id]);
+ const ids=r=>appearedInRegion(s,r.id).map(p=>p.id);
+ assert.deepEqual(ids(REGION),['rattata','pidgey','mankey','spearow','zubat','meowth','geodude','exeggcute','sentret','tauros']);
+ assert.deepEqual(ids(BERRY_REGION),['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','tangela','bidoof','surskit','tropius']);
+ assert.deepEqual(ids(LAKE_REGION),['buizel','magikarp','cutiefly','azurill','wingull','feebas','tadbulb','bombirdier','lotad','wishiwashi']);
+});
+test('region requirements retain appeared-base and common-base distinctions',()=>{
+ const s=initialState();
+ const killCounts=Object.fromEntries(['rattata','pidgey','mankey','spearow','zubat','meowth','psyduck'].map(id=>[id,1]));
+ const state={...s,killCounts,uncommonStarterId:'psyduck'};
+ assert.equal(isRegionUnlocked(state,BERRY_REGION.id),true);
+ assert.equal(isRegionUnlocked(state,LAKE_REGION.id),false);
+ for(const id of ['caterpie','weedle','taillow','igglybuff','nidoran-m','nidoran-f','pikachu'])killCounts[id]=1;
+ assert.equal(isRegionUnlocked(state,LAKE_REGION.id),false);
+ killCounts.tangela=1;
+ assert.equal(isRegionUnlocked(state,LAKE_REGION.id),true);
+});
+test('single evolution consumes exactly one draw on first victory and preserves chain',()=>{
+ const s={...initialState(),uncommonChance:.5};
+ let draws=0;
+ assert.deepEqual(evolutionsFor('azurill').map(p=>p.id),['marill']);
+ const result=rollVictoryEvolution(s,'azurill',0,()=>{draws++;return .4;});
+ assert.equal(result.marill,true);assert.equal(draws,1);
+ assert.equal(rollVictoryEvolution(s,'azurill',1,()=>{draws++;return 0;}),s.evolutionResults);
+ assert.equal(draws,1);
+ const appeared=appearedInRegion({...s,evolutionResults:{marill:true,azumarill:true}},LAKE_REGION.id).map(p=>p.id);
+ assert.deepEqual(appeared.slice(appeared.indexOf('azurill'),appeared.indexOf('azurill')+3),['azurill','marill','azumarill']);
+});
+test('synthetic fourth region and branching evolution require no regional code changes',()=>{
+ const content=[{region:{id:'a'},pokemon:[{id:'parent',encounterCode:'W010101'},{id:'child-a',evolvesFrom:'parent'},{id:'child-b',evolvesFrom:'parent'}],unlock:null},{region:{id:'b'},pokemon:[{id:'second'}],unlock:{from:'a',count:1,eligible:'common-base'}},{region:{id:'c'},pokemon:[{id:'third'}],unlock:{from:'b',count:1,eligible:'common-base'}},{region:{id:'d'},pokemon:[{id:'fourth'}],unlock:{from:'c',count:1,eligible:'common-base'}}];
+ const registry=createWildRegistry(content),selected=()=>true;
+ const state={killCounts:{parent:1,second:1,third:1},evolutionResults:{}};
+ assert.equal(registry.regionOf('fourth').id,'d');
+ assert.equal(registry.isUnlocked(state,'d',selected),true);
+ assert.equal(registry.isUnlocked({...state,killCounts:{third:1}},'d',selected),false);
+ const children=registry.childrenOf('parent');
+ assert.equal(children.length,2);
+ assert.equal(resolveEvolutionVictory(state,children,0,()=>0,()=>1),state.evolutionResults);
+ const evolutionResults=resolveEvolutionVictory(state,children,0,()=>0,()=>1,()=> 'child-b');
+ assert.deepEqual(evolutionResults,{'child-a':false,'child-b':true});
+ assert.deepEqual(registry.appeared({...state,evolutionResults},'a',selected).map(p=>p.id),['parent','child-b']);
+});

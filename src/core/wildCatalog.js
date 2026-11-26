@@ -5,7 +5,7 @@ import {resolveStats} from './dittoStats.js';
 export const REGION=Object.freeze({id:'starting-plains',name:'시작의 평원',defaultKillLimit:10,rewardDecay:1});
 export const BERRY_REGION=Object.freeze({id:'berry-forest',name:'베리숲',defaultKillLimit:10,rewardDecay:1});
 export const LAKE_REGION=Object.freeze({id:'moonlit-lake',name:'달빛의 호수',defaultKillLimit:10,rewardDecay:1});
-export const REGIONS=Object.freeze([REGION,BERRY_REGION,LAKE_REGION]);
+
 const entries=[
 {id:'rattata',number:19,name:'꼬렛',types:['노말'],energyReward:1,hp:3,attack:2,speed:2100,rewards:{attack:1}},
 {id:'pidgey',number:16,name:'구구',types:['노말','비행'],energyReward:2,hp:6,attack:2.5,speed:2400,rewards:{hp:1}},
@@ -87,4 +87,11 @@ const lakeEntries=[
 {id:'wishiwashi-school',number:746,spriteNumber:10127,name:'약어리(군집의 모습)',types:['물'],rarity:'common',evolvesFrom:'wishiwashi',maxKillsPerPlanet:1,hp:4500,attack:40,defense:40,specialAttack:40,specialDefense:50,speed:2000,multiStrike:9000,energyReward:4000,rewards:{hp:174,defense:10,multiStrike:60},encounterCode:'W031001-E1'}
 ];
 export const LAKE_POKEMON=Object.freeze(lakeEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
-export const ALL_POKEMON=Object.freeze([...WILD_POKEMON,...PLAINS_EVOLUTIONS,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON,...BERRY_POKEMON,...LAKE_POKEMON]);
+// Catalog order is encounter RNG order; display order can be configured independently.
+export const REGION_CONTENT=Object.freeze([
+ Object.freeze({region:REGION,pokemon:Object.freeze([...WILD_POKEMON,...PLAINS_EVOLUTIONS,...UNCOMMON_STARTERS,...PLAINS_UNCOMMON]),order:'slot',unlock:null}),
+ Object.freeze({region:BERRY_REGION,pokemon:BERRY_POKEMON,order:'catalog',unlock:Object.freeze({from:REGION.id,count:7,eligible:'appeared-base'})}),
+ Object.freeze({region:LAKE_REGION,pokemon:LAKE_POKEMON,order:'catalog',unlock:Object.freeze({from:BERRY_REGION.id,count:7,eligible:'common-base'})})
+]);
+export const REGIONS=Object.freeze(REGION_CONTENT.map(x=>x.region));
+export const ALL_POKEMON=Object.freeze(REGION_CONTENT.flatMap(x=>x.pokemon));

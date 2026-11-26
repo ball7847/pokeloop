@@ -1,4 +1,4 @@
-import {REGION,getKillLimit,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,evolutionFor,evolutionChance} from './wildData.js';
+import {REGION,getKillLimit,getWildPokemon,isPokemonUnlockedInState,regionForPokemon,spriteUrl,scaledReward,battleEnergyRewards,rollVictoryEvolution} from './wildData.js';
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy,unlockLayerForVictory} from './energySystem.js';
 import {recordItemProgress} from './itemSystem.js';
@@ -62,8 +62,7 @@ export function settleBattleOutcome(state,c,type,random=Math.random) {
     let rewarded=grantVictoryAbility(unlockLayerForVictory(state,p.id,count),p.id,count);
     for(const [type,amount] of Object.entries(energyRewards))
       rewarded=grantBattleEnergy(rewarded,[type],amount);
-    const evolution=count===0?evolutionFor(p.id):null;
-    const evolutionResults=evolution?{...state.evolutionResults,[evolution.id]:random()<evolutionChance(evolution,state)}:state.evolutionResults;
+    const evolutionResults=rollVictoryEvolution(state,p.id,count,random);
     const itemProgress=recordItemProgress(recordItemProgress(rewarded,'victories'),'pokemon:'+p.id);
     const updated={...itemProgress,dexLifetimeKills:{...state.dexLifetimeKills,[p.id]:(state.dexLifetimeKills?.[p.id]??0)+1},evolutionResults,eventSerial:state.eventSerial+1,dittoStats:stats,victories:state.victories+1,
       encounterIndex:state.encounterIndex+1,
