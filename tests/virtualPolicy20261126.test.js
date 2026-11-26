@@ -4,7 +4,7 @@ import {initialState,transition} from '../src/core/gameState.js';
 import {ACTIVE_UPGRADE_IDS,appearedTargets,availableTargets,decidePlanetExit,nextProductionWait,MAX_PLANET_IDLE_SECONDS,planetPattern} from './helpers/virtualPlaySimulator.js';
 import {averageDamageChannel,expectedStrike,expectedCounterActions} from './helpers/expectedCombat.js';
 test('simulation active upgrades exclude all ten temporary costs',()=>{
- assert.deepEqual([...ACTIVE_UPGRADE_IDS].sort(),['hp','attack','hpMultiplier','attackMultiplier','antidote','regenerationMultiplier','speedFlat'].sort());
+ assert.deepEqual([...ACTIVE_UPGRADE_IDS].sort(),['hp','attack','hpMultiplier','attackMultiplier','antidote','regeneration','speedFlat'].sort());
 });
 test('production waiting requires unlocked active Slow Start and sufficient other types',()=>{
  let s=initialState();
