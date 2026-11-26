@@ -8,7 +8,7 @@ import {encounterSlotOrder,rollEncounterSlots} from '../src/core/raritySystem.js
 const repack=payload=>btoa(Array.from(new TextEncoder().encode(JSON.stringify(payload)),n=>String.fromCharCode(n)).join(''));
 const rawSave=state=>JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encodeSave(state)),c=>c.charCodeAt(0))));
 test('all current encounter IDs follow W plus two-digit region, position and rarity',()=>{
- assert.equal(SAVE_VERSION,17);
+ assert.equal(SAVE_VERSION,18);
  for(const slot of ENCOUNTER_SLOTS)assert.match(slot.id,/^W\d{6}$/);
  assert.ok(ENCOUNTER_SLOTS.some(s=>s.id==='W010802'&&s.candidates.length===3));
  assert.ok(ENCOUNTER_SLOTS.some(s=>s.id==='W011502'&&s.candidates.length===2));
