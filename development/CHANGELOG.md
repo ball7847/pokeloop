@@ -1,0 +1,17 @@
+# 변경 이력 및 보존 원문
+
+현행 규칙이 아닌 역사 자료. 2026-11-26 PR #202 병합 당시의 원문을 Git 커밋에 영구 보존했다. 아래 링크에서 과거 기획·폐기 규칙·구 테스트 원문을 확인할 수 있다.
+
+- [development/DEVELOPMENT_GUIDE.md 이전 원문](https://github.com/ball7847/pokeloop/blob/aec9a73ee7b6c5a606d77e215a34fd665183ffd4/development/DEVELOPMENT_GUIDE.md)
+- [development/IMPLEMENTED_SYSTEMS.md 이전 원문](https://github.com/ball7847/pokeloop/blob/aec9a73ee7b6c5a606d77e215a34fd665183ffd4/development/IMPLEMENTED_SYSTEMS.md)
+- [development/PLANNED_SYSTEMS.md 이전 원문](https://github.com/ball7847/pokeloop/blob/aec9a73ee7b6c5a606d77e215a34fd665183ffd4/development/PLANNED_SYSTEMS.md)
+- [development/VIRTUAL_PLAY_RULES.md 이전 원문](https://github.com/ball7847/pokeloop/blob/aec9a73ee7b6c5a606d77e215a34fd665183ffd4/development/VIRTUAL_PLAY_RULES.md)
+- [tests/virtualPlaythrough.test.js 이전 원문](https://github.com/ball7847/pokeloop/blob/aec9a73ee7b6c5a606d77e215a34fd665183ffd4/tests/virtualPlaythrough.test.js)
+
+## 주요 변경
+- #188~191: 행성별 추가 추첨, 2계층 비교 보고서, 이정표 개편.
+- #194~199: 노말 중심 에너지, 계층 승리 해금과 승계, 보상/특성/강화 재조정, 피카츄 보너스, 가상플레이 정책 변경. 과거 확정 등장, v17, 타입별 동일 보상, 이전 가격 등 폐기.
+- #200: 사망 이후 연타 중단, hybrid 및 전체 JSON 아티팩트.
+- #201: 실제/추정 전투 정산 공통화.
+- #202: 지역·진화 등록 구조 일반화.
+- 이번 정리: 현행 문서 교체, 역사 원문 링크 보존, 과거 경제 의존 skip 3건을 현재 규칙의 합성 fixture 회귀 테스트로 대체.
