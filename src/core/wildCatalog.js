@@ -51,7 +51,7 @@ const berryEntries=[
 {id:'nidoran-f',number:29,name:'니드런♀',types:['독'],energyReward:29,hp:220,attack:21,speed:2750,poison:10,rewards:{hp:12.9,poison:1}},
 {id:'tangela',number:114,name:'덩쿠리',types:['풀'],energyReward:35,hp:195,specialAttack:15.5,regeneration:5,speed:1600,rewards:{hp:11.4,regeneration:1.14}},
 {id:'bidoof',number:399,name:'비버니',types:['노말'],energyReward:40,hp:390,attack:25,specialAttack:15,speed:2900,rewards:{hp:20,attack:4}},
-{id:'surskit',number:283,name:'비구술',types:['벌레','물'],energyReward:59,hp:40,attack:30,defense:32,specialAttack:50,specialDefense:52,speed:990,rewards:{speed:-28}},
+{id:'surskit',number:283,name:'비구술',types:['벌레','물'],energyReward:100,hp:40,attack:30,defense:32,specialAttack:50,specialDefense:52,speed:990,rewards:{}},
 {id:'tropius',number:357,name:'트로피우스',types:['풀','비행'],energyReward:300,hp:990,attack:68,specialAttack:72,regeneration:46,speed:4570,rewards:{hp:50,attack:10,specialAttack:10,regeneration:10}}
 ];
 // Region 2 slots remain fixed even when conditional Pokémon have not appeared.
@@ -66,13 +66,13 @@ const berryEncounterCodes=Object.freeze({
 // energyReward is the base normal-energy reward; gated type extras are calculated in wildData.
 export const BERRY_POKEMON=Object.freeze(berryEntries.map(p=>Object.freeze({...p,...resolveStats(p),encounterCode:berryEncounterCodes[p.id]})));
 const lakeEntries=[
-{id:'buizel',number:418,name:'브이젤',types:['물'],hp:855,attack:20,speed:850,multiStrike:2000,energyReward:218,rewards:{attack:3,multiStrike:33},encounterCode:'W030101'},
+{id:'buizel',number:418,name:'브이젤',types:['물'],hp:418,attack:20,speed:850,multiStrike:2000,energyReward:218,rewards:{attack:2,multiStrike:22},encounterCode:'W030101'},
 {id:'magikarp',maxKillsPerPlanet:1,number:129,name:'잉어킹',types:['물'],hp:95,attack:12.5,speed:1290,dodge:100,energyReward:100,rewards:{},encounterCode:'W030201'},
 {id:'gyarados',number:130,name:'갸라도스',types:['물','비행'],rarity:'common',evolvesFrom:'magikarp',hp:950,attack:125,speed:1300,intimidation:500,energyReward:540,rewards:{attack:20,intimidation:16},encounterCode:'W030201-E1'},
 {id:'popplio',number:728,name:'누리공',types:['물'],rarity:'uncommon',hp:2789,specialAttack:66,specialDefense:56,sound:40,speed:2700,energyReward:1789,rewards:{specialAttack:30,specialDefense:30,sound:10},encounterCode:'W030302-01'},
 {id:'sobble',number:816,name:'울머기',types:['물'],rarity:'uncommon',hp:2789,specialAttack:70,specialDefense:40,criticalChance:50,criticalMultiplier:200,speed:2700,energyReward:1789,rewards:{specialAttack:40,specialDefense:20,criticalChance:1},encounterCode:'W030302-02'},
 {id:'quaxly',number:912,name:'꾸왁스',types:['물'],rarity:'uncommon',hp:2789,attack:65,defense:45,specialDefense:45,dodge:30,multiStrike:300,speed:2700,energyReward:1789,rewards:{attack:40,dodge:15,multiStrike:15},encounterCode:'W030302-03'},
-{id:'cutiefly',number:742,name:'에블리',types:['벌레','페어리'],hp:600,specialAttack:25,speed:620,energyReward:304,rewards:{specialAttack:7,speed:-42},encounterCode:'W030401'},
+{id:'cutiefly',number:742,name:'에블리',types:['벌레','페어리'],hp:600,specialAttack:25,speed:620,energyReward:304,rewards:{specialAttack:4,speed:-30},encounterCode:'W030401'},
 {id:'ribombee',number:743,name:'에리본',types:['벌레','페어리'],rarity:'uncommon',evolvesFrom:'cutiefly',hp:1800,specialAttack:75,speed:420,energyReward:2320,rewards:{specialAttack:14,honey:14},encounterCode:'W030401-E1'},
 {id:'azurill',number:298,name:'루리리',types:['노말','페어리'],hp:2000,attack:100,speed:4000,minDamagePercent:100,maxDamagePercent:200,energyReward:500,rewards:{hp:30,attack:10,minDamagePercent:1,maxDamagePercent:2},encounterCode:'W030501'},
 {id:'marill',number:183,name:'마릴',types:['물','페어리'],rarity:'uncommon',evolvesFrom:'azurill',hp:2830,attack:100,speed:3000,minDamagePercent:150,maxDamagePercent:200,energyReward:2000,rewards:{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3},encounterCode:'W030501-E1'},
