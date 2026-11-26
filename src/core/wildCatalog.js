@@ -83,8 +83,8 @@ const lakeEntries=[
 {id:'tadbulb',number:938,name:'빈나두',types:['전기'],hp:2611,attack:31,defense:41,specialAttack:59,speed:9380,counter:50,paralysis:300,energyReward:938,rewards:{hp:127.2,counter:2.7,paralysis:2.7},encounterCode:'W030801'},
 {id:'bombirdier',number:962,name:'떨구새',types:['비행','악'],energyReward:962,hp:1962,attack:103,speed:1500,piercing:50,accuracy:200,rewards:{attack:10.3,piercing:10.3,accuracy:9.62},encounterCode:'W031101'},
 {id:'lotad',number:270,name:'연꽃몬',types:['물','풀'],hp:2400,specialAttack:80,speed:2200,regeneration:112,energyReward:1270,rewards:{hp:135,specialAttack:16,regeneration:16},encounterCode:'W030901'},
-{id:'wishiwashi',number:746,name:'약어리',types:['물'],hp:225,attack:2,defense:2,specialAttack:2,specialDefense:2.5,speed:400,energyReward:200,rewards:{},encounterCode:'W031001'},
-{id:'wishiwashi-school',number:746,spriteNumber:10127,name:'약어리(군집의 모습)',types:['물'],rarity:'common',evolvesFrom:'wishiwashi',maxKillsPerPlanet:1,hp:4500,attack:40,defense:40,specialAttack:40,specialDefense:50,speed:2000,multiStrike:9000,energyReward:4000,rewards:{hp:174,defense:10,multiStrike:60},encounterCode:'W031001-E1'}
+{id:'wishiwashi',number:746,name:'약어리',types:['물'],hp:160,attack:1,defense:1.6,specialAttack:1,specialDefense:2,speed:200,energyReward:200,rewards:{},encounterCode:'W031001'},
+{id:'wishiwashi-school',number:746,spriteNumber:10127,name:'약어리(군집의 모습)',types:['물'],rarity:'common',evolvesFrom:'wishiwashi',maxKillsPerPlanet:1,hp:4800,attack:30,defense:48,specialAttack:30,specialDefense:60,speed:2000,multiStrike:14000,energyReward:4000,rewards:{hp:174,defense:10,multiStrike:60},encounterCode:'W031001-E1'}
 ];
 export const LAKE_POKEMON=Object.freeze(lakeEntries.map(p=>Object.freeze({...p,...resolveStats(p)})));
 // Catalog order is encounter RNG order; display order can be configured independently.
