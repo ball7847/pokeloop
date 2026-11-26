@@ -1,3 +1,4 @@
+import {reconcileSaveProgress} from './saveValidation.js';
 import {migrateEncounterSave} from './encounterSave.js';
 import {initialState,PHASE} from './gameState.js';
 import {ALL_POKEMON,STARTER_IDS,getWildPokemon,EVOLUTIONS,REGION,REGIONS,isRegionUnlocked} from './wildData.js';
@@ -117,8 +118,7 @@ export function decodeSave(encoded){
   if(data.version>=12){
     const history=original.dexLifetimeKills??{};
     if(!history||typeof history!=='object'||Array.isArray(history)||
-      Object.entries(history).some(([id,count])=>!getWildPokemon(id)||!validInteger(count,MAX_COUNTER)||
-        count<(cleanGame.killCounts[id]??0)))throw new Error('도감 누적 처치 기록이 올바르지 않습니다.');
+      Object.entries(history).some(([id,count])=>!getWildPokemon(id)||!validInteger(count,MAX_COUNTER)))throw new Error('도감 누적 처치 기록이 올바르지 않습니다.');
     cleanGame.dexLifetimeKills={...history};
     for(const key of ['itemRunProgress','itemLifetimeProgress']){
       const record=original[key]??{};
@@ -256,6 +256,7 @@ export function decodeSave(encoded){
   cleanGame.uncommonChance=Math.min(1,Math.max(chance,stellarUncommonBonus(cleanGame)));
 
   cleanGame.dexDiscovered=[...new Set(found.map(id=>id==='jigglypuff'?'igglybuff':id))];
+  reconcileSaveProgress(cleanGame);
   if(!isRegionUnlocked(cleanGame,cleanGame.activeRegionId))cleanGame.activeRegionId=REGION.id;
   // Active combat is deliberately not persisted. Resuming requires a new battle.
   cleanGame.phase=original.phase===PHASE.RUNNING?PHASE.RUNNING:original.phase;
