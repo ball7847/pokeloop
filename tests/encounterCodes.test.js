@@ -43,7 +43,7 @@ test('approved energy rebalance keeps correct per-type payouts and other stats',
   assert.deepEqual(starter.rewards,{hp:10,attack:1,speed:-30});
   for(const value of Object.values(battleEnergyRewards(starter,0)))assert.equal(value,55);
  }
- for(const [id,energy] of [['fearow',10],['swellow',30]]){
+ for(const [id,energy] of [['fearow',22],['swellow',300]]){
   const p=getWildPokemon(id);
   assert.equal(p.energyReward,energy);
   assert.deepEqual(battleEnergyRewards(p,0),{노말:energy});

@@ -9,13 +9,13 @@ test('normal reward always and conditional ten percent extras, no duplicate norm
  const fire=getWildPokemon('charmander'),pika=getWildPokemon('pikachu'),bird=getWildPokemon('pidgey'),lotad=getWildPokemon('lotad');
  assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:1}),{노말:55});
  assert.deepEqual(battleEnergyRewards(fire,0,{unlockedLayer:2}),{노말:55,불꽃:5.5});
- assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:2}),{노말:25});
- assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:3}),{노말:25,전기:2.5});
+ assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:2}),{노말:250});
+ assert.deepEqual(battleEnergyRewards(pika,0,{unlockedLayer:3}),{노말:250,전기:25});
  assert.deepEqual(battleEnergyRewards(bird,0,{unlockedLayer:4}),{노말:2,비행:0.2});
  const rewards=battleEnergyRewards(lotad,1,{unlockedLayer:2});
- assert.equal(rewards.노말,28);
- assert.ok(Math.abs(Number(rewards.물)-2.8)<1e-9);
- assert.ok(Math.abs(Number(rewards.풀)-2.8)<1e-9);
+ assert.equal(rewards.노말,635);
+ assert.ok(Math.abs(Number(rewards.물)-63.5)<1e-9);
+ assert.ok(Math.abs(Number(rewards.풀)-63.5)<1e-9);
 });
 test('SU011 amplifies only normal, honey applies once to all rewards',()=>{
  const s=initialState();

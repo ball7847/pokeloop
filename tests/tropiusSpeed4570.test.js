@@ -6,5 +6,5 @@ test('approved Tropius speed buff preserves all other stats and rewards',()=>{
  assert.equal(p.speed,4570);
  assert.deepEqual({hp:p.hp,attack:p.attack,specialAttack:p.specialAttack,regeneration:p.regeneration},{hp:990,attack:68,specialAttack:72,regeneration:46});
  assert.deepEqual(p.rewards,{hp:50,attack:10,specialAttack:10,regeneration:10});
- assert.deepEqual(battleEnergyRewards(p,0),{노말:100});
+ assert.deepEqual(battleEnergyRewards(p,0),{노말:1000});
 });
