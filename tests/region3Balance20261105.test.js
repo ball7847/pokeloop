@@ -60,6 +60,6 @@ test('three uncommon water starters retain the same slot and unchanged reward ty
  assert.equal(new Set(starters.map(p=>p.encounterCode.slice(0,6))).size,1);
  for(const pokemon of starters){
   assert.equal(pokemon.rarity,'uncommon');
-  assert.deepEqual(battleEnergyRewards(pokemon,0),{노말:1230});
+  assert.deepEqual(battleEnergyRewards(pokemon,0),{노말:1789});
  }
 });

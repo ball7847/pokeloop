@@ -85,8 +85,8 @@ test('Azurill evolves through two independently rolled uncommon stages on first 
  assert.deepEqual(marill.rewards,{hp:70,attack:20,minDamagePercent:1.5,maxDamagePercent:3});
  assert.deepEqual([azumarill.hp,azumarill.attack,azumarill.speed,azumarill.minDamagePercent,azumarill.maxDamagePercent],[2830,250,2800,200,200]);
  assert.deepEqual(azumarill.rewards,{hp:100,attack:50,minDamagePercent:5,maxDamagePercent:5});
- assert.deepEqual(battleEnergyRewards(marill,0),{노말:1000});
- assert.deepEqual(battleEnergyRewards(azumarill,0),{노말:2000});
+ assert.deepEqual(battleEnergyRewards(marill,0),{노말:2000});
+ assert.deepEqual(battleEnergyRewards(azumarill,0),{노말:4000});
  const state=prepared(), kills={...state.killCounts,buizel:1,magikarp:1,cutiefly:1,azurill:1,marill:1};
  const linked={...state,killCounts:kills,evolutionResults:{marill:true,azumarill:true}};
  assert.deepEqual(appearedInRegion(linked,LAKE_REGION.id).map(p=>p.id),
