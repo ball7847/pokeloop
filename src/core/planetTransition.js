@@ -2,7 +2,7 @@ import {movePlanet} from './energySystem.js';
 import {collectPendingItems} from './itemSystem.js';
 import {rollEncounterSlots} from './raritySystem.js';
 import {ENCOUNTER_SLOTS,UNCOMMON_BASE_CHANCE} from './wildData.js';
-import {stellarUncommonBonus} from './stellarUpgrades.js';
+import {stellarUncommonBonus,stellarUncommonMultiplier,retainedPlanetAbilities} from './stellarUpgrades.js';
 import {activePlanetEncounterBonuses} from './planetEncounterBonuses.js';
 
 // All preservation and reroll decisions for a planet transition are kept in one
@@ -11,14 +11,14 @@ import {activePlanetEncounterBonuses} from './planetEncounterBonuses.js';
 export function prepareNextPlanet(state,random=Math.random){
  const preserved=movePlanet(state);
  const items=collectPendingItems(state);
- const uncommonChance=Math.min(1,Math.round(((preserved.planetMoves>=1?0.05:UNCOMMON_BASE_CHANCE)+stellarUncommonBonus(preserved))*100)/100);
+ const uncommonChance=Math.min(1,Math.round(((preserved.planetMoves>=1?0.05:UNCOMMON_BASE_CHANCE)+stellarUncommonBonus(preserved))*100)/100*stellarUncommonMultiplier(preserved));
  const raritySlotResults=rollEncounterSlots(ENCOUNTER_SLOTS,{
   chances:{uncommon:uncommonChance},lifetimeKills:state.dexLifetimeKills,
   guaranteed:state.rarityGuarantees??[],banished:state.rarityBanishments??[],
   bonuses:activePlanetEncounterBonuses(preserved.planetMoves+1,state.dexDiscovered,ENCOUNTER_SLOTS),
   special:state.raritySpecialUnlocks??[],random
  });
- return {...preserved,...items,uncommonChance,
+ return {...preserved,...items,...retainedPlanetAbilities(state),uncommonChance,
   uncommonStarterId:raritySlotResults.W010802??null,
   berryRareAppeared:raritySlotResults.W020502==='pikachu',
   raritySlotResults,rarityGuarantees:state.rarityGuarantees??[],

@@ -104,3 +104,34 @@ test('SU014/SU015 costs and maximum levels are enforced',()=>{
  assert.equal(loaded.permanentUpgrades.SU014,3);
  assert.equal(loaded.permanentUpgrades.SU015,4);
 });
+
+
+test('Layer two costs, prerequisites and stat stacking',()=>{
+ const s={...initialState(),phase:'running',stellar:'3e13',permanentUpgrades:{SU013:9}};
+ assert.equal(buyStellarUpgrade(s,'SU042'),s);
+ const eligible={...s,permanentUpgrades:{SU013:10}};
+ assert.equal(buyStellarUpgrade(eligible,'SU042').permanentUpgrades.SU042,1);
+ for(const [id,base,second] of [['SU021',100,500],['SU031',1500,5250],['SU041',1000,3300],['SU032',40000,1600000000]]){
+  assert.equal(stellarUpgradeCost(s,id),base);
+  assert.ok(Math.abs(stellarUpgradeCost({...s,permanentUpgrades:{[id]:1}},id)/second-1)<1e-10);
+ }
+ const scaled={...s,permanentUpgrades:{SU014:1,SU015:1,SU041:2,SU031:2,SU021:3}};
+ const stats=effectiveDittoStats(scaled);
+ assert.ok(Math.abs(stats.hp-10*1.1*1.4)<1e-9);
+ assert.ok(Math.abs(stats.attack-1.08*1.24)<1e-9);
+ assert.equal(stats.regeneration,6);
+ assert.equal(decodeSave(encodeSave(scaled)).game.permanentUpgrades.SU041,2);
+});
+test('Layer two planet transition retains owned abilities in AB order and amplifies next roll',()=>{
+ const s={...initialState(),phase:'running',pendingStellar:1,permanentUpgrades:{SU013:10,SU042:1,SU032:2},
+  qolUnlocks:['download','hunger','intimidate'],pointCirculationUnlocked:true,
+  automation:{...initialState().automation,hunger:false,point:true,download:true,intimidate:true}};
+ const n=transition(s,{type:'MOVE_PLANET',random:()=>.99});
+ assert.ok(Math.abs(n.uncommonChance-.225)<1e-12);
+ assert.deepEqual(n.qolUnlocks,['hunger']);
+ assert.equal(n.pointCirculationUnlocked,true);
+ assert.equal(n.automation.hunger,false);
+ assert.equal(n.automation.point,true);
+ assert.equal(n.automation.download,false);
+ assert.equal(decodeSave(encodeSave(n)).game.pointCirculationUnlocked,true);
+});
