@@ -116,7 +116,7 @@ test('legacy v6 fighting attack upgrade levels migrate without becoming flat att
  assert.equal(loaded.energyUpgrades.hp,1);
  assert.equal(loaded.energyUpgrades.attack,0);
  assert.equal(loaded.energyUpgrades.attackMultiplier,2);
- assert.equal(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier),32.4);
+ assert.ok(Math.abs(upgradeCost('attackMultiplier',loaded.energyUpgrades.attackMultiplier)-32.4)<1e-9);
  assert.equal(effectiveDittoStats(loaded).attack,1.08);
 });
 

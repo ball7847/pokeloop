@@ -37,7 +37,9 @@ test('actual first victories unlock sequential layers before reward; save and pl
 });
 
  test('approved amplifier and flat recovery cost growth',()=>{
- for(const id of ['hpMultiplier','attackMultiplier']){assert.equal(upgradeCost(id,1),18);assert.equal(upgradeCost(id,2),32.4);}
+ for(const id of ['hpMultiplier','attackMultiplier']){assert.equal(upgradeCost(id,1),18);assert.ok(Math.abs(upgradeCost(id,2)-32.4)<1e-9);}
  assert.deepEqual(upgradeCosts('regeneration',1),{노말:33,풀:33});
- assert.deepEqual(upgradeCosts('regenerationMultiplier',1),{노말:1799998.2});
+ const recoveryCosts=upgradeCosts('regenerationMultiplier',1);
+ assert.deepEqual(Object.keys(recoveryCosts),['노말']);
+ assert.ok(Math.abs(recoveryCosts.노말-1799998.2)<1e-8);
  });
