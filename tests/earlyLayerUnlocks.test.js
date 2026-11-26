@@ -24,12 +24,12 @@ test('actual first victories unlock sequential layers before reward; save and pl
  s={...s,activeRegionId:'berry-forest',raritySlotResults:{...s.raritySlotResults,W020502:'pikachu'},killCounts:{...s.killCounts,caterpie:1,weedle:1,taillow:1,igglybuff:1}};
  s=startBattle(s,'pikachu');
  assert.equal(s.combat.active,true);
- assert.deepEqual(s.combat.enemy.energyRewards,{노말:35,전기:3.5});
+ assert.deepEqual(s.combat.enemy.energyRewards,{노말:250,전기:25});
  s=advanceBattle(s,100,()=>0.5);
  assert.equal(s.killCounts.pikachu,1);
  assert.equal(s.unlockedLayer,3);
- assert.equal(s.energyBalances.전기,3.5);
- assert.equal(s.energyBalances.노말,55);
+ assert.equal(s.energyBalances.전기,25);
+ assert.equal(s.energyBalances.노말,270);
  assert.equal(unlockLayerForVictory(s,'pikachu',1),s);
  assert.equal(unlockLayerForVictory(s,'tauros',0),s);
  assert.equal(decodeSave(encodeSave(s)).game.unlockedLayer,3);
