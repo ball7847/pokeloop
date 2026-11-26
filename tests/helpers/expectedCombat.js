@@ -3,7 +3,7 @@ import {effectiveDittoStats} from '../../src/core/shopSystem.js';
 import {getWildPokemon} from '../../src/core/wildData.js';
 
 // An approximation, NOT a combat transition. Never interpreted as an observed win rate.
-const number=value=>{const n=Number(value);return Number.isFinite(n)?n:Number.MAX_VALUE/1000;};
+const number=value=>Number(value??0);
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 // Closed-form average over inclusive integer damage rolls, after defense clipping.
 export function averageDamageChannel(atk,def,min=85,max=100){
@@ -34,71 +34,59 @@ export function expectedStrike(attacker,defender){
 export function expectedCounterActions(strike,defender,remainingHp){
  return remainingHp>0?strike.damagingHits*clamp(number(defender.counter??0)/100,0,1):0;
 }
-function effectivePeriod(attacker,paralysisPerSecond){
- const speed=Math.max(100,number(attacker.speed??3000));
- // A paralysis stack delays the *next* attack 25% of the time.
- // Fixed-point approximation rather than applying a permanent attack cancellation.
- return Math.max(100,speed+Math.max(0,paralysisPerSecond)*speed/1000*0.25);
-}
+// Event-ordered mean-field model. It cannot model survival probabilities;
+// hybrid validates every prediction against the exact engine.
 export function estimateExpectedBattle(state,id,{maxSeconds=300,uncertaintyMargin=0.18}={}){
  const pokemon=getWildPokemon(id);
- if(!pokemon)throw new Error('Unknown Pokémon: '+id);
- const player={...effectiveDittoStats(state)},enemy={...pokemon};
- player.attack=number(player.attack)*(1-Math.min(1,number(pokemon.intimidation??0)*0.001));
- enemy.attack=number(enemy.attack)*(1-Math.min(1,number(player.intimidation??0)*0.001));
- const playerMax=number(player.hp),enemyMax=number(enemy.hp);
- let playerHp=clamp(number(state.combat?.currentHp??playerMax),0,playerMax);
- let enemyHp=enemyMax;
- let playerPoison=number(state.combat?.playerStatus?.poison??0),enemyPoison=0;
- let playerParalysis=number(state.combat?.playerStatus?.paralysis??0),enemyParalysis=0;
- const playerStrike=expectedStrike(player,enemy),enemyStrike=expectedStrike(enemy,player);
- let playerActions=0,enemyActions=0;
- let playerClock=Math.max(0,number(player.speed)),enemyClock=Math.max(0,number(enemy.speed));
- let elapsed=0;
- if(playerHp<=0)return {result:'defeat',seconds:0,playerHp:0,uncertain:false,reason:'no-hp'};
- const totalSeconds=Math.max(1,Math.min(300,Math.floor(maxSeconds)));
- // 1-second expected-value integration: at most 300 steps, NOT 500ms combat ticks.
- for(let i=0;i<totalSeconds;i++){
-   const ps=expectedPeriod(player,enemyStrike.expectedParalysis/Math.max(0.1,number(enemy.speed)/1000));
-   const es=expectedPeriod(enemy,playerStrike.expectedParalysis/Math.max(0.1,number(player.speed)/1000));
-   const playerCount=playerClock<=1000?1+Math.floor((1000-playerClock)/ps):0;
-   const enemyCount=enemyClock<=1000?1+Math.floor((1000-enemyClock)/es):0;
-   playerClock=playerClock-1000+playerCount*ps;
-   enemyClock=enemyClock-1000+enemyCount*es;
-   playerActions+=playerCount;enemyActions+=enemyCount;
-   // Expected combat action damage and status application; both attacks may resolve
-   // within this one-second bucket, hence ties are marked uncertain.
-   const enemyAfter=enemyHp-playerCount*playerStrike.expectedDamage;
-   const playerAfter=playerHp-enemyCount*enemyStrike.expectedDamage;
-   const enemyCounters=playerCount*expectedCounterActions(playerStrike,enemy,enemyAfter);
-   const playerCounters=enemyCount*expectedCounterActions(enemyStrike,player,playerAfter);
-   const pActions=playerCount+playerCounters,eActions=enemyCount+enemyCounters;
-   enemyHp-=pActions*playerStrike.expectedDamage;
-   playerHp-=eActions*enemyStrike.expectedDamage;
-   enemyPoison+=pActions*playerStrike.expectedPoison;
-   playerPoison+=eActions*enemyStrike.expectedPoison;
-   enemyParalysis+=pActions*playerStrike.expectedParalysis;
-   playerParalysis+=eActions*enemyStrike.expectedParalysis;
-   enemyPoison=Math.max(0,enemyPoison-number(enemy.antidote??0));
-   playerPoison=Math.max(0,playerPoison-number(player.antidote??0));
-   enemyHp-=enemyPoison;playerHp-=playerPoison;
-   if(enemyHp>0)enemyHp=Math.min(enemyMax,enemyHp+number(enemy.regeneration??0));
-   if(playerHp>0)playerHp=Math.min(playerMax,playerHp+number(player.regeneration??0));
-   elapsed++;
-   if(enemyHp<=0||playerHp<=0){
-     const both=enemyHp<=0&&playerHp<=0;
-     const gap=Math.abs(playerHp/playerMax-enemyHp/enemyMax);
-     return {result:enemyHp<=0&&!both?'victory':both?'uncertain':'defeat',
-       seconds:elapsed,playerHp:Math.max(0,playerHp),enemyHp:Math.max(0,enemyHp),
-       playerStatus:{poison:playerPoison,paralysis:playerParalysis},
-       uncertain:both||gap<=uncertaintyMargin,reason:both?'simultaneous-expected-ko':gap<=uncertaintyMargin?'close-hp-margin':null,
-       playerActions,enemyActions};
+ if(!pokemon)throw Error('Unknown Pokémon: '+id);
+ const c=state.combat,player={...effectiveDittoStats(state)},enemy={...(c?.enemy?.statistics??pokemon)};
+ const duration=Math.min(300,Math.max(0,maxSeconds))*1000;
+ const unsupported=[player,enemy,c?.playerStatus??{},c?.enemyStatus??{}].some(o=>Object.values(o).some(v=>(typeof v==='number'||typeof v==='string'&&/^\d/.test(v))&&!Number.isFinite(Number(v))));
+ if(unsupported)return {result:'uncertain',seconds:0,uncertain:true,reason:'numeric-range'};
+ player.attack=number(player.attack)*(1-(c?.intimidationDebuffs?.player??Math.min(1,number(enemy.intimidation)*.001)));
+ enemy.attack=number(enemy.attack)*(1-(c?.intimidationDebuffs?.enemy??Math.min(1,number(player.intimidation)*.001)));
+ const make=(stats,hp,status,timer)=>({stats,max:number(stats.hp),hp:number(hp??stats.hp),poison:number(status?.poison),paralysis:number(status?.paralysis),clock:Math.max(0,number(timer?.duration??stats.speed)-number(timer?.elapsed)),actions:0});
+ const p=make(player,c?.currentHp,c?.playerStatus,c?.dittoAttackCooldown),e=make(enemy,c?.enemy?.hp?.current,c?.enemyStatus,c?.enemy?.attackCooldown);
+ let elapsed=0,second=1000-number(c?.regenerationElapsedMs);
+ const stochastic=[p,e].some(x=>number(x.stats.criticalChance)>0||number(x.stats.multiStrike)>0||number(x.stats.counter)>0||number(x.stats.paralysis)>0||x.paralysis>0||x.poison>0||number(x.stats.poison)>0||number(x.stats.regeneration)>0)||hitChance(player,enemy)<1||hitChance(enemy,player)<1;
+ function action(a,b,weight=1,allowCounter=true){
+  const delay=a.paralysis*.25*weight;a.paralysis*=1-.25*weight;
+  const strike=expectedStrike(a.stats,b.stats);
+  // Truncate the mean hit sequence at the first expected lethal hit.
+  const rawMulti=Math.max(0,number(a.stats.multiStrike))/1000;
+  const hits=1+Math.min(1000,Math.floor(rawMulti))+rawMulti%1;
+  const perHit=strike.expectedDamage/hits*weight;
+  for(let left=hits;left>0&&a.hp>0&&b.hp>0;left-=1){
+   const share=Math.min(1,left);
+   b.hp=Math.max(0,b.hp-perHit*share);
+   b.poison+=strike.expectedPoison/hits*weight*share;
+   b.paralysis+=strike.expectedParalysis/hits*weight*share;
+   if(allowCounter&&b.hp>0&&perHit>0){
+    const counter=expectedCounterActions({...strike,damagingHits:strike.damagingHits/hits},b.stats,b.hp)*weight*share;
+    if(counter>0)action(b,a,counter,false);
    }
+  }
+  return delay;
  }
- return {result:'uncertain',seconds:elapsed,playerHp:Math.max(0,playerHp),enemyHp:Math.max(0,enemyHp),
-   playerStatus:{poison:playerPoison,paralysis:playerParalysis},uncertain:true,reason:'expected-time-limit',
-   playerActions,enemyActions};
-}
-function expectedPeriod(attacker,paralysisPerSecond){
- return effectivePeriod(attacker,paralysisPerSecond);
+ const statusTick=x=>{if(x.hp<=0)return;x.poison=Math.max(0,x.poison-number(x.stats.antidote));x.hp=Math.max(0,x.hp-x.poison);if(x.hp>0)x.hp=Math.min(x.max,x.hp+number(x.stats.regeneration));};
+ function finish(result,reason){
+  const margin=result==='victory'?p.hp/p.max:result==='defeat'?e.hp/e.max:0;
+  const uncertain=result==='uncertain'||stochastic||margin<=uncertaintyMargin;
+  return {result,seconds:elapsed/1000,playerHp:p.hp,enemyHp:e.hp,playerStatus:{poison:p.poison,paralysis:p.paralysis},uncertain,reason:reason??(stochastic?'stochastic-mechanics':uncertain?'close-hp-margin':null),playerActions:p.actions,enemyActions:e.actions};
+ }
+ for(let i=0;i<10000&&elapsed<duration;i++){
+  if(p.hp<=0||e.hp<=0)break;
+  const delta=Math.min(duration-elapsed,p.clock,e.clock,second);
+  elapsed+=delta;p.clock-=delta;e.clock-=delta;second-=delta;
+  if(second<=1e-8){statusTick(p);statusTick(e);second=1000;}
+  if(p.hp<=0||e.hp<=0)break;
+  if(p.clock<=1e-8){p.actions++;p.clock=Math.max(100,number(player.speed)+action(p,e));}
+  if(p.hp<=0||e.hp<=0)break;
+  if(e.clock<=1e-8){e.actions++;e.clock=Math.max(100,number(enemy.speed)+action(e,p));}
+  if(![p.hp,e.hp,p.poison,e.poison,p.paralysis,e.paralysis,p.clock,e.clock].every(Number.isFinite))return {result:'uncertain',seconds:elapsed/1000,uncertain:true,reason:'numeric-range'};
+ }
+ if(p.hp<=0&&e.hp<=0)return finish('uncertain','simultaneous-expected-ko');
+ if(p.hp<=0)return finish('defeat');
+ if(e.hp<=0)return finish('victory');
+ return finish('uncertain','expected-time-limit');
 }
