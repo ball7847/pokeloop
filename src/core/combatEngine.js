@@ -2,7 +2,7 @@ import {REGION,getKillLimit,getWildPokemon,isPokemonUnlockedInState,regionForPok
 import {rollDamagePercent, visibleNonDefaultStats} from './dittoStats.js';
 import {grantBattleEnergy,unlockLayerForVictory} from './energySystem.js';
 import {recordItemProgress} from './itemSystem.js';
-import {stellarBattleEnergyReward} from './stellarUpgrades.js';
+import {stellarBattleEnergyReward,stellarDefeatCooldown} from './stellarUpgrades.js';
 import {effectiveDittoStats,grantVictoryAbility} from './shopSystem.js';
 import {addAmount,subtractAmount,multiplyAmount,compareAmount,decimal} from './bigNumber.js';
 import {appendDamageEvents,appendStatusDamageEvent,appendHealingEvent} from './combatVisualEvents.js';
@@ -81,7 +81,7 @@ export function settleBattleOutcome(state,c,type,random=Math.random) {
     }
     return updated;
   }
-  const cooldown=type==='defeat'?10000:type==='flee'?5000:0;
+  const cooldown=type==='defeat'?stellarDefeatCooldown(state):type==='flee'?5000:0;
   return {...state,eventSerial:state.eventSerial+1,recoveryMs:cooldown,
     retryPokemonId:type==='defeat'&&state.automation?.resolve?p.id:null,
     combat:{...c,active:false,enemy:null,lastEvent:{id:state.eventSerial+1,type,pokemonId:p.id,name:p.name}}};

@@ -4,7 +4,7 @@ import {createPortal} from 'react-dom';
 import {useGameStore} from '../../store/useGameStore.js';
 import {LAYERS} from '../../core/energySystem.js';
 import {formatAmount,compareAmount} from '../../core/bigNumber.js';
-import {STELLAR_UPGRADES,stellarUpgradeLevel,stellarUpgradeCost,stellarUpgradeMaxed} from '../../core/stellarUpgrades.js';
+import {STELLAR_UPGRADES,stellarUpgradeLevel,stellarUpgradeCost,stellarUpgradeMaxed,stellarPrerequisiteMet} from '../../core/stellarUpgrades.js';
 
 const SU_TYPE_PALETTE=Object.freeze({
   '노말':['#efefec','#b6b6a8','#66665b'],'풀':['#e6f6dd','#78c850','#386b21'],
@@ -80,7 +80,13 @@ export function OuterStellarWorld(){
     detail?.id==='SU011'?`전투 노말에너지 +${currentLevel*10}%`:
     detail?.id==='SU013'?`안흔한 등장 확률 +${currentLevel}%p`:
     detail?.id==='SU014'?`HP +${currentLevel*10}%`:
-    detail?.id==='SU015'?`공격 +${currentLevel*8}%`:'';
+    detail?.id==='SU015'?`공격 +${currentLevel*8}%`:
+    detail?.id==='SU021'?`회복 +${currentLevel*2}`:
+    detail?.id==='SU022'?`패배 후 쿨타임 -${currentLevel*.5}초`:
+    detail?.id==='SU031'?`공격 +${currentLevel*12}%`:
+    detail?.id==='SU032'?`특성 ${currentLevel}개 유지`:
+    detail?.id==='SU041'?`HP +${currentLevel*20}%`:
+    detail?.id==='SU042'?`안흔한 확률 ×${currentLevel?1.5:1}`:'';
   return <section className="panel energy-outer-panel" role="tabpanel" aria-label="외체계">
     <div className="energy-outer-scroll" role="region" aria-label="외체계 육각형 강화 격자" tabIndex={0}>
       <svg className="energy-outer-honeycomb" viewBox="0 0 800 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="10계층 18타입 243개 육각형 슬롯">
@@ -110,13 +116,14 @@ export function OuterStellarWorld(){
         <button ref={closeButtonRef} type="button" className="energy-su-modal-close" aria-label="닫기" onClick={closeUpgrade}>×</button>
         <small className="energy-su-modal-id">{selected}</small>
         <h3 id="energy-su-modal-title">{detail.name}</h3>
-        <div className="energy-su-modal-field"><span>업그레이드 비용</span><strong>{maxed?'최대 레벨':`SE ${formatAmount(nextCost)}`}</strong></div>
+        <div className="energy-su-modal-field"><span>업그레이드 비용</span><strong>{maxed?'최대 레벨':nextCost===null?'표현 범위 초과':`SE ${formatAmount(nextCost)}`}</strong></div>
         <div className="energy-su-modal-field"><span>업그레이드 효과</span><strong id="energy-su-modal-effect">{detail.description} · 현재 {effectText}</strong></div>
-        <small>보유 SE {formatAmount(game.stellar??0)} · 레벨 {currentLevel}/{detail.maxLevel} · {detail.levelCosts?'레벨별 고정 비용 1 / 300 / 1,000 SE':`비용 레벨당 ×${detail.costGrowth}`}</small>
+        <small>보유 SE {formatAmount(game.stellar??0)} · 레벨 {currentLevel}/{detail.maxLevel} · {detail.levelCosts?'레벨별 고정 비용 1 / 300 / 1,000 SE':detail.costPower?`직전 비용 ^${detail.costPower}`:`비용 레벨당 ×${detail.costGrowth}`}</small>
+        {detail.requires&&<small>선행 조건: 안흔한 증가 Lv.10 (현재 Lv.{stellarUpgradeLevel(game,detail.requires.id)})</small>}
         <button type="button" className="energy-su-modal-buy"
-          disabled={maxed||nextCost===null||compareAmount(game.stellar??0,nextCost)<0||game.phase!=='running'}
+          disabled={maxed||!stellarPrerequisiteMet(game,selected)||nextCost===null||compareAmount(game.stellar??0,nextCost)<0||game.phase!=='running'}
           onClick={()=>dispatch({type:'BUY_STELLAR_UPGRADE',id:selected})}>
-          {maxed?'최대 레벨':'SE '+formatAmount(nextCost)+' 구매'}
+          {maxed?'최대 레벨':!stellarPrerequisiteMet(game,selected)?'선행 조건 미충족':nextCost===null?'구매 불가':'SE '+formatAmount(nextCost)+' 구매'}
         </button>
       </section>
     </div>,document.body)}
